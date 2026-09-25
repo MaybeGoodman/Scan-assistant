@@ -1,1 +1,70 @@
-# Scan-assistant
+# 图片印刷体提取 · Scan Assistant
+
+<img src="plugins/image-print-extractor/assets/logo.png" width="160" alt="插件图标">
+
+面向教材、试题、讲义和扫描图片的 Codex 插件。保留印刷内容，忽略手写及页眉页脚，输出 Markdown、LaTeX、可编辑 HTML 表格和 PNG 插图。
+
+## 安装
+
+在已安装 Codex CLI 的终端运行：
+
+```sh
+codex plugin marketplace add MaybeGoodman/Scan-assistant
+```
+
+私有仓库需要当前 Git 环境具备读取权限。重启桌面应用，在插件目录选择 **Scan Assistant** 来源，找到“图片印刷体提取”并安装，然后在新任务中使用。
+
+上传图片后输入：
+
+```text
+使用 $image-print-extractor 提取这张图片的印刷内容，忽略手写。
+```
+
+也可直接请求“提取图片中的印刷体”；宿主支持自动技能选择时会匹配本技能。
+
+## 行为
+
+- 所有印刷内容默认保留，不按答案、解析、注释分类删除；手写及无关页眉页脚排除。
+- 不解题、不改写；局部内容只能在可靠时恢复，否则用 `XXX`；真实空白保持空白。
+- 中文自然语言使用全角标点，数学/英文/代码保持语法；公式用 `$...$` 或 `$$...$$`。
+- 双栏先左后右；不额外添加标题、粗体或说明；图文表按原位置排列。
+- 表格输出真实 HTML 单元格和合并关系；浏览器复制或 Word 打开 HTML 后可编辑，公式保留 LaTeX 源码。
+- 插图提取为实际 PNG；图内手写须由宿主可用图像工具处理并复核，无法可靠恢复时说明缺项。
+
+## 运行条件与边界
+
+一个核心 Skill 负责视觉识别和决策；本地脚本负责确定性导出，不是独立 OCR 引擎。基础转录需要支持图像输入的模型；文件导出需要 Python 3.10+ 和文件执行能力，像素裁剪另需 Pillow。HTML 导出仅用 Python 标准库，无外部 API、MCP、登录或网络服务依赖；安装插件不会自动安装 Python 包。
+
+HTML 是完整图文表结果；Markdown 在表格原位链接 HTML 表格。聊天窗口不支持富表格时不能保证直接复制为 Word 表格，需打开生成的 HTML。PNG 与 HTML 同目录分发，移动时保留 `figures/`。脚本不自动清除手写，识别质量依赖原图及宿主模型。
+
+## 仓库结构
+
+```text
+.agents/plugins/marketplace.json
+plugins/image-print-extractor/
+  plugin.json
+  .codex-plugin/plugin.json
+  assets/
+  skills/image-print-extractor/
+    SKILL.md
+    agents/openai.yaml
+    references/
+    scripts/
+    assets/
+tests/
+scripts/validate.py
+```
+
+采用根目录 Agent Plugins 清单及 OpenAI 扩展，并保留 Codex 兼容清单。依据 2026-09-25 核对的 [OpenAI 插件打包文档](https://developers.openai.com/plugins/build/plugins)。GitHub 仓库分发不等于在官方公共插件目录上架。
+
+## 开发验证
+
+```sh
+python -m pip install -r requirements-dev.txt
+python scripts/validate.py
+python -m unittest discover -s tests -v
+```
+
+测试覆盖 HTML 转义、合并单元格、空白、图文顺序、PNG、路径限制和不覆盖已有输出。识别行为人工验收见 [验收清单](docs/acceptance.md)，自动化测试不代表 OCR 准确率保证。
+
+图标与 Logo 由仓库所有者提供，原文件直接复制。未替所有者指定开源许可证。
