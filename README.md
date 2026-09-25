@@ -2,7 +2,7 @@
 
 <img src="plugins/image-print-extractor/assets/logo.png" width="160" alt="插件图标">
 
-面向教材、试题、讲义和扫描图片的 Codex 插件。保留印刷内容，忽略手写及页眉页脚，输出 Markdown、LaTeX、可编辑 HTML 表格和 PNG 插图。
+面向教材、试题、讲义、扫描图片和 PDF 的 Codex 插件。保留印刷内容，忽略手写、无关水印和杂文字，输出 Markdown、LaTeX、表格及插图；PDF 经用户确认后整理为可编辑 Word 文档。
 
 ## 安装
 
@@ -22,6 +22,12 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 也可直接请求“提取图片中的印刷体”；宿主支持自动技能选择时会匹配本技能。
 
+上传 PDF 后，可直接说“提取印刷体、去掉无关水印，整理成 Word”。如果只说“整理这份 PDF”，插件会先询问是否生成 Word；已明确需要时不会重复询问。明确不需要 Word 则直接输出提取内容。
+
+## 更新
+
+已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.2.0`，见 [更新记录](CHANGELOG.md)。
+
 ## 行为
 
 - 所有印刷内容默认保留，不按答案、解析、注释分类删除；手写及无关页眉页脚排除。
@@ -30,10 +36,14 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 - 双栏先左后右；不额外添加标题、粗体或说明；图文表按原位置排列。
 - 表格输出真实 HTML 单元格和合并关系；浏览器复制或 Word 打开 HTML 后可编辑，公式保留 LaTeX 源码。
 - 插图提取为实际 PNG；图内手写须由宿主可用图像工具处理并复核，无法可靠恢复时说明缺项。
+- PDF 逐页处理，确认需要 Word 后生成实际 `.docx`，正文和表格可编辑，PNG 插图嵌入。
+- 去掉确定无关的水印、推广字样等，恢复可靠的断行和跨页续句；不为通顺而改写事实，相关脚注、图注、来源说明仍保留。
 
 ## 运行条件与边界
 
 一个核心 Skill 负责视觉识别和决策；本地脚本负责确定性导出，不是独立 OCR 引擎。基础转录需要支持图像输入的模型；文件导出需要 Python 3.10+ 和文件执行能力，像素裁剪另需 Pillow。HTML 导出仅用 Python 标准库，无外部 API、MCP、登录或网络服务依赖；安装插件不会自动安装 Python 包。
+
+PDF 准备脚本使用 `pypdfium2` 和 Pillow，Word 导出使用 `python-docx` 和 Pillow。按需安装技能目录 `requirements.txt` 中的依赖。文本层只作为候选，扫描页由模型看图识别；水印和杂文字是否相关也由模型结合版面与语义判断，脚本不会按关键词批量删文。Word 中公式保持可编辑 LaTeX 字符串，并非原生 Word 公式。
 
 HTML 是完整图文表结果；Markdown 在表格原位链接 HTML 表格。聊天窗口不支持富表格时不能保证直接复制为 Word 表格，需打开生成的 HTML。PNG 与 HTML 同目录分发，移动时保留 `figures/`。脚本不自动清除手写，识别质量依赖原图及宿主模型。
 

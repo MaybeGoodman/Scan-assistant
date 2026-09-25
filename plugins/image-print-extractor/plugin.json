@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "image-print-extractor",
-  "version": "0.1.0",
-  "description": "提取图片印刷体，忽略手写，保留 LaTeX、真实表格及 PNG 插图。",
+  "version": "0.2.0",
+  "description": "提取图片和 PDF 印刷体，清除无关水印，确认后输出可编辑 Word。",
   "author": {
     "name": "MaybeGoodman"
   },
@@ -18,8 +18,8 @@
     "com.openai": {
       "interface": {
         "displayName": "图片印刷体提取",
-        "shortDescription": "忽略手写，提取印刷内容、公式、表格和插图",
-        "longDescription": "从教材、试题、讲义和扫描图片中提取印刷内容，排除手写及页眉页脚，规范中文标点和 LaTeX，按原顺序输出文字、可编辑 HTML 表格及 PNG 插图。",
+        "shortDescription": "图片与 PDF 印刷体提取，去除无关水印，可输出 Word",
+        "longDescription": "从图片或 PDF 提取印刷内容，排除手写、页眉页脚及确定无关的水印与杂文字，保留公式、表格和插图。PDF 输入先明确输出格式，确认后整理为可编辑 Word 文档，接回可靠的断行和跨页续句。",
         "developerName": "MaybeGoodman",
         "category": "Productivity",
         "capabilities": [
@@ -27,7 +27,8 @@
           "Write"
         ],
         "defaultPrompt": [
-          "提取图片中的印刷内容，忽略手写，保留公式、表格和插图。"
+          "提取图片中的印刷内容，忽略手写，保留公式、表格和插图。",
+          "把 PDF 的印刷内容整理成 Word，去除无关水印和杂文字。"
         ],
         "brandColor": "#F4B875",
         "composerIcon": "./assets/icon.png",
