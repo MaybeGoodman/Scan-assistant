@@ -7,9 +7,60 @@ from docx.shared import Cm, Pt
 from docx.oxml.ns import qn
 from PIL import Image
 from export_page import image_source, table_html
+from content_blocks import parts, check_word_text
+from formulas import FormulaError, to_omml, validate_latex, node
 
 
-def export_docx(source, output, *, word_confirmed=False):
+def add_expression(paragraph, expression, records, location, *, display=False, source_location=None):
+    kind = expression['type']
+    latex = expression.get('latex')
+    if not isinstance(latex, str):
+        raise ValueError('latex must be a string')
+    status = expression.get('status', 'recognized')
+    if status not in {'recognized', 'unresolved'}:
+        raise ValueError('Expression status must be recognized or unresolved')
+    repairs = expression.get('repairs', [])
+    if not isinstance(repairs, list):
+        raise ValueError('repairs must be a list of source restoration records')
+    record = {'location': location, 'source': expression.get('source', source_location),
+              'type': kind, 'latex': latex, 'display': display, 'repairs': repairs}
+    if 'id' in expression:
+        record['id'] = expression['id']
+    if 'confidence' in expression:
+        record['confidence'] = expression['confidence']
+    try:
+        if status == 'unresolved':
+            raise FormulaError(expression.get('reason', 'Expression could not be reliably recognized'))
+        if kind == 'math':
+            formula = to_omml(latex, display=display)
+            if display:
+                wrapper = node('oMathPara', node('oMathParaPr', node('jc', val='center')), formula)
+                paragraph._p.append(wrapper)
+            else:
+                paragraph._p.append(formula)
+        elif kind == 'chemistry':
+            validate_latex(latex, chemistry=True)
+            paragraph.add_run(latex)  # Literal text; never feed chemistry to the math converter.
+        else:
+            raise ValueError('Unknown expression type: ' + kind)
+        record['status'] = 'needs_review' if 'XXX' in latex or repairs else 'converted' if kind == 'math' else 'preserved'
+    except FormulaError as exc:
+        paragraph.add_run('XXX')
+        record.update(status='needs_review', reason=str(exc))
+    records.append(record)
+
+
+def add_content(paragraph, item, records, location, source_location=None):
+    for index, part in enumerate(parts(item)):
+        if part['type'] == 'text':
+            check_word_text(part['text'])
+            paragraph.add_run(part['text'])
+        else:
+            add_expression(paragraph, part, records, f'{location}.runs[{index}]',
+                           source_location=item.get('source', source_location))
+
+
+def export_docx(source, output, *, word_confirmed=False, report_path=None):
     if word_confirmed is not True:
         raise ValueError('Confirm Word output with the user first')
     source, output = Path(source).resolve(), Path(output).resolve()
@@ -17,6 +68,11 @@ def export_docx(source, output, *, word_confirmed=False):
         raise ValueError('Output must end in .docx')
     if output.exists():
         raise FileExistsError(output)
+    report_path = Path(report_path).resolve() if report_path else output.with_suffix('.review.json')
+    if report_path in {source, output} or report_path.suffix.lower() != '.json':
+        raise ValueError('Review report must be a separate JSON file')
+    if report_path.exists():
+        raise FileExistsError(report_path)
     blocks = json.loads(source.read_text(encoding='utf-8'))['blocks']
     if not isinstance(blocks, list):
         raise ValueError('blocks must be a list')
@@ -33,12 +89,14 @@ def export_docx(source, output, *, word_confirmed=False):
     style.paragraph_format.line_spacing = 1.2
     max_width = int(section.page_width - section.left_margin - section.right_margin)
     max_height = int(section.page_height - section.top_margin - section.bottom_margin - Cm(1))
-    for block in blocks:
+    records = []
+    for block_index, block in enumerate(blocks):
+        location = f'blocks[{block_index}]'
         kind = block['type']
         if kind == 'text':
-            if not isinstance(block['text'], str):
-                raise ValueError('Text must be a string')
-            document.add_paragraph(block['text'])
+            add_content(document.add_paragraph(), block, records, location)
+        elif kind in {'math', 'chemistry'}:
+            add_expression(document.add_paragraph(), block, records, location, display=True)
         elif kind == 'table':
             table_html(block)  # Shared grid validation, including blank and merged cells.
             table = document.add_table(rows=block['rows'], cols=block['cols'])
@@ -46,13 +104,15 @@ def export_docx(source, output, *, word_confirmed=False):
             table.autofit = False
             for column in table.columns:
                 column.width = int(max_width / block['cols'])
-            for item in block['cells']:
+            for cell_index, item in enumerate(block['cells']):
                 r, c = item['row'], item['col']
                 rs, cs = item.get('rowspan', 1), item.get('colspan', 1)
                 cell = table.cell(r, c)
                 if rs > 1 or cs > 1:
                     cell = cell.merge(table.cell(r + rs - 1, c + cs - 1))
-                cell.text = item['text']
+                cell.text = ''
+                add_content(cell.paragraphs[0], item, records, f'{location}.cells[{cell_index}]',
+                            block.get('source'))
         elif kind == 'image':
             image = image_source(source.parent, block['path'])
             with Image.open(image) as pixels:
@@ -71,9 +131,22 @@ def export_docx(source, output, *, word_confirmed=False):
     document.core_properties.last_modified_by = ''
     document.core_properties.comments = ''
     output.parent.mkdir(parents=True, exist_ok=True)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report = {'schema_version': 1, 'source_file': str(source), 'expressions': records,
+              'needs_review': sum(record['status'] == 'needs_review' for record in records)}
     # Exclusive creation prevents accidental replacement if another process wrote meanwhile.
-    with output.open('xb') as stream:
-        document.save(stream)
+    created = []
+    try:
+        with report_path.open('x', encoding='utf-8') as stream:
+            created.append(report_path)
+            json.dump(report, stream, ensure_ascii=False, indent=2)
+        with output.open('xb') as stream:
+            created.append(output)
+            document.save(stream)
+    except Exception:
+        for path in created:
+            path.unlink(missing_ok=True)
+        raise
     return output
 
 
@@ -83,5 +156,6 @@ if __name__ == '__main__':
     parser.add_argument('--output', required=True)
     parser.add_argument('--word-confirmed', action='store_true',
                         help='Use only after the user explicitly chose Word')
+    parser.add_argument('--report', help='Internal review JSON (default: output.review.json)')
     args = parser.parse_args()
-    print(export_docx(args.source, args.output, word_confirmed=args.word_confirmed))
+    print(export_docx(args.source, args.output, word_confirmed=args.word_confirmed, report_path=args.report))

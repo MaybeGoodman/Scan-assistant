@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "image-print-extractor",
-  "version": "0.2.0",
-  "description": "提取图片和 PDF 印刷体，清除无关水印，确认后输出可编辑 Word。",
+  "version": "0.3.0",
+  "description": "提取图片和 PDF 印刷体，数学公式转原生 Word 公式，化学表达式保留 LaTeX 源码。",
   "author": {
     "name": "MaybeGoodman"
   },
@@ -18,8 +18,8 @@
     "com.openai": {
       "interface": {
         "displayName": "图片印刷体提取",
-        "shortDescription": "图片与 PDF 印刷体提取，去除无关水印，可输出 Word",
-        "longDescription": "从图片或 PDF 提取印刷内容，排除手写、页眉页脚及确定无关的水印与杂文字，保留公式、表格和插图。PDF 输入先明确输出格式，确认后整理为可编辑 Word 文档，接回可靠的断行和跨页续句。",
+        "shortDescription": "扫描内容转 Word：数学原生公式，化学保留 LaTeX",
+        "longDescription": "从图片或 PDF 提取印刷内容，排除手写及确定无关的水印，保留表格、插图和上下文。确认 Word 输出后，数学表达式经兼容 LaTeX 转为原生可编辑 OMML，化学表达式保留规范 LaTeX 源码；不自动配平或纠错，无法判定的内容标记 XXX。",
         "developerName": "MaybeGoodman",
         "category": "Productivity",
         "capabilities": [

@@ -2,15 +2,15 @@
 
 ## 表格
 
-保留行列、空白格、多级表头、跨行跨列及内容位置。只含手写的格清空但格保留；确有无法辨认的印刷内容才填 `XXX`。公式仍用 LaTeX。
+保留行列、空白格、多级表头、跨行跨列及内容位置。只含手写的格清空但格保留；确有无法辨认的印刷内容才填 `XXX`。表达式按 [数学与化学规则](formulas.md) 分类；Word 表格内数学转 OMML，化学保留 LaTeX 源码。
 
 不要输出管道形式的 Markdown 表格源码、截图表格或用空格排出的伪表格。宿主支持可编辑富表格时直接呈现；否则使用随附 `scripts/export_page.py` 生成 HTML 文件，打开或预览渲染结果，并提供简短文件链接。浏览器中的 HTML 表格可以选择并复制到 Word，或用 Word 打开 HTML；具体剪贴板行为由宿主决定，不承诺任意聊天窗口都能直接粘贴为表格。合并单元格用真实 `rowspan`、`colspan`。
 
-将识别结果写成 UTF-8 JSON。`blocks` 按阅读顺序排列，文本保留 Markdown 中的 LaTeX 字符串；JSON 反斜杠写作 `\\`。例如：
+将识别结果写成 UTF-8 JSON。`blocks` 按阅读顺序排列。纯文字用 `text`；包含行内表达式时改用有类型的 `runs`，独立公式使用 `math` 或 `chemistry` 块；详见 [表达式接口](formulas.md)。JSON 反斜杠写作 `\\`。例如：
 
 ```json
 {"blocks":[
-  {"type":"text","text":"已知 $a>0$，填写下表。"},
+  {"type":"text","runs":[{"type":"text","text":"已知 "},{"type":"math","latex":"a>0"},{"type":"text","text":"，填写下表。"}]},
   {"type":"table","rows":2,"cols":2,"cells":[
     {"row":0,"col":0,"text":"项目"},
     {"row":0,"col":1,"text":"数值"},

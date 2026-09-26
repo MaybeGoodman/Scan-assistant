@@ -1,6 +1,6 @@
 interface:
   display_name: "图片印刷体提取"
-  short_description: "提取图片和 PDF 印刷内容，去除无关水印，确认后整理为 Word"
+  short_description: "扫描内容整理为 Word，数学转原生公式，化学保留 LaTeX 源码"
   icon_small: "./assets/icon.png"
   icon_large: "./assets/logo.png"
   brand_color: "#F4B875"

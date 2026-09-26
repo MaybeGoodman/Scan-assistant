@@ -29,15 +29,17 @@ python <skill-dir>/scripts/prepare_pdf.py input.pdf --output-dir work/pdf-pages
 
 ## 生成实际 Word
 
-先把已复核、已去干扰的结果整理为 [富内容输出](rich-output.md) 中的 `blocks` JSON；合并跨页续句在此阶段完成，导出器不自动猜测或删字。每个 `text` 块对应一个段落；其内换行保留为段内换行。表格用完整单元格及合并跨度，插图用确认干净的 PNG。依次放置文本、图、图注和表格。
+先把已复核、已去干扰的结果整理为 [富内容输出](rich-output.md) 中的 `blocks` JSON；含表达式时同时按 [表达式接口](formulas.md) 分类为数学或化学，使用 `runs` 或独立表达式块。合并跨页续句在此阶段完成，导出器不自动猜测或删字。每个 `text` 块对应一个段落；其内换行保留为段内换行。表格用完整单元格及合并跨度，插图用确认干净的 PNG。依次放置文本、公式、图、图注和表格。
 
 确认用户需要 Word 后执行：
 
 ```text
-python <skill-dir>/scripts/export_docx.py reviewed.json --output result.docx --word-confirmed
+python <skill-dir>/scripts/export_docx.py reviewed.json --output result.docx --report work/result.review.json --word-confirmed
 ```
 
-`--word-confirmed` 只用于记录已得到的用户选择，不得替代真实确认。导出器需要 `python-docx`、Pillow；保留可编辑文字、原生 Word 表格及嵌入图片，不用整页扫描图代替正文。公式沿用原需求保留标准 LaTeX 字符串，可编辑但不宣称已转 Word 原生公式。
+`--word-confirmed` 只用于记录已得到的用户选择，不得替代真实确认。导出器需要 `python-docx`、Pillow、`lxml`；数学转换另需 `latex2mathml`。保留可编辑文字、原生 Word 表格及嵌入图片，不用整页扫描图代替正文。数学公式经 LaTeX 转换为原生可编辑 OMML，化学表达式保留 LaTeX 源码文本。二者均不能用图片替代。
+
+导出后读取复核 JSON；语法/转换失败、识别不确定或有补充记录的项目必须回看原图。转换失败位置为 `XXX`，原始源码只留在内部记录。依赖缺失或输入结构错误会阻止导出，应解决具体问题，不能声称已完成。`--report` 未指定时报告与 Word 同名，扩展名为 `.review.json`；两个文件均禁止覆盖已有文件。
 
 默认单栏、清楚的中文字体与适当页边距，不逐页强制复制原 PDF 分页，不添加封面、目录、总结或源文件不存在的标题。必要的分页按阅读与表格完整性调整。用户要求具体模板时优先遵循。
 

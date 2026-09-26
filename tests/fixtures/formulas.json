@@ -1,0 +1,33 @@
+{
+  "blocks": [
+    {"type": "text", "text": "公式导出验收样例"},
+    {"type": "text", "runs": [
+      {"type": "text", "text": "行内混排：变量 "},
+      {"type": "math", "latex": "x_1^2"},
+      {"type": "text", "text": "，函数与单位 "},
+      {"type": "math", "latex": "\\sin x+3\\,\\mathrm{kg}"},
+      {"type": "text", "text": "，化学源码 "},
+      {"type": "chemistry", "latex": "\\mathrm{SO_4^{2-}}"}
+    ]},
+    {"type": "math", "latex": "\\frac{x_i^2+1}{\\sqrt[3]{1+\\frac{a}{b}}}"},
+    {"type": "math", "latex": "\\vec{v}+\\overline{AB}+\\left|\\frac{x}{y}\\right|"},
+    {"type": "math", "latex": "\\sum_{i=1}^{n}i+\\int_0^1 x\\,\\mathrm{d}x"},
+    {"type": "math", "latex": "\\lim_{x\\to0}\\frac{\\sin x}{x}=1"},
+    {"type": "math", "latex": "A=\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}"},
+    {"type": "math", "latex": "f(x)=\\begin{cases}x^2&x>0\\\\0&x\\leq0\\end{cases}"},
+    {"type": "math", "latex": "\\begin{aligned}a&=b+c\\\\&=d\\end{aligned}"},
+    {"type": "math", "latex": "\\text{当 }t=0\\text{ 时，}\\quad v=3\\,\\mathrm{m/s}"},
+    {"type": "text", "text": "化学源码（未配平内容照录）："},
+    {"type": "chemistry", "latex": "\\mathrm{H_2}+\\mathrm{O_2}\\rightarrow\\mathrm{H_2O}"},
+    {"type": "chemistry", "latex": "\\mathrm{CuSO_4}\\cdot 5\\mathrm{H_2O}"},
+    {"type": "chemistry", "latex": "\\mathrm{H_2}\\xrightarrow{\\text{点燃}}\\mathrm{H_2O}"},
+    {"type": "table", "rows": 2, "cols": 2, "cells": [
+      {"row": 0, "col": 0, "text": "数学原生公式"},
+      {"row": 0, "col": 1, "text": "化学 LaTeX 源码"},
+      {"row": 1, "col": 0, "runs": [{"type": "math", "latex": "\\sqrt{x^2+1}"}]},
+      {"row": 1, "col": 1, "runs": [{"type": "chemistry", "latex": "\\mathrm{Fe^{3+}}"}]}
+    ]},
+    {"type": "text", "text": "局部不确定内容保留结构："},
+    {"type": "math", "latex": "\\frac{\\text{XXX}}{y}", "source": {"page": 1, "bbox": [20, 500, 100, 550]}}
+  ]
+}

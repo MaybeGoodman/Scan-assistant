@@ -1,11 +1,13 @@
 import importlib.util
 import json
 import tempfile
+import sys
 import unittest
 from pathlib import Path
 from PIL import Image
 
 scripts = Path(__file__).resolve().parents[1] / 'plugins/image-print-extractor/skills/image-print-extractor/scripts'
+sys.path.insert(0, str(scripts))
 def load(name):
     spec = importlib.util.spec_from_file_location(name, scripts / (name + '.py'))
     module = importlib.util.module_from_spec(spec)
