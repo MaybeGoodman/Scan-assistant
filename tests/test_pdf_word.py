@@ -25,20 +25,21 @@ class PdfWordTests(unittest.TestCase):
             Image.new('RGB', (300, 100), 'white').save(root / 'figure.png')
             source = root / 'reviewed.json'
             blocks = [
-                {'type':'text', 'text':'跨页续句已接回，公式 $x^2+1$ 保留。'},
+                {'type':'text', 'runs':[{'type':'text','text':'跨页续句已接回，公式 '},
+                    {'type':'math','latex':'x^2+1'}, {'type':'text','text':' 保留。'}]},
                 {'type':'table', 'rows':3, 'cols':3, 'cells':[
                     {'row':0, 'col':0, 'rowspan':2, 'colspan':2, 'text':'合并表头'},
                     {'row':0, 'col':2, 'text':'数值'},
                     {'row':1, 'col':2, 'text':''},
                     {'row':2, 'col':0, 'text':'A'},
                     {'row':2, 'col':1, 'text':'XXX'},
-                    {'row':2, 'col':2, 'text':'$a>0$'}]},
+                    {'row':2, 'col':2, 'runs':[{'type':'math','latex':'a>0'}]}]},
                 {'type':'image', 'path':'figure.png', 'alt':'印刷插图'},
                 {'type':'text', 'text':'与正文相关的来源说明保留。'}]
             source.write_text(json.dumps({'blocks':blocks}), encoding='utf-8')
             target = export_docx(source, root / 'result.docx', word_confirmed=True)
             doc = Document(target)
-            self.assertEqual(doc.paragraphs[0].text, blocks[0]['text'])
+            self.assertEqual(doc.paragraphs[0].text, '跨页续句已接回，公式  保留。')
             self.assertEqual(doc.paragraphs[-1].text, blocks[-1]['text'])
             table = doc.tables[0]
             self.assertEqual(table.cell(0, 0).text, '合并表头')
@@ -52,6 +53,8 @@ class PdfWordTests(unittest.TestCase):
                 xml = z.read('word/document.xml').decode('utf-8')
                 self.assertIn('w:gridSpan', xml)
                 self.assertIn('w:vMerge', xml)
+                self.assertIn('m:oMath', xml)
+                self.assertNotIn('$x^2+1$', xml)
             with self.assertRaises(FileExistsError):
                 export_docx(source, target, word_confirmed=True)
 

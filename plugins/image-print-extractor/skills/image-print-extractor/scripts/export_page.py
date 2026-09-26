@@ -5,6 +5,7 @@ import json
 import shutil
 import struct
 from pathlib import Path
+from content_blocks import plain_source
 
 
 def escape(text):
@@ -30,7 +31,7 @@ def table_html(block):
         if occupied & area:
             raise ValueError('Overlapping cells')
         occupied.update(area)
-        starts[r, c] = f'<td rowspan="{rs}" colspan="{cs}">{escape(cell["text"])}</td>'
+        starts[r, c] = f'<td rowspan="{rs}" colspan="{cs}">{escape(plain_source(cell))}</td>'
     if len(occupied) != rows * cols:
         raise ValueError('Every cell, including blanks, must be explicit')
     return '<table border="1" cellspacing="0" cellpadding="6">' + ''.join(
@@ -63,8 +64,16 @@ def export(source, output):
     for index, block in enumerate(blocks, 1):
         kind = block['type']
         if kind == 'text':
-            fragments.append('<p>' + escape(block['text']) + '</p>')
-            markdown.append(block['text'])
+            text = plain_source(block)
+            fragments.append('<p>' + escape(text) + '</p>')
+            markdown.append(text)
+        elif kind in {'math', 'chemistry'}:
+            latex = block.get('latex')
+            if not isinstance(latex, str):
+                raise ValueError('latex must be a string')
+            text = '$$' + latex + '$$' if kind == 'math' else latex
+            fragments.append('<p>' + escape(text) + '</p>')
+            markdown.append(text)
         elif kind == 'table':
             fragments.append(f'<div id="table-{index}">' + table_html(block) + '</div>')
             markdown.append(f'[表格](result.html#table-{index})')
