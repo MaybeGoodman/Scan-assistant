@@ -1,7 +1,7 @@
 {
   "name": "image-print-extractor",
-  "version": "0.3.0",
-  "description": "提取图片和 PDF 印刷体，数学公式转原生 Word 公式，化学表达式保留 LaTeX 源码。",
+  "version": "0.3.1",
+  "description": "提取图片和 PDF 印刷体，数学公式转原生 Word 公式，所有输出中的化学表达式统一为标准 LaTeX 源码。",
   "author": {
     "name": "MaybeGoodman"
   },

@@ -1,5 +1,6 @@
 """Shared typed paragraph content for DOCX and offline HTML exports."""
 import re
+from latex_validation import validate_latex
 
 
 def parts(item):
@@ -19,9 +20,13 @@ def parts(item):
     return values
 
 
-def plain_source(item):
+def plain_source(item, *, validate_chemistry=False, markdown=False):
+    if validate_chemistry:
+        for part in parts(item):
+            if part['type'] == 'chemistry':
+                validate_latex(part['latex'], chemistry=True)
     return ''.join(part['text'] if part['type'] == 'text' else
-                   ('$' + part['latex'] + '$' if part['type'] == 'math' else part['latex'])
+                   ('$' + part['latex'] + '$' if part['type'] == 'math' else ('`' + part['latex'] + '`' if markdown else part['latex']))
                    for part in parts(item))
 
 

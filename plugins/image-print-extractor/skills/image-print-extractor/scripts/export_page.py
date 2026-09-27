@@ -6,6 +6,7 @@ import shutil
 import struct
 from pathlib import Path
 from content_blocks import plain_source
+from latex_validation import validate_latex
 
 
 def escape(text):
@@ -14,7 +15,7 @@ def escape(text):
     return html.escape(text).replace('\n', '<br>')
 
 
-def table_html(block):
+def table_html(block, *, validate_chemistry=False):
     rows, cols = block['rows'], block['cols']
     if any(type(v) is not int or not 1 <= v <= 1000 for v in (rows, cols)):
         raise ValueError('Invalid table dimensions')
@@ -31,7 +32,7 @@ def table_html(block):
         if occupied & area:
             raise ValueError('Overlapping cells')
         occupied.update(area)
-        starts[r, c] = f'<td rowspan="{rs}" colspan="{cs}">{escape(plain_source(cell))}</td>'
+        starts[r, c] = f'<td rowspan="{rs}" colspan="{cs}">{escape(plain_source(cell, validate_chemistry=validate_chemistry))}</td>'
     if len(occupied) != rows * cols:
         raise ValueError('Every cell, including blanks, must be explicit')
     return '<table border="1" cellspacing="0" cellpadding="6">' + ''.join(
@@ -64,18 +65,20 @@ def export(source, output):
     for index, block in enumerate(blocks, 1):
         kind = block['type']
         if kind == 'text':
-            text = plain_source(block)
+            text = plain_source(block, validate_chemistry=True)
             fragments.append('<p>' + escape(text) + '</p>')
-            markdown.append(text)
+            markdown.append(plain_source(block, validate_chemistry=True, markdown=True))
         elif kind in {'math', 'chemistry'}:
             latex = block.get('latex')
             if not isinstance(latex, str):
                 raise ValueError('latex must be a string')
+            if kind == 'chemistry':
+                validate_latex(latex, chemistry=True)
             text = '$$' + latex + '$$' if kind == 'math' else latex
             fragments.append('<p>' + escape(text) + '</p>')
-            markdown.append(text)
+            markdown.append('```latex\n' + latex + '\n```' if kind == 'chemistry' else text)
         elif kind == 'table':
-            fragments.append(f'<div id="table-{index}">' + table_html(block) + '</div>')
+            fragments.append(f'<div id="table-{index}">' + table_html(block, validate_chemistry=True) + '</div>')
             markdown.append(f'[表格](result.html#table-{index})')
         elif kind == 'image':
             image = image_source(source.parent, block['path'])

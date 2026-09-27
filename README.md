@@ -26,7 +26,11 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 ## 更新
 
-已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.3.0`，见 [更新记录](CHANGELOG.md)。
+已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.3.1`，见 [更新记录](CHANGELOG.md)。
+
+## 化学输出
+
+图片直接回复、PDF、正文、选项和表格中的化学表达统一为标准 LaTeX 源码。例如 N₂ 输出为 `\mathrm{N_2}`，SO₄²⁻ 输出为 `\mathrm{SO_4^{2-}}`；禁止 Unicode 上下标或 N2 等普通文本替代。默认用行内代码保护化学源码，中文正文正常输出。保留原图的等号、箭头、系数和反应条件，不自动配平或纠错。
 
 ## 行为
 
