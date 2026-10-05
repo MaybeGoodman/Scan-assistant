@@ -6,7 +6,7 @@
 
 不要输出管道形式的 Markdown 表格源码、截图表格或用空格排出的伪表格。宿主支持可编辑富表格时直接呈现；否则使用随附 `scripts/export_page.py` 生成 HTML 文件，打开或预览渲染结果，并提供简短文件链接。浏览器中的 HTML 表格可以选择并复制到 Word，或用 Word 打开 HTML；具体剪贴板行为由宿主决定，不承诺任意聊天窗口都能直接粘贴为表格。合并单元格用真实 `rowspan`、`colspan`。
 
-将识别结果写成 UTF-8 JSON。`blocks` 按阅读顺序排列。纯文字用 `text`；包含行内表达式时改用有类型的 `runs`，独立公式使用 `math` 或 `chemistry` 块；详见 [表达式接口](formulas.md)。JSON 反斜杠写作 `\\`。例如：
+按 [主体内容筛选](main-content.md) 复核并筛选候选，将结果写成 UTF-8 JSON。`blocks` 按阅读顺序排列；候选含 selection 时必须先运行 select_content.py，不能直接交给导出器。纯文字用 `text`；包含行内表达式时改用有类型的 `runs`，独立公式使用 `math` 或 `chemistry` 块；详见 [表达式接口](formulas.md)。JSON 反斜杠写作 `\\`。例如：
 
 ```json
 {"blocks":[

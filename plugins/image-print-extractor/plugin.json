@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "image-print-extractor",
-  "version": "0.3.1",
-  "description": "提取图片和 PDF 印刷体，数学公式转原生 Word 公式，所有输出中的化学表达式统一为标准 LaTeX 源码。",
+  "version": "0.4.0",
+  "description": "按语义提取图片与 PDF 主体印刷内容，过滤无关附加信息；数学转 Word 原生公式，化学保留 LaTeX。",
   "author": {
     "name": "MaybeGoodman"
   },
@@ -18,8 +18,8 @@
     "com.openai": {
       "interface": {
         "displayName": "图片印刷体提取",
-        "shortDescription": "扫描内容转 Word：数学原生公式，化学保留 LaTeX",
-        "longDescription": "从图片或 PDF 提取印刷内容，排除手写及确定无关的水印，保留表格、插图和上下文。确认 Word 输出后，数学表达式经兼容 LaTeX 转为原生可编辑 OMML，化学表达式保留规范 LaTeX 源码；不自动配平或纠错，无法判定的内容标记 XXX。",
+        "shortDescription": "主体印刷内容提取，过滤无关广告与水印",
+        "longDescription": "按语义保留主体及相关图表、印刷答案，过滤明确无关的广告、水印、品牌和宣传二维码；不确定时保留，支持用户指定范围。确认 Word 输出后数学转原生可编辑 OMML，化学保留标准 LaTeX 源码。不猜补或解题。",
         "developerName": "MaybeGoodman",
         "category": "Productivity",
         "capabilities": [
@@ -27,7 +27,7 @@
           "Write"
         ],
         "defaultPrompt": [
-          "提取图片中的印刷内容，忽略手写，保留公式、表格和插图。",
+          "提取图片中的主体印刷内容，过滤无关附加信息，保留公式、表格和插图。",
           "把 PDF 的印刷内容整理成 Word，去除无关水印和杂文字。"
         ],
         "brandColor": "#F4B875",

@@ -5,7 +5,7 @@ import json
 import shutil
 import struct
 from pathlib import Path
-from content_blocks import plain_source
+from content_blocks import plain_source, reviewed_blocks
 from latex_validation import validate_latex
 
 
@@ -58,9 +58,7 @@ def image_source(base, relative):
 
 def export(source, output):
     source, output = Path(source).resolve(), Path(output).resolve()
-    blocks = json.loads(source.read_text(encoding='utf-8'))['blocks']
-    if not isinstance(blocks, list):
-        raise ValueError('blocks must be a list')
+    blocks = reviewed_blocks(json.loads(source.read_text(encoding='utf-8')))
     fragments, markdown, copies = [], [], []
     for index, block in enumerate(blocks, 1):
         kind = block['type']

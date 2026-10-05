@@ -3,6 +3,28 @@ import re
 from latex_validation import validate_latex
 
 
+def reviewed_blocks(document):
+    """Reject unprocessed selection metadata, preserving legacy reviewed inputs."""
+    blocks = document['blocks']
+    if not isinstance(blocks, list):
+        raise ValueError('blocks must be a list')
+
+    def check(item):
+        if not isinstance(item, dict):
+            raise ValueError('Content elements must be objects')
+        if 'selection' in item:
+            raise ValueError('Run select_content.py before exporting selection candidates')
+        for key in ('runs', 'cells'):
+            if key in item:
+                if not isinstance(item[key], list):
+                    raise ValueError(f'{key} must be a list')
+                for child in item[key]:
+                    check(child)
+    for block in blocks:
+        check(block)
+    return blocks
+
+
 def parts(item):
     if ('text' in item) == ('runs' in item):
         raise ValueError('Provide exactly one of text or runs for paragraph/cell content')

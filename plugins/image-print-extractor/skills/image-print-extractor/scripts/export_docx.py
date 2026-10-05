@@ -7,7 +7,7 @@ from docx.shared import Cm, Pt
 from docx.oxml.ns import qn
 from PIL import Image
 from export_page import image_source, table_html
-from content_blocks import parts, check_word_text
+from content_blocks import parts, check_word_text, reviewed_blocks
 from formulas import FormulaError, to_omml, validate_latex, node
 
 
@@ -73,9 +73,7 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
         raise ValueError('Review report must be a separate JSON file')
     if report_path.exists():
         raise FileExistsError(report_path)
-    blocks = json.loads(source.read_text(encoding='utf-8'))['blocks']
-    if not isinstance(blocks, list):
-        raise ValueError('blocks must be a list')
+    blocks = reviewed_blocks(json.loads(source.read_text(encoding='utf-8')))
     document = Document()
     section = document.sections[0]
     section.page_width, section.page_height = Cm(21), Cm(29.7)
