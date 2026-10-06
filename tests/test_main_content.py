@@ -21,6 +21,24 @@ def annotated(text, category='MAIN_CONTENT', relation='main', certainty='high', 
 
 
 class MainContentTests(unittest.TestCase):
+    def test_explicit_qr_preservation_reaches_exported_image(self):
+        from PIL import Image
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            Image.new('RGB',(30,30),'black').save(root/'qr.png')
+            data={'blocks':[annotated('宣传语','ADVERTISEMENT','unrelated'),
+                {'type':'image','path':'qr.png','selection':{'category':'QR_PROMOTION',
+                 'relation':'unrelated','certainty':'high','reason':'宣传二维码'}}, annotated('题干')]}
+            source=root/'candidates.json'; source.write_text(json.dumps(data),encoding='utf-8')
+            subprocess.run([sys.executable,str(SCRIPTS/'select_content.py'),str(source),
+                '--output',str(root/'reviewed.json'),'--report',str(root/'selection.json'),
+                '--scope','all-printed','--preserve','QR_PROMOTION'],check=True,capture_output=True)
+            export(root/'reviewed.json',root/'html')
+            self.assertIn('<img ',(root/'html/result.html').read_text(encoding='utf-8'))
+            self.assertIn('宣传语',(root/'html/result.md').read_text(encoding='utf-8'))
+            report=json.loads((root/'selection.json').read_text(encoding='utf-8'))
+            self.assertEqual(report['records'][1]['action'],'keep')
+
     def test_eighteen_requirement_scenarios(self):
         cases = json.loads((Path(__file__).parent / 'fixtures/main-content.json').read_text(encoding='utf-8'))
         self.assertEqual(len(cases), 18)

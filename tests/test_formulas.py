@@ -19,6 +19,30 @@ NS = {'m': M, 'w': W}
 
 
 class FormulaTests(unittest.TestCase):
+    def test_short_inline_quantity_keeps_value_and_unit_on_one_line(self):
+        source = r'3.9\times10^7\,\mathrm{J/m^3}'
+        xml = to_omml(source)
+        self.assertTrue(xml.xpath('./m:box/m:boxPr/m:noBreak[@m:val="1"]', namespaces=NS))
+        self.assertEqual(''.join(xml.xpath('.//m:t/text()', namespaces=NS)), '3.9×107\u2009J/m3')
+        self.assertFalse(to_omml(source, display=True).xpath('./m:box', namespaces=NS))
+        self.assertFalse(to_omml(r'\mathrm{'+'W'*40+'}').xpath('./m:box', namespaces=NS))
+        self.assertFalse(to_omml(r'\frac{1}{2}\mathrm{m}').xpath('./m:box', namespaces=NS))
+
+    def test_empty_base_degree_has_no_word_placeholder(self):
+        for source in (r'20\,{}^{\circ}\mathrm{C}',
+                       r'4.2\times10^3\,\mathrm{J/(kg\cdot{}^{\circ}C)}'):
+            with self.subTest(source=source):
+                xml = to_omml(source)
+                self.assertIn('°', ''.join(xml.itertext()))
+                self.assertFalse(xml.xpath('.//m:sSup[not(m:e//m:t)]', namespaces=NS))
+                self.assertTrue(xml.xpath('.//m:r[m:t="°"]/m:rPr/m:sty[@m:val="p"]', namespaces=NS))
+
+    def test_degree_fix_preserves_powers_and_other_prescripts(self):
+        for source in (r'x^{\circ}', r'60^{\circ}', r'{}^{23}X', r'10^7'):
+            with self.subTest(source=source):
+                xml = to_omml(source)
+                self.assertEqual(len(xml.xpath('.//m:sSup', namespaces=NS)), 1)
+
     def test_nested_fraction_root_and_scripts(self):
         xml = to_omml(r'\frac{x_i^2+1}{\sqrt[3]{1+\frac{a}{b}}}')
         self.assertEqual(len(xml.xpath('.//m:f', namespaces=NS)), 2)

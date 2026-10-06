@@ -18,7 +18,7 @@
 | 忠实原文／LaTeX | 数学 OMML，化学源码，不解题／配平 | 无冲突；需求化学示例用美元分隔符与现有源码默认不同 | 保留原插件默认化学源码；只有用户要求渲染才用数学分隔符 |
 | 多文件规则版本 | SKILL、PDF 参考、README 分别维护过滤 | 重复维护风险 | main-content 为唯一判断来源，其余链接并仅保留专项流程 |
 
-上述方案先核对后实施，无独立 OCR 引擎、像素去水印、固定位置裁切、关键词黑名单或无关架构重建。PDF 准备、裁剪、数学转换实现保持原有逻辑。
+上述方案先核对后实施，无独立 OCR 引擎、像素去水印、固定位置裁切、关键词黑名单或无关架构重建。PDF 准备与裁剪保持原有逻辑；实际验收发现的 Word 分页、摄氏度空距及短单位拆行已在导出器和数学转换器中修复，并新增回归测试。
 
 ## 需求映射
 
@@ -47,6 +47,8 @@
 - plugin.json、.codex-plugin/plugin.json、agents/openai.yaml：同步0.4.0及功能发现文案；图标与Logo保持原文件。
 - tests/test_main_content.py、fixtures/main-content.json：范围、保守筛选、保护与导出回归。
 - README、CHANGELOG、docs：统一公开说明与验证边界。
+- references/formulas.md：移除重复段落及遗留猜补表述，明确可见结构恢复；scripts/formulas.py 修复空基底度符号及短单位拆行。
+- tests/test_pdf_word.py、test_formulas.py：新增分页关联、显式覆盖、摄氏度与短单位的回归；tests/generate_visual_cases.py 提供可复现的受控图像。
 
 ## 兼容性与限制
 

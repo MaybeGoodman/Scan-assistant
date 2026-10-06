@@ -50,8 +50,8 @@ category 使用上述类别，relation 为 main／supporting／unrelated／unkno
 python <skill-dir>/scripts/select_content.py candidates.json --output reviewed.json --report selection.review.json
 ```
 
-确认用户要求全部印刷文字时加 `--scope all-printed`；全部文字且包含手写时加 `--scope all-text`；只改变手写范围时加 `--include-handwriting`；只提取正文可用 `--scope body`。指定保留用 `--preserve WATERMARK`、`--preserve HEADER_FOOTER`（可重复）。这些参数记录聊天里真实授权，不代替用户要求。
+确认用户要求全部印刷文字时加 `--scope all-printed`；全部文字且包含手写时加 `--scope all-text`；只改变手写范围时加 `--include-handwriting`；只提取正文可用 `--scope body`。指定保留用 `--preserve WATERMARK`、`--preserve HEADER_FOOTER`（可重复）。明确要求保留二维码时必须增加 `--preserve QR_PROMOTION`；例如“全部印刷文字，保留宣传信息和二维码”对应 `--scope all-printed --preserve QR_PROMOTION`。`all-printed` 单独只扩大文字范围，不自动保留宣传图像；保留二维码图像和解码是两个独立要求。这些参数记录聊天里真实授权，不代替用户要求。
 
-脚本保持块／run 的顺序、LaTeX、表格行列与合并跨度；被过滤的单元格内容清空但单元格保留。输出仍兼容原导出器，图像相对路径不变，输出 JSON 必须与输入放在同一目录。筛选报告保存元素位置、理由及需要复核的冲突，不混入正文。脚本只是语义判断的执行与审计器，不是新增 OCR 或自主分类引擎。导出前逐区回看原图，检查主体缺失、类别冲突、图内标记、不可识别内容和顺序；再将 reviewed.json 交给原 HTML／Word 导出器。
+脚本保持块／run 的顺序、LaTeX、表格行列与合并跨度；被过滤的单元格内容清空但单元格保留。输出仍兼容原导出器，图像相对路径不变，输出 JSON 必须与输入放在同一目录。筛选报告保存元素位置、理由及需要复核的冲突，不混入正文。脚本只是语义判断的执行与审计器，不是新增 OCR 或自主分类引擎。导出前逐区回看原图，检查主体缺失、类别冲突、图内标记、不可识别内容和顺序；核对明确保留的每个类别在报告中没有被删除，特别是二维码；再将 reviewed.json 交给原 HTML／Word 导出器。
 
 正常输出只含提取内容，不列出删除数量或日志；只有严重遮挡等实际缺项才简短说明具体位置及 `XXX`。保留表格专项格式和现有数学／化学差异，不额外给标题加 Markdown 标记。

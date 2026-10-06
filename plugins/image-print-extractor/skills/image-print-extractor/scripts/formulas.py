@@ -132,6 +132,12 @@ def convert_element(element, inherited_variant=None):
         content = node('e', *sequence(element, variant)) if tag == 'msqrt' else argument('e', element[0], variant)
         return [node('rad', node('radPr', node('degHide', val='1' if tag == 'msqrt' else '0')), degree, content)]
     if tag in {'msub', 'msup', 'msubsup'}:
+        # An empty-base degree superscript creates a visible Word placeholder.
+        # Preserve its degree glyph without changing genuine powers or prescripts.
+        if (tag == 'msup' and local(element[0]) == 'mrow' and len(element[0]) == 0
+                and not ''.join(element[0].itertext()).strip()
+                and ''.join(element[1].itertext()) in {'∘', '°'}):
+            return [run('°')]
         if tag == 'msub':
             return [node('sSub', argument('e', element[0], variant), argument('sub', element[1], variant))]
         if tag == 'msup':
@@ -207,6 +213,14 @@ def to_omml(source, *, display=False):
         result = node('oMath', *convert_element(root))
         if not result.xpath('.//m:t | .//m:nary', namespaces={'m': M}):
             raise FormulaError('Conversion produced an empty formula')
+        # Short inline quantities with upright units must not break at '/' or '×'.
+        # Keep long/stacked expressions breakable so they cannot become oversized boxes.
+        glyphs = ''.join(result.xpath('.//m:t/text()', namespaces={'m': M}))
+        stacked = result.xpath('.//m:f | .//m:rad | .//m:m | .//m:nary', namespaces={'m': M})
+        if not display and r'\mathrm{' in source and len(glyphs) <= 32 and not stacked:
+            contents = list(result)
+            result[:] = []
+            result.append(node('box', node('boxPr', node('noBreak', val='1')), node('e', *contents)))
         return result
     except FormulaError:
         raise
