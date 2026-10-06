@@ -1,14 +1,57 @@
 """Export reviewed blocks to real DOCX after explicit Word confirmation."""
 import argparse
 import json
+import re
 from pathlib import Path
 from docx import Document
 from docx.shared import Cm, Pt
 from docx.oxml.ns import qn
 from PIL import Image
 from export_page import image_source, table_html
-from content_blocks import parts, check_word_text
+from content_blocks import parts, check_word_text, reviewed_blocks
 from formulas import FormulaError, to_omml, validate_latex, node
+
+
+def paragraph_layout(blocks, index):
+    """Keep adjacent question/option/figure blocks together without linking all pages."""
+    block = blocks[index]
+    explicit = block.get('layout', {})
+    allowed = {'keep_with_next', 'keep_together', 'page_break_before'}
+    if not isinstance(explicit, dict) or set(explicit) - allowed:
+        raise ValueError('layout supports only keep_with_next, keep_together and page_break_before')
+    if any(type(value) is not bool for value in explicit.values()):
+        raise ValueError('layout values must be booleans')
+
+    def text(item):
+        if item['type'] != 'text':
+            return ''
+        return ''.join(p['text'] if p['type'] == 'text' else ' ' for p in parts(item)).lstrip()
+
+    def option(item):
+        match = re.match(r'^([A-H])[.．、]\s*', text(item))
+        return match[1] if match else None
+
+    following = blocks[index + 1] if index + 1 < len(blocks) else None
+    keep = False
+    if following:
+        label, next_label = option(block), option(following)
+        question = bool(re.match(r'^\d+[.．、]\s*', text(block)))
+        if question and (following['type'] == 'image' or next_label == 'A'):
+            keep = True
+        elif label and next_label and ord(next_label) == ord(label) + 1:
+            keep = True
+        elif block['type'] == 'image' and next_label:
+            keep = True
+        elif label and following['type'] == 'image' and index + 2 < len(blocks):
+            after_image = option(blocks[index + 2])
+            keep = bool(after_image and ord(after_image) == ord(label) + 1)
+    return {'keep_with_next': keep, 'keep_together': True, 'page_break_before': False, **explicit}
+
+
+def apply_layout(paragraph, settings):
+    for key, value in settings.items():
+        setattr(paragraph.paragraph_format, key, value)
+    paragraph.paragraph_format.widow_control = True
 
 
 def add_expression(paragraph, expression, records, location, *, display=False, source_location=None):
@@ -73,9 +116,7 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
         raise ValueError('Review report must be a separate JSON file')
     if report_path.exists():
         raise FileExistsError(report_path)
-    blocks = json.loads(source.read_text(encoding='utf-8'))['blocks']
-    if not isinstance(blocks, list):
-        raise ValueError('blocks must be a list')
+    blocks = reviewed_blocks(json.loads(source.read_text(encoding='utf-8')))
     document = Document()
     section = document.sections[0]
     section.page_width, section.page_height = Cm(21), Cm(29.7)
@@ -93,10 +134,14 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
     for block_index, block in enumerate(blocks):
         location = f'blocks[{block_index}]'
         kind = block['type']
+        settings = paragraph_layout(blocks, block_index)
+        paragraph = None
         if kind == 'text':
-            add_content(document.add_paragraph(), block, records, location)
+            paragraph = document.add_paragraph()
+            add_content(paragraph, block, records, location)
         elif kind in {'math', 'chemistry'}:
-            add_expression(document.add_paragraph(), block, records, location, display=True)
+            paragraph = document.add_paragraph()
+            add_expression(paragraph, block, records, location, display=True)
         elif kind == 'table':
             table_html(block)  # Shared grid validation, including blank and merged cells.
             table = document.add_table(rows=block['rows'], cols=block['cols'])
@@ -121,12 +166,15 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
                 width, height = pixels.size
             display_width = min(max_width, int(max_height * width / height), int(Cm(width / 96 * 2.54)))
             shape = document.add_picture(str(image), width=display_width)
+            paragraph = document.paragraphs[-1]
             alt = block.get('alt', '')
             if not isinstance(alt, str):
                 raise ValueError('Image alt must be a string')
             shape._inline.docPr.set('descr', alt)
         else:
             raise ValueError(f'Unknown block type: {kind}')
+        if paragraph is not None:
+            apply_layout(paragraph, settings)
     document.core_properties.author = ''
     document.core_properties.last_modified_by = ''
     document.core_properties.comments = ''

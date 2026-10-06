@@ -1,9 +1,9 @@
 interface:
   display_name: "图片印刷体提取"
-  short_description: "扫描内容整理为 Word，数学转原生公式，化学保留 LaTeX 源码"
+  short_description: "按语义提取主体印刷内容，保留公式、表格与插图"
   icon_small: "./assets/icon.png"
   icon_large: "./assets/logo.png"
   brand_color: "#F4B875"
-  default_prompt: "使用 $image-print-extractor 提取这张图片中的印刷内容，忽略手写，按原顺序保留公式、表格和插图。"
+  default_prompt: "使用 $image-print-extractor 提取这张图片中的主体印刷内容，过滤明确无关的附加信息，忽略手写，按原顺序保留公式、表格和插图。"
 policy:
   allow_implicit_invocation: true

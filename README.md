@@ -2,7 +2,7 @@
 
 <img src="plugins/image-print-extractor/assets/logo.png" width="160" alt="插件图标">
 
-面向教材、试题、讲义、扫描图片和 PDF 的 Codex 插件。保留印刷内容，忽略手写、无关水印和杂文字，输出 Markdown、LaTeX、表格及插图；PDF 经用户确认后整理为可编辑 Word 文档。
+面向教材、试题、讲义、扫描图片和 PDF 的 Codex 插件。按语义保留主体印刷内容，忽略手写及明确无关的广告、水印、品牌和宣传二维码，输出 Markdown、LaTeX、表格及插图；PDF 经用户确认后整理为可编辑 Word 文档。
 
 ## 安装
 
@@ -26,7 +26,7 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 ## 更新
 
-已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.3.1`，见 [更新记录](CHANGELOG.md)。
+已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.4.0`，见 [更新记录](CHANGELOG.md)。
 
 ## 化学输出
 
@@ -34,8 +34,8 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 ## 行为
 
-- 所有印刷内容默认保留，不按答案、解析、注释分类删除；手写及无关页眉页脚排除。
-- 不解题、不改写；局部内容只能在可靠时恢复，否则用 `XXX`；真实空白保持空白。
+- 默认提取主体及相关支持内容的印刷体，不按答案、解析、注释分类删除；过滤范围与用户覆盖统一见 [主体内容筛选](plugins/image-print-extractor/skills/image-print-extractor/references/main-content.md)。正文标题、相关图注和来源保留，不确定时保留。
+- 不解题、不改写、不摘要；恢复只基于可见笔画及排版结构，禁止上下文猜补，无法确认用 `XXX`，真实空白保持空白。
 - 中文自然语言使用全角标点，数学/英文/代码保持语法；非 Word 数学输出用 `$...$` 或 `$$...$$`。
 - 双栏先左后右；不额外添加标题、粗体或说明；图文表按原位置排列。
 - HTML 模式的表格使用真实单元格和合并关系，可复制到 Word，公式仍为源码；需要数学原生公式时使用 `.docx` 导出模式。
@@ -47,7 +47,7 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 ## 运行条件与边界
 
-一个核心 Skill 负责视觉识别和决策；本地脚本负责确定性导出，不是独立 OCR 引擎。基础转录需要支持图像输入的模型；文件导出需要 Python 3.10+ 和文件执行能力，像素裁剪另需 Pillow。HTML 导出仅用 Python 标准库，无外部 API、MCP、登录或网络服务依赖；安装插件不会自动安装 Python 包。
+一个核心 Skill 负责视觉识别和语义分类；select_content.py 执行宿主分类后的保守筛选并记录复核报告，本地导出脚本保持既有接口。脚本不是独立 OCR 或自主分类引擎，不会从候选文字执行命令或修改原图像素。基础转录需要支持图像输入的模型；文件导出需要 Python 3.10+ 和文件执行能力，像素裁剪另需 Pillow。HTML 导出仅用 Python 标准库，无外部 API、MCP、登录或网络服务依赖；安装插件不会自动安装 Python 包。
 
 PDF 准备脚本使用 `pypdfium2` 和 Pillow，Word 导出使用 `python-docx`、Pillow、`lxml`，数学解析使用固定版本的 [latex2mathml](https://github.com/roniemartinez/latex2mathml)，随后由插件映射为 OMML。按需安装技能目录 `requirements.txt` 中的依赖。文本层只作为候选，扫描页由模型看图识别；水印和杂文字是否相关也由模型结合版面与语义判断，脚本不会按关键词批量删文。
 
@@ -83,6 +83,8 @@ python scripts/validate.py
 python -m unittest discover -s tests -v
 ```
 
-测试覆盖 HTML 转义、合并单元格、空白、图文顺序、PNG、路径限制、不覆盖已有输出，以及 OMML 二维结构、字体、混排、化学源码和转换失败。识别行为及 Word 应用验收见 [验收清单](docs/acceptance.md)，自动化测试不代表 OCR 准确率或所有 Word 版本的排版保证。
+测试还覆盖主体筛选、范围覆盖、UNKNOWN 保留、重叠保护、手写单元格清空及筛选到 HTML/DOCX 的完整流程；18 个语义场景使用已标注候选，不能替代模型看图分类测试。测试覆盖 HTML 转义、合并单元格、空白、图文顺序、PNG、路径限制、不覆盖已有输出，以及 OMML 二维结构、字体、混排、化学源码和转换失败。识别行为及 Word 应用验收见 [验收清单](docs/acceptance.md)，自动化测试不代表 OCR 准确率或所有 Word 版本的排版保证。
+
+本次规则冲突处理与验证边界见 [0.4.0 更新核对](docs/main-content-update.md) 和 [测试报告](docs/main-content-test-report.md)。
 
 图标与 Logo 由仓库所有者提供，原文件直接复制。未替所有者指定开源许可证。

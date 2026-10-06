@@ -1,0 +1,852 @@
+[
+  {
+    "id": "01",
+    "name": "无干扰普通试卷",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "1. 已知质量为 2 kg，求加速度。",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "A. 1　B. 2　C. 3　D. 4",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "1. 已知质量为 2 kg，求加速度。"
+      },
+      {
+        "type": "text",
+        "text": "A. 1　B. 2　C. 3　D. 4"
+      }
+    ],
+    "removed": 0
+  },
+  {
+    "id": "02",
+    "name": "顶部广告横幅",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "扫码添加微信领取资料",
+        "selection": {
+          "category": "ADVERTISEMENT",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "8. 雪龙2号极地科学考察任务",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "8. 雪龙2号极地科学考察任务"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "03",
+    "name": "宣传二维码",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "扫码进群",
+        "selection": {
+          "category": "ADVERTISEMENT",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "image",
+        "path": "qr.png",
+        "selection": {
+          "category": "QR_PROMOTION",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "独立推广，题目未引用"
+        }
+      },
+      {
+        "type": "text",
+        "text": "1. 正文",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "1. 正文"
+      }
+    ],
+    "removed": 2
+  },
+  {
+    "id": "04",
+    "name": "大面积斜向水印",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "某教育",
+        "selection": {
+          "category": "WATERMARK",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "题干中所有条件完整保留",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "题干中所有条件完整保留"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "05",
+    "name": "水印覆盖题干",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "培训机构",
+        "selection": {
+          "category": "WATERMARK",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "取 g=10，忽略空气阻力，质量为 XXX。",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "取 g=10，忽略空气阻力，质量为 XXX。"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "06",
+    "name": "水印覆盖选项",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "资料来源",
+        "selection": {
+          "category": "WATERMARK",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "A. 沸点低",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "B. 密度小",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "C. 比热容大",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "D. 凝固点低",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "A. 沸点低"
+      },
+      {
+        "type": "text",
+        "text": "B. 密度小"
+      },
+      {
+        "type": "text",
+        "text": "C. 比热容大"
+      },
+      {
+        "type": "text",
+        "text": "D. 凝固点低"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "07",
+    "name": "水印覆盖电路图",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "某品牌",
+        "selection": {
+          "category": "WATERMARK",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "runs": [
+          {
+            "type": "math",
+            "latex": "S"
+          },
+          {
+            "type": "math",
+            "latex": "R_0"
+          },
+          {
+            "type": "math",
+            "latex": "R_t"
+          },
+          {
+            "type": "math",
+            "latex": "A"
+          },
+          {
+            "type": "math",
+            "latex": "V"
+          }
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "runs": [
+          {
+            "type": "math",
+            "latex": "S"
+          },
+          {
+            "type": "math",
+            "latex": "R_0"
+          },
+          {
+            "type": "math",
+            "latex": "R_t"
+          },
+          {
+            "type": "math",
+            "latex": "A"
+          },
+          {
+            "type": "math",
+            "latex": "V"
+          }
+        ]
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "08",
+    "name": "实验装置图化学题",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "图1　实验装置",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "进气阀　排气阀",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "chemistry",
+        "latex": "\\mathrm{N_2}"
+      },
+      {
+        "type": "chemistry",
+        "latex": "\\mathrm{SO_4^{2-}}"
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "图1　实验装置"
+      },
+      {
+        "type": "text",
+        "text": "进气阀　排气阀"
+      },
+      {
+        "type": "chemistry",
+        "latex": "\\mathrm{N_2}"
+      },
+      {
+        "type": "chemistry",
+        "latex": "\\mathrm{SO_4^{2-}}"
+      }
+    ],
+    "removed": 0
+  },
+  {
+    "id": "09",
+    "name": "复杂数学物理公式",
+    "blocks": [
+      {
+        "type": "math",
+        "latex": "\\frac{x_i^2+1}{\\sqrt{a+b}}"
+      },
+      {
+        "type": "math",
+        "latex": "R_0=\\text{XXX}"
+      }
+    ],
+    "expected": [
+      {
+        "type": "math",
+        "latex": "\\frac{x_i^2+1}{\\sqrt{a+b}}"
+      },
+      {
+        "type": "math",
+        "latex": "R_0=\\text{XXX}"
+      }
+    ],
+    "removed": 0
+  },
+  {
+    "id": "10",
+    "name": "双栏",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "跨栏标题",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "左栏第1题",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "左栏第2题",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "右栏第3题",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "右栏第4题",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "网站品牌",
+        "selection": {
+          "category": "BRANDING",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "跨栏标题"
+      },
+      {
+        "type": "text",
+        "text": "左栏第1题"
+      },
+      {
+        "type": "text",
+        "text": "左栏第2题"
+      },
+      {
+        "type": "text",
+        "text": "右栏第3题"
+      },
+      {
+        "type": "text",
+        "text": "右栏第4题"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "11",
+    "name": "表格",
+    "blocks": [
+      {
+        "type": "table",
+        "rows": 2,
+        "cols": 2,
+        "cells": [
+          {
+            "row": 0,
+            "col": 0,
+            "colspan": 2,
+            "text": "表头"
+          },
+          {
+            "row": 1,
+            "col": 0,
+            "text": "10"
+          },
+          {
+            "row": 1,
+            "col": 1,
+            "text": ""
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "text": "扫描平台",
+        "selection": {
+          "category": "BRANDING",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "table",
+        "rows": 2,
+        "cols": 2,
+        "cells": [
+          {
+            "row": 0,
+            "col": 0,
+            "colspan": 2,
+            "text": "表头"
+          },
+          {
+            "row": 1,
+            "col": 0,
+            "text": "10"
+          },
+          {
+            "row": 1,
+            "col": 1,
+            "text": ""
+          }
+        ]
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "12",
+    "name": "印刷答案与手写答案",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "答案：B",
+        "selection": {
+          "category": "SUPPORTING_CONTENT",
+          "relation": "supporting",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "改为C",
+        "selection": {
+          "category": "HANDWRITING",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "答案：B"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "13",
+    "name": "顶部正文标题",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "第五章 牛顿运动定律",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "正文",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "第五章 牛顿运动定律"
+      },
+      {
+        "type": "text",
+        "text": "正文"
+      }
+    ],
+    "removed": 0
+  },
+  {
+    "id": "14",
+    "name": "正文包含推广关键词",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "某同学扫描微信二维码获取实验数据，请分析公众号传播。",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "[二维码]",
+        "selection": {
+          "category": "SUPPORTING_CONTENT",
+          "relation": "supporting",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "某同学扫描微信二维码获取实验数据，请分析公众号传播。"
+      },
+      {
+        "type": "text",
+        "text": "[二维码]"
+      }
+    ],
+    "removed": 0
+  },
+  {
+    "id": "15",
+    "name": "底部网站App标记",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "正文",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "Downloaded from example.com",
+        "selection": {
+          "category": "BRANDING",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "扫描App",
+        "selection": {
+          "category": "BRANDING",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "参考资料：https://example.org",
+        "selection": {
+          "category": "SUPPORTING_CONTENT",
+          "relation": "supporting",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "正文"
+      },
+      {
+        "type": "text",
+        "text": "参考资料：https://example.org"
+      }
+    ],
+    "removed": 2
+  },
+  {
+    "id": "16",
+    "name": "广告字体与正文相同",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "免费获取电子版",
+        "selection": {
+          "category": "ADVERTISEMENT",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "实验材料免费获取电子版说明的研究对象是该宣传页。",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "实验材料免费获取电子版说明的研究对象是该宣传页。"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "17",
+    "name": "低透明水印覆盖正文",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "品牌水印",
+        "selection": {
+          "category": "WATERMARK",
+          "relation": "unrelated",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "图3　通电螺线管",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "a、b、c、d、e、f、电源、S",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "图3　通电螺线管"
+      },
+      {
+        "type": "text",
+        "text": "a、b、c、d、e、f、电源、S"
+      }
+    ],
+    "removed": 1
+  },
+  {
+    "id": "18",
+    "name": "页眉用途无法判断",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "学习有方法",
+        "selection": {
+          "category": "UNKNOWN",
+          "relation": "unknown",
+          "certainty": "uncertain",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "重复章节名但用途不明",
+        "selection": {
+          "category": "HEADER_FOOTER",
+          "relation": "unknown",
+          "certainty": "uncertain",
+          "reason": "语义场景：主体关联已核对"
+        }
+      },
+      {
+        "type": "text",
+        "text": "正文",
+        "selection": {
+          "category": "MAIN_CONTENT",
+          "relation": "main",
+          "certainty": "high",
+          "reason": "语义场景：主体关联已核对"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "type": "text",
+        "text": "学习有方法"
+      },
+      {
+        "type": "text",
+        "text": "重复章节名但用途不明"
+      },
+      {
+        "type": "text",
+        "text": "正文"
+      }
+    ],
+    "removed": 0
+  }
+]
