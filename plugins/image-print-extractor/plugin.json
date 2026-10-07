@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "image-print-extractor",
-  "version": "0.4.0",
-  "description": "按语义提取图片与 PDF 主体印刷内容，过滤无关附加信息；数学转 Word 原生公式，化学保留 LaTeX。",
+  "version": "0.5.0",
+  "description": "提取图片与 PDF 主体印刷内容，支持可选教学插图黑白重绘；数学转 Word 原生公式，化学保留 LaTeX。",
   "author": {
     "name": "MaybeGoodman"
   },
@@ -18,8 +18,8 @@
     "com.openai": {
       "interface": {
         "displayName": "图片印刷体提取",
-        "shortDescription": "主体印刷内容提取，过滤无关广告与水印",
-        "longDescription": "按语义保留主体及相关图表、印刷答案，过滤明确无关的广告、水印、品牌和宣传二维码；不确定时保留，支持用户指定范围。确认 Word 输出后数学转原生可编辑 OMML，化学保留标准 LaTeX 源码。不猜补或解题。",
+        "shortDescription": "主体印刷内容提取与可选教学插图黑白重绘",
+        "longDescription": "按语义保留主体、表格和印刷答案，过滤无关广告、水印及宣传二维码，不确定时保留。完成文字后可选识别并重绘教学插图：技术图优先 SVG/PNG，结构和标注对照校验，失败保留文字。Word 确认独立，数学转可编辑 OMML，化学保留 LaTeX 源码；不猜补或解题。",
         "developerName": "MaybeGoodman",
         "category": "Productivity",
         "capabilities": [
@@ -27,8 +27,9 @@
           "Write"
         ],
         "defaultPrompt": [
-          "提取图片中的主体印刷内容，过滤无关附加信息，保留公式、表格和插图。",
-          "把 PDF 的印刷内容整理成 Word，去除无关水印和杂文字。"
+          "提取主体印刷内容，保留公式和表格；完成文字后询问是否需要重绘有效教学插图。",
+          "把 PDF 的印刷内容整理成 Word，去除无关水印和杂文字。",
+          "提取文字，并把有效教学插图重绘成白底黑色规范图，校验结构和标注。"
         ],
         "brandColor": "#F4B875",
         "composerIcon": "./assets/icon.png",

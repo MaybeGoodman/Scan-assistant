@@ -5,6 +5,8 @@ from latex_validation import validate_latex
 
 def reviewed_blocks(document):
     """Reject unprocessed selection metadata, preserving legacy reviewed inputs."""
+    if 'figure_task' in document or document.get('figure_processing',{}).get('status','completed')!='completed':
+        raise ValueError('Complete figure_workflow.py before exporting a figure task')
     blocks = document['blocks']
     if not isinstance(blocks, list):
         raise ValueError('blocks must be a list')
@@ -14,6 +16,9 @@ def reviewed_blocks(document):
             raise ValueError('Content elements must be objects')
         if 'selection' in item:
             raise ValueError('Run select_content.py before exporting selection candidates')
+        if 'redraw' in item:
+            from figure_drawing import validate_redraw_metadata
+            validate_redraw_metadata(item)
         for key in ('runs', 'cells'):
             if key in item:
                 if not isinstance(item[key], list):

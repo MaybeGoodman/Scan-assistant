@@ -56,6 +56,27 @@ def image_source(base, relative):
     return source
 
 
+def figure_assets(base, block):
+    image=image_source(base,block['path'])
+    svg=None
+    if 'redraw' in block:
+        from figure_drawing import check_black_white, safe_svg, sha256, validate_redraw_metadata
+        validate_redraw_metadata(block)
+        if sha256(image)!=block['redraw']['png_sha256']:
+            raise ValueError('Redrawn PNG changed after visual validation')
+        check_black_white(image)
+        if block.get('svg_path'):
+            relative=Path(block['svg_path'])
+            svg=(base/relative).resolve()
+            if (relative.is_absolute() or '..' in relative.parts or not svg.is_relative_to(base.resolve())
+                    or svg.suffix.lower()!='.svg' or sha256(svg)!=block['redraw']['svg_sha256']):
+                raise ValueError('Invalid or changed reviewed SVG')
+            safe_svg(svg)
+    elif block.get('svg_path'):
+        raise ValueError('SVG companion needs validated redraw provenance')
+    return image,svg
+
+
 def export(source, output):
     source, output = Path(source).resolve(), Path(output).resolve()
     blocks = reviewed_blocks(json.loads(source.read_text(encoding='utf-8')))
@@ -79,12 +100,16 @@ def export(source, output):
             fragments.append(f'<div id="table-{index}">' + table_html(block, validate_chemistry=True) + '</div>')
             markdown.append(f'[表格](result.html#table-{index})')
         elif kind == 'image':
-            image = image_source(source.parent, block['path'])
+            image, svg = figure_assets(source.parent, block)
             target = f'figures/figure-{index:02d}.png'
             copies.append((image, target))
             alt = escape(block.get('alt', ''))
             fragments.append(f'<p><img src="{target}" alt="{alt}"></p>')
             markdown.append(f'![]({target})')
+            if svg:
+                vector_target=f'figures/figure-{index:02d}.svg'
+                copies.append((svg,vector_target))
+                markdown[-1]=f'![]({vector_target})'
         else:
             raise ValueError(f'Unknown block type: {kind}')
     # Validate everything before creating files; never overwrite an existing export.
