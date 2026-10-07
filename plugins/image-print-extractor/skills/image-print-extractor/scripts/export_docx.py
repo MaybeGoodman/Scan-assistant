@@ -7,7 +7,7 @@ from docx import Document
 from docx.shared import Cm, Pt
 from docx.oxml.ns import qn
 from PIL import Image
-from export_page import image_source, table_html
+from export_page import figure_assets, table_html
 from content_blocks import parts, check_word_text, reviewed_blocks
 from formulas import FormulaError, to_omml, validate_latex, node
 
@@ -159,7 +159,7 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
                 add_content(cell.paragraphs[0], item, records, f'{location}.cells[{cell_index}]',
                             block.get('source'))
         elif kind == 'image':
-            image = image_source(source.parent, block['path'])
+            image, _ = figure_assets(source.parent, block)
             with Image.open(image) as pixels:
                 pixels.verify()
             with Image.open(image) as pixels:
@@ -167,6 +167,9 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
             display_width = min(max_width, int(max_height * width / height), int(Cm(width / 96 * 2.54)))
             shape = document.add_picture(str(image), width=display_width)
             paragraph = document.paragraphs[-1]
+            if 'redraw' in block:
+                from docx.enum.text import WD_ALIGN_PARAGRAPH
+                paragraph.alignment=WD_ALIGN_PARAGRAPH.CENTER
             alt = block.get('alt', '')
             if not isinstance(alt, str):
                 raise ValueError('Image alt must be a string')
@@ -181,7 +184,8 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
     output.parent.mkdir(parents=True, exist_ok=True)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report = {'schema_version': 1, 'source_file': str(source), 'expressions': records,
-              'needs_review': sum(record['status'] == 'needs_review' for record in records)}
+              'needs_review': sum(record['status'] == 'needs_review' for record in records),
+              'figures':[{'figure':block.get('figure'),'validation':block['redraw']} for block in blocks if 'redraw' in block]}
     # Exclusive creation prevents accidental replacement if another process wrote meanwhile.
     created = []
     try:
