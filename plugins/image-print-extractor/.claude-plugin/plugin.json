@@ -1,0 +1,16 @@
+{
+  "name": "image-print-extractor",
+  "version": "0.5.1",
+  "description": "提取图片与 PDF 主体印刷内容，支持可选教学插图黑白重绘；数学转 Word 原生公式，化学保留 LaTeX。",
+  "author": {
+    "name": "MaybeGoodman"
+  },
+  "repository": "https://github.com/MaybeGoodman/Scan-assistant",
+  "keywords": [
+    "ocr",
+    "printed-text",
+    "latex",
+    "education",
+    "chinese"
+  ]
+}

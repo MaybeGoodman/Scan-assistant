@@ -11,6 +11,9 @@ for entry in catalog['plugins']:
     plugin = root / path
     portable = json.loads((plugin / 'plugin.json').read_text(encoding='utf-8'))
     legacy = json.loads((plugin / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
+    claude = json.loads((plugin / '.claude-plugin/plugin.json').read_text(encoding='utf-8'))
+    for key in ('name', 'version', 'description', 'author', 'repository', 'keywords'):
+        assert claude[key] == portable[key], 'claude ' + key
     assert portable['$schema'] == 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json'
     for key in ('name', 'version', 'description', 'author', 'repository'):
         assert portable[key] == legacy[key], key
@@ -30,4 +33,11 @@ for entry in catalog['plugins']:
         for key in ('icon_small', 'icon_large'):
             assert (skill / ui[key]).is_file()
         assert '$' + skill.name in ui['default_prompt']
+claude_catalog = json.loads((root / '.claude-plugin/marketplace.json').read_text(encoding='utf-8'))
+assert claude_catalog['name'] == catalog['name']
+assert claude_catalog['owner']['name']
+assert [e['name'] for e in claude_catalog['plugins']] == [e['name'] for e in catalog['plugins']]
+for entry, codex_entry in zip(claude_catalog['plugins'], catalog['plugins']):
+    assert entry['source'] == codex_entry['source']['path']
+    assert entry['description']
 print('Package checks passed')
