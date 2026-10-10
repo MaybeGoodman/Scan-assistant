@@ -26,7 +26,7 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 ## 更新
 
-已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.5.0`，见 [更新记录](CHANGELOG.md)。
+已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.5.1`，见 [更新记录](CHANGELOG.md)。
 
 ## 化学输出
 

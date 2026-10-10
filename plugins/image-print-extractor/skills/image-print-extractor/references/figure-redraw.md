@@ -68,7 +68,7 @@ figure_type 可用：geometry、coordinates、function、motion、force、circui
 
 每个图元有唯一 id；主体图元的 object_id 对应 understanding.objects。线型可用 stroke_width、dash 和 arrow（none／start／end／both）；填充只能 none／black／white。禁止 arbitrary SVG、脚本、非等比例 transform、颜色、渐变和艺术纹理。
 
-- canvas 宽高为 50–1200，默认 PNG 等比例放大 3 倍、300 dpi，白底黑线；线宽至少 0.5 场景单位。单主体优先 400×300，内容不适合则调整画布；多主体横向或纵向布局依含义选择，不通过拉伸满足比例。
+- canvas 宽高为 50–1200，默认 PNG 等比例放大 3 倍、300 dpi（画布过小时自动提高到最多 4 倍，以满足 PNG 不小于 200×150 像素；dpi 随倍数调整，物理尺寸不变），白底黑线；线宽至少 0.5 场景单位。单主体优先 400×300，内容不适合则调整画布；多主体横向或纵向布局依含义选择，不通过拉伸满足比例。
 - labels 每项用 id、target 及 text／runs；对应 label 图元用 label_id 和相同 object_id。上下标用 `{"text":"R"}`、`{"text":"1","script":"sub"}`，上标为 sup，不转成可能歧义的 R1。图内化学标注按真实视觉排版，独立和正文化学仍沿用 LaTeX 源码规则。
 - understanding 是生成前的原图结构，不得为了让候选通过而修改。scene.structure 与其一致；objects、connections、labels、arrows 必须对应原图。
 - connections 为主体 id 对，如 `["battery","resistor"]`，导线图元标相同 connection；arrows 每项记录 element_id、direction（候选画布方向向量），双向箭头另记 both:true。
@@ -117,7 +117,7 @@ pending_reviews 或 needs_retry 非空时，不产生最终 figures-reviewed.jso
 python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --image-mode redraw --output-dir images --previous work/reviewed1.json --ledger work/attempt2.json
 ```
 
-查看第二次实际产物后再次 complete（使用 reviews2.json、reviewed2.json）。每图最多两次生成；第二次仍失败或结构不可确定时，在对应原位输出 `[f1：无法可靠重绘]`，其他文字和通过的图继续交付。不得无限重试，不把失败或未复核图片当成正确图输出。
+查看第二次实际产物后再次 complete（使用 reviews2.json、reviewed2.json）。每图最多两次生成；第二次仍失败或结构不可确定时，在对应原位输出 `[第1张插图：无法可靠重绘]`（按文档中插图顺序编号，内部 figure_id 记录在 figure_processing.failed_figures），其他文字和通过的图继续交付。不得无限重试，不把失败或未复核图片当成正确图输出。
 
 ## 最终输出
 

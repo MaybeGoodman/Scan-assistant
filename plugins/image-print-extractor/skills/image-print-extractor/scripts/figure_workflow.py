@@ -17,8 +17,16 @@ PROMPT = '是否需要识别并重新绘制其中的图片？是 / 否'
 CORE_TYPES = {'geometry','coordinates','function','motion','force','circuit','optics',
               'apparatus','structure','flowchart','wave','trajectory','biology','illustration'}
 TYPES = CORE_TYPES | {'photo','table','formula','watermark','qr','logo','advertisement','decoration','unknown'}
-YES = {'是','可以','需要','继续','要','重绘','帮我画出来','图片也处理','图也生成'}
-NO = {'否','不需要','不用','跳过','只要文字','不要图片','图片忽略'}
+# Requirement examples plus common short variants. Matching stays exact after
+# normalization; unrecognized or conflicting replies remain ambiguous.
+YES = {'是','可以','需要','继续','要','重绘','帮我画出来','图片也处理','图也生成',
+       '好','行','对','嗯','没问题','可','画','重画','都要','需要重绘','要重绘','yes','y','ok','okay'}
+NO = {'否','不需要','不用','跳过','只要文字','不要图片','图片忽略',
+      '不','不要','不行','不是','不画','不重绘','不用画','不用重绘','不需要重绘','算了','没必要','no','n'}
+PRESERVE = {'不用重绘，原图保留','不重绘，保留原图','保留原图','原图保留','用原图','保留原图即可'}
+LEADING = '嗯哦噢喔那额呃'
+TRAILING = '的了吧啊呀哦呢嘛啦'
+SEPARATORS = re.compile(r'[，,、；;。！!？?\s.~～…]+')
 MAX_ATTEMPTS = 2
 
 
@@ -104,13 +112,32 @@ def preservable(figure):
     return figure['figure_type'] not in {'table','formula'}
 
 
+def _reply_word(part):
+    """Map one normalized reply fragment to a mode, or None when unknown."""
+    for candidate in (part, part.lower()):
+        if candidate in YES: return 'redraw'
+        if candidate in NO: return 'ignore'
+        if candidate in PRESERVE: return 'preserve'
+    trimmed = part.lstrip(LEADING).rstrip(TRAILING) or part
+    trimmed = trimmed.rstrip(TRAILING) or trimmed
+    if trimmed != part:
+        return _reply_word(trimmed)
+    return None
+
+
 def reply_mode(response):
     if response is None: return None
-    response = response.strip().strip('。！! .')
-    if response in YES: return 'redraw'
-    if response in NO: return 'ignore'
-    if response in {'不用重绘，原图保留','不重绘，保留原图','保留原图'}: return 'preserve'
-    raise ValueError('Ambiguous redraw reply; clarify the active image question')
+    response = response.strip()
+    whole = SEPARATORS.sub('，',response).strip('，')
+    if whole in PRESERVE: return 'preserve'
+    fragments = [p for p in SEPARATORS.split(response) if p]
+    modes = {_reply_word(p) for p in fragments}
+    # Filler-only fragments such as "嗯" or "好的" may accompany a clear answer.
+    fillers = {_reply_word(p) for p in fragments if p.lstrip(LEADING).rstrip(TRAILING) in {'','好','嗯','行','对'}}
+    decisive = modes - ({'redraw'} if fillers=={'redraw'} and len(modes)>1 else set())
+    if not fragments or None in decisive or len(decisive)!=1:
+        raise ValueError('Ambiguous redraw reply; clarify the active image question')
+    return decisive.pop()
 
 
 def plan(document, *, mode=None, response=None):
@@ -282,10 +309,12 @@ def complete(ledger, reviews, base):
     result.pop('figure_task')
     records = {r['figure_id']:r for r in ledger['records']}
     blocks=[]
+    ordinal=0
     for block in result['blocks']:
         if block.get('type')!='image':
             blocks.append(block)
             continue
+        ordinal+=1
         record = records[block['figure_id']]
         if record['state']=='ignored': continue
         if record['state']=='preserved':
@@ -299,7 +328,8 @@ def complete(ledger, reviews, base):
             block['figure'] = {k:deepcopy(record[k]) for k in ('figure_id','source_page','source_bbox','parent_block_id','figure_type','figure_group_id')}
             blocks.append(block)
         else:
-            blocks.append({'type':'text','text':f'[{block["figure_id"]}：无法可靠重绘]',
+            # Reader-facing position by document order; the internal id stays in figure_processing.
+            blocks.append({'type':'text','text':f'[第{ordinal}张插图：无法可靠重绘]',
                            'layout':deepcopy(block.get('layout',{}))})
     result['blocks']=blocks
     result['figure_processing']={'task_id':ledger['task_id'],'image_mode':ledger['image_mode'],'status':'completed',
