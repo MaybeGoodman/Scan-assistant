@@ -2,9 +2,11 @@
 
 <img src="plugins/image-print-extractor/assets/logo.png" width="160" alt="插件图标">
 
-面向教材、试题、讲义、扫描图片和 PDF 的 Codex 插件。按语义保留主体印刷内容，忽略手写及明确无关的广告、水印、品牌和宣传二维码，输出 Markdown、LaTeX、表格及插图；PDF 经用户确认后整理为可编辑 Word 文档。
+面向教材、试题、讲义、扫描图片和 PDF 的插件，同时支持 Codex 与 Claude。按语义保留主体印刷内容，忽略手写及明确无关的广告、水印、品牌和宣传二维码，输出 Markdown、LaTeX、表格及插图；PDF 经用户确认后整理为可编辑 Word 文档。
 
 ## 安装
+
+### Codex
 
 在已安装 Codex CLI 的终端运行：
 
@@ -14,7 +16,28 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 私有仓库需要当前 Git 环境具备读取权限。重启桌面应用，在插件目录选择 **Scan Assistant** 来源，找到“图片印刷体提取”并安装，然后在新任务中使用。
 
-上传图片后输入：
+### Claude
+
+Claude 桌面应用或网页版：进入插件设置 → 添加市场，填入 `MaybeGoodman/Scan-assistant` 并同步，然后安装“image-print-extractor”。
+
+Claude Code 中运行：
+
+```text
+/plugin install image-print-extractor --marketplace MaybeGoodman/Scan-assistant
+```
+
+或在终端分两步：
+
+```sh
+claude plugin marketplace add MaybeGoodman/Scan-assistant
+claude plugin install image-print-extractor@scan-assistant
+```
+
+Claude 端无需 `$` 调用写法，直接说“提取这张图片的印刷内容，忽略手写”即可自动匹配；Claude Code 中也可输入 `/image-print-extractor:image-print-extractor`。
+
+### 使用
+
+Codex 中上传图片后输入：
 
 ```text
 使用 $image-print-extractor 提取这张图片的印刷内容，忽略手写。
@@ -26,7 +49,9 @@ codex plugin marketplace add MaybeGoodman/Scan-assistant
 
 ## 更新
 
-已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.5.1`，见 [更新记录](CHANGELOG.md)。
+Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.5.1`，见 [更新记录](CHANGELOG.md)。
+
+Claude：添加市场时开启“自动同步”即可随仓库更新；Claude Code 用户运行 `claude plugin marketplace update scan-assistant` 后重新安装或更新插件。
 
 ## 化学输出
 
@@ -66,9 +91,11 @@ HTML 是完整图文表结果；Markdown 在表格原位链接 HTML 表格。聊
 
 ```text
 .agents/plugins/marketplace.json
+.claude-plugin/marketplace.json
 plugins/image-print-extractor/
   plugin.json
   .codex-plugin/plugin.json
+  .claude-plugin/plugin.json
   assets/
   skills/image-print-extractor/
     SKILL.md
@@ -80,7 +107,7 @@ tests/
 scripts/validate.py
 ```
 
-采用根目录 Agent Plugins 清单及 OpenAI 扩展，并保留 Codex 兼容清单。依据 2026-09-25 核对的 [OpenAI 插件打包文档](https://developers.openai.com/plugins/build/plugins)。GitHub 仓库分发不等于在官方公共插件目录上架。
+采用根目录 Agent Plugins 清单及 OpenAI 扩展，并保留 Codex 兼容清单；另提供 Claude 市场与插件清单，两端共用同一份 Skill。依据 2026-09-25 核对的 [OpenAI 插件打包文档](https://developers.openai.com/plugins/build/plugins)。GitHub 仓库分发不等于在官方公共插件目录上架。
 
 ## 开发验证
 

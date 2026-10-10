@@ -1,5 +1,11 @@
 # 更新记录
 
+## 未发布
+
+- 新增 Claude 市场清单 `.claude-plugin/marketplace.json` 及插件清单 `plugins/image-print-extractor/.claude-plugin/plugin.json`，可在 Claude 中添加市场并安装；Codex 端文件与行为不变。
+- `scripts/validate.py` 增加 Claude 清单与通用清单、Codex 市场目录的一致性检查。
+- 仅打包变更，功能版本保持 `0.5.1`。
+
 ## 0.5.1
 
 - 图片重绘确认支持“好的”“是的”“不要”“不用了”等常见回答；无法判断或前后矛盾的回答仍要求澄清。
