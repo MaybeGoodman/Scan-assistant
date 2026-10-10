@@ -164,7 +164,11 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
                 pixels.verify()
             with Image.open(image) as pixels:
                 width, height = pixels.size
-            display_width = min(max_width, int(max_height * width / height), int(Cm(width / 96 * 2.54)))
+                dpi = pixels.info.get('dpi', (96, 96))[0]
+            # Honour the PNG's own resolution (300 dpi redraws would otherwise be
+            # sized as 96 dpi and overflow); missing or implausible values fall back to 96.
+            dpi = float(dpi) if isinstance(dpi, (int, float)) and 72 <= dpi <= 1200 else 96.0
+            display_width = min(max_width, int(max_height * width / height), int(Cm(width / dpi * 2.54)))
             shape = document.add_picture(str(image), width=display_width)
             paragraph = document.paragraphs[-1]
             if 'redraw' in block:

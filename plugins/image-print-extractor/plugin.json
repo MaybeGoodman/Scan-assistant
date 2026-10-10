@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "image-print-extractor",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "提取图片与 PDF 主体印刷内容，支持可选教学插图黑白重绘；数学转 Word 原生公式，化学保留 LaTeX。",
   "author": {
     "name": "MaybeGoodman"

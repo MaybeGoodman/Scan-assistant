@@ -11,6 +11,7 @@ ET.register_namespace('', SVG)
 KINDS = {'line', 'polyline', 'polygon', 'circle', 'ellipse', 'rect', 'arc', 'curve', 'label'}
 CHECKS = ('subject_count','connections','labels','arrow_directions','relative_positions',
           'geometry','coordinates','black_white','completeness','no_unrelated_elements','scientific_meaning')
+MIN_PNG = (200, 150)  # Smallest accepted figure PNG (width, height) in pixels.
 
 
 def sha256(path):
@@ -268,6 +269,9 @@ def render(scene, svg_path, png_path, *, understanding=None, scale=3, font_path=
     scene = deepcopy(validate_scene(scene, understanding))
     if type(scale) is not int or not 2 <= scale <= 4:
         raise ValueError('PNG scale must be 2 to 4')
+    # Small valid canvases are upscaled (at most 4x) to reach the PNG size that
+    # check_black_white requires, instead of failing after rendering.
+    scale = max(scale, math.ceil(MIN_PNG[0] / scene['width']), math.ceil(MIN_PNG[1] / scene['height']))
     svg_path, png_path = Path(svg_path), Path(png_path)
     if svg_path.exists() or png_path.exists() or svg_path.resolve() == png_path.resolve():
         raise FileExistsError('Drawing outputs must be separate new files')
@@ -338,7 +342,9 @@ def render(scene, svg_path, png_path, *, understanding=None, scale=3, font_path=
             stream.write(ET.tostring(root,encoding='utf-8',xml_declaration=True))
         with png_path.open('xb') as stream:
             created.append(png_path)
-            image.save(stream,format='PNG',dpi=(300,300))
+            # Keep the physical size independent of the upscale: 100 scene units per inch.
+            dpi = 100 * scale
+            image.save(stream,format='PNG',dpi=(dpi,dpi))
     except Exception:
         for path in created: path.unlink(missing_ok=True)
         raise
@@ -347,7 +353,7 @@ def render(scene, svg_path, png_path, *, understanding=None, scale=3, font_path=
 
 def check_black_white(path):
     with Image.open(path) as image:
-        if image.format!='PNG' or image.width<200 or image.height<150:
+        if image.format!='PNG' or image.width<MIN_PNG[0] or image.height<MIN_PNG[1]:
             raise ValueError('Expected a sufficiently large PNG')
         rgb=image.convert('RGBA')
         colors=rgb.getcolors(3)
