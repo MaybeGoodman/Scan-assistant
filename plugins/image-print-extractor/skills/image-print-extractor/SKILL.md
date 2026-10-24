@@ -39,6 +39,14 @@ PDF 需处理的页超过 5 页，或用户只要求部分页时，先按 [PDF �
 2. 按上述约束转录，保留段落、换行、题号、选项和列表关系。中文自然语言规范为全角标点；数学、坐标、英文内部、代码和技术符号不做全角替换。
 3. 遇到数学或化学表达式，读取 [表达式识别与导出](references/formulas.md)。先依二维版面恢复结构、区分行内与独立表达式，数学用 Word 兼容 LaTeX 作中间表示，Word 中转为原生专业格式 OMML；化学用规范 LaTeX 源码文本保留，不转 OMML、不依赖 `mhchem`/`\ce{}`。两类均不用图片代替，不自动求解、化简、配平或纠错；不为题号、年份等普通数字强加数学格式。非 Word 数学输出继续使用 `$...$`、`$$...$$`。
 4. 遇到表格或图形，读取 [富内容输出](references/rich-output.md)，生成真实表格并记录图形区域和正文关联。先完成并输出文字、公式和表格；此时不自动裁剪交付原图或重绘。图题、图注仍在正文原位置。
+   文件导出（HTML／Word）优先使用流水线，一条命令完成筛选、图片处理和导出：
+
+   ```text
+   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --run-id r1 --scope <范围> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> --format <html|docx> [--word-confirmed] --output <输出目录或 .docx>
+   ```
+
+   每次命令结束只看输出 JSON 的 `status` 和 `next_action`：`completed` 交付 output；`awaiting_review` 逐图查看 `view_files` 中的原图、PNG 和 SVG，在模板副本中如实填写 status 和全部 checks（不得照抄示例或一律填 true），另存后运行 `pipeline.py review --state <state> --reviews <文件>`；`needs_retry` 只修改对应图片的 drawing，另存源文件后运行 `pipeline.py retry --state <state> --source <文件>`；`error` 按信息修复。`--scope`／`--preserve`／`--include-handwriting` 必须如实反映当前聊天中用户的范围要求，`--image-mode` 和 `--word-confirmed` 必须来自用户的实际选择。候选不含插图任务时可省略 `--image-mode`。单独调用 select_content.py、figure_workflow.py、export_*.py 的方式继续可用，仅在流水线无法使用时采用。
+
 5. 逐区域与原图对照，检查过滤是否误删正文、标题、条件、图内标记或印刷答案，以及漏字、重读、印刷/手写混淆、公式层级及正斜体、化学源码、表格合并和空白。文件模式先检查筛选报告，再检查导出复核记录；对待复核项回看原图，不能确定的部分保留 `XXX`，说明具体未完成项。
 
 6. 全部当前页面检测完成后，按 [图片识别与黑白重绘](references/figure-redraw.md) 处理有效教学插图。无有效图不询问；未授权时仅问一次“是否需要识别并重新绘制其中的图片？是 / 否”；已提前要求图片也提取／重绘则直接执行。拒绝默认 ignore，明确保留原图才 preserve。技术图生成 SVG/PNG，普通示意插画可用宿主图像生成；逐图查看原图和真实产物进行校验，最多修正一次。失败不得影响已完成文字。完成图片流程后，按独立的格式选择输出 Markdown／HTML 或 Word，不以图片授权代替 Word 授权。

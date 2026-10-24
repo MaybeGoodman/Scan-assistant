@@ -27,7 +27,7 @@
 python <skill-dir>/scripts/export_page.py page.json --output-dir result
 ```
 
-脚本生成 `result.html`、`result.md` 和 `figures/`。HTML 是保留图文表顺序的完整富内容版，公式保留可复制的 LaTeX 源码，不依赖在线公式渲染。Markdown 在表格原位置放置 HTML 表格链接；不声称 Markdown 本身含原生表格。交付时优先打开 HTML 预览并链接，普通文字仍可直接回复。相对图片链接用于可移动的文件包；聊天内展示图片时转成当前宿主支持的真实附件或绝对路径。
+文件导出时优先通过 `pipeline.py` 调用，参数含义相同。脚本生成 `result.html`、`result.md` 和 `figures/`。HTML 是保留图文表顺序的完整富内容版，公式保留可复制的 LaTeX 源码，不依赖在线公式渲染。Markdown 在表格原位置放置 HTML 表格链接；不声称 Markdown 本身含原生表格。交付时优先打开 HTML 预览并链接，普通文字仍可直接回复。相对图片链接用于可移动的文件包；聊天内展示图片时转成当前宿主支持的真实附件或绝对路径。
 
 ## 图形
 

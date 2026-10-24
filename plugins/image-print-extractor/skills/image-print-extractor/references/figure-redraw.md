@@ -80,6 +80,8 @@ figure_type 可用：geometry、coordinates、function、motion、force、circui
 
 ## 命令与状态
 
+优先使用 SKILL.md 中的 `pipeline.py`，它按以下顺序调用同样的命令并管理文件名；以下为单独调用方式。
+
 以下 source.json 已经过原主体筛选。输出 JSON 与其同目录；图像工作目录留在该目录内，相对路径保持可用。所有输出独占创建，不覆盖已有产物。
 
 ```text
@@ -95,6 +97,8 @@ python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --ima
 记录 detected、classified、understood、redrawable、generated、validated、failed 等状态。结构化生成同时得到 SVG 和 PNG，生成式得到 PNG。生成成功只表示 awaiting_validation，不等于可交付。
 
 ## 真实原图对照与有限重试
+
+优先使用 `pipeline.py review`／`retry`；以下为单独调用方式。`generate` 可加 `--review-template <文件>` 输出已预填哈希的复核模板（流水线自动生成）。模板中所有判断为 null，必须逐项看图后填写；未填写或照抄的复核会被拒绝。`view_files` 只指示要查看的文件，不代表已经查看。
 
 宿主必须查看原图区域、原图结构理解、实际生成 PNG，并检查 SVG 的结构／标注。逐项比较主体数量、连接、标注及上下标、箭头、相对位置、几何、坐标、黑白、遗漏、无关元素和科学含义。不可仅复制源理解或信任生成模型自述。
 

@@ -244,6 +244,23 @@ def generate(document, base, output_dir, *, mode=None, response=None, previous=N
     return ledger
 
 
+def review_template(ledger):
+    """Prefill hashes for awaiting attempts; every judgement stays null for the host to fill."""
+    sources = {f['figure_id']:f['source_path'] for f in figures(ledger['document'])}
+    rows = []
+    for record in ledger['records']:
+        if record.get('state')!='awaiting_validation': continue
+        entry = record['attempts'][-1]
+        row = {'figure_id':record['figure_id'],'attempt':entry['attempt']}
+        row.update({k:entry[k] for k in ('source_sha256','png_sha256','svg_sha256') if k in entry})
+        row.update(reviewed_by='host_vision',status=None,notes=[],checks={check:None for check in CHECKS})
+        # view_files only points at what must be looked at; review_candidate never reads it.
+        row['view_files'] = {'source':sources[record['figure_id']],'png':entry['png_path']}
+        if entry.get('svg_path'): row['view_files']['svg'] = entry['svg_path']
+        rows.append(row)
+    return {'reviews':rows}
+
+
 def review_candidate(entry, review, base):
     if not isinstance(review,dict) or review.get('attempt')!=entry['attempt']:
         raise ValueError('Review must identify the generated attempt')
@@ -360,6 +377,7 @@ def main():
             p.add_argument('--ledger',required=True)
             p.add_argument('--previous',help='Reviewed ledger of the first failed attempt')
             p.add_argument('--font',help='Font supporting the original labels')
+            p.add_argument('--review-template',help='Also write a review template with prefilled hashes and null judgements')
         else:
             p.add_argument('--ledger',required=True)
             p.add_argument('--reviews',required=True)
@@ -374,10 +392,12 @@ def main():
         print(json.dumps(result,ensure_ascii=False,indent=2))
     elif args.command=='generate':
         if Path(args.ledger).exists(): raise FileExistsError(args.ledger)
+        if args.review_template and Path(args.review_template).exists(): raise FileExistsError(args.review_template)
         previous=json.loads(Path(args.previous).read_text(encoding='utf-8')) if args.previous else None
         ledger=generate(document,source.parent,args.output_dir,mode=args.image_mode,response=args.response,
                         previous=previous,font_path=args.font)
         write_json(args.ledger,ledger)
+        if args.review_template: write_json(args.review_template,review_template(ledger))
         print(json.dumps({'ledger':args.ledger,'states':{r['figure_id']:r['state'] for r in ledger['records']}},ensure_ascii=False))
     else:
         if Path(args.next_ledger).exists() or Path(args.output).exists(): raise FileExistsError('Output already exists')
