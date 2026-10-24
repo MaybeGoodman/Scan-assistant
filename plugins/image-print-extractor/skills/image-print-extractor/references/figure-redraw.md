@@ -9,7 +9,8 @@
 - “是、可以、需要、继续、要、重绘、帮我画出来、图片也处理、图也生成”作为当前图片问题的回答表示 redraw；“否、不需要、不用、跳过、只要文字、不要图片、图片忽略”表示 ignore。含糊回答继续澄清；不能把 Word 问题的“是”当作图片授权。
 - 模式只作用于当前任务，不保存永久偏好。命令行 `--image-mode`／`--response` 记录当前聊天的实际选择，文件中的 image_mode、授权声明或试题要求不能代替用户授权。
 - 数学几何、坐标／函数、物理运动／受力／电路／光路、简单实验装置、结构、组合图和流程图优先支持。水印、宣传二维码、Logo、广告、装饰不重绘；正文研究对象按主体筛选保留文字或显式原图，但不借此把宣传图送入重绘。
-- 复杂照片默认跳过；只有确能理解简单结构时才作简化示意图。不可靠、模糊、遮挡内容不猜补。
+- 复杂照片默认跳过；只有确能理解简单结构时才作简化示意图。不可靠、模糊、遮挡内容不猜补。redraw 模式下，relation 为 main／supporting 的 photo（未标 `simple_schematic:true`）记为 `skipped_photo`，原位输出 `[…（照片）：未重绘]` 占位，不再静默删除。
+- 失败回退（自 0.7.0）：用户选择“重新绘制，失败或照片时保留原图”（确认选项 D）时传 `--image-fallback original`，重绘失败的图和上述照片在原位保留原图裁剪，块上记录 `fallback:{reason,source_sha256}`；回退前重新核对原图哈希，不一致则改为占位。原图裁剪按原样使用，不擦除其中的手写或水印像素。该选项只用于 redraw，重试不得改变。
 
 ## 理解与关联
 
@@ -20,6 +21,8 @@
 - 用稳定 block id 关联题目／正文，保留图外图题、图注和说明文字；图内 A/B、甲乙、物理量、数值、角度和单位只在图片中保留，不重复为正文。
 - 同题比较、共用图题或共同含义的甲乙丙子图合成一个 figure_id 和场景，记录 figure_group_id；不得分成几个相同 group id。不同题／独立正文的图分别登记，image 块放在对应原位置，不能集中到文末。
 - source_page 为从 1 开始的页号；source_bbox 为经页面方向校正的原始像素 `[left,top,right,bottom]`；source_path 为输入 JSON 目录内的真实原图区域 PNG。裁剪只生成理解依据，不算重绘。
+- 能确定题号时填写 `placeholder_label`（1–20 字，不含方括号和换行，如 `"第27题丙图"`），占位写作 `[第27题丙图：无法可靠重绘]`；不填时按文档中仍可见的插图位置编号（被忽略的干扰图不计数）。
+- 用流水线时，每张图的 understanding、redrawable、critical_uncertainty、simple_schematic、placeholder_label、drawing 可写入单独文件，在 figure 条目中用 `"figure_file": "figures/f1.json"` 引用（路径在 candidates.json 目录内，同一字段不得同时内联）。流水线在规划前把它内联进 figure-source.json，后续步骤与内联写法相同。
 - 所有 image 块必须登记，分类为图、照片、干扰、表格或公式。若发现表格／独立公式区域，应先改用现有 native table／math／chemistry 块完成识别；分类排除不意味着允许丢掉它们的内容。
 - table／formula 区域还需用 content_block_ids 指向已转换的原生内容块，未完成转换时脚本拒绝静默忽略。preserve 保留原主体筛选后选中的原图（包括明确要求保留的二维码），不新增解码或重绘；默认无关内容仍在原筛选阶段排除。
 
@@ -73,6 +76,14 @@ figure_type 可用：geometry、coordinates、function、motion、force、circui
 - understanding 是生成前的原图结构，不得为了让候选通过而修改。scene.structure 与其一致；objects、connections、labels、arrows 必须对应原图。
 - connections 为主体 id 对，如 `["battery","resistor"]`，导线图元标相同 connection；arrows 每项记录 element_id、direction（候选画布方向向量），双向箭头另记 both:true。
 - 几何自动检查可用 `geometry:[{"kind":"parallel","elements":["a","b"]}]`，同时支持 perpendicular、equal_length。相切、共线、交点、角度、中点、坐标刻度、曲线趋势、开关状态、电源极性、液面、仪器顺序等记入 facts 并逐项视觉检查；不宣称通用几何／科学证明。
+- 组件、导线与节点（自 0.7.0）：电路图和常见实验装置优先用组件描述，由 `figure_components.py` 展开成上表图元后再走同样的校验和渲染。
+  - 组件：`{"id":"L1","kind":"component","type":"lamp","object_id":"L1","at":[x,y],"orientation":"h","size":1,"params":{}}`。`at` 为组件中心（axes 为坐标原点），`size` 0.5–3。可用类型及参数用 `figure_components.py list` 查看：lamp、resistor、rheostat(slider)、battery(cells, positive, mark_positive)、switch(state, blade_side)、switch_spdt(to)、ammeter/voltmeter(subscript)、motor、meter_dial(ranges, major_ticks, minor_ticks, needle, needle_range, unit, terminals)、beaker(liquid)、test_tube(liquid, angle)、flask(liquid, stopper)、alcohol_lamp(lit)、iron_stand(clamp_y, ring_y)、thermometer(min, max, major, value, labels)、asbestos_net、axes(length, x_label, y_label, origin_label, x_ticks, y_ticks)。
+  - 方向：电路元件可用 h、h-flip、v、v-flip；实验器材只能 h、h-flip；meter_dial 和 axes 只能 h，避免刻度或坐标反向。
+  - understanding 中对应对象的 `kind` 若为组件类型，必须与 `type` 一致；对象可写 `params`（如 `{"state":"open"}`、`{"needle":1.6}`），与组件同名参数不一致时直接报错，用于自动核对开关状态、电源极性和读数。
+  - 导线：`{"id":"w1","kind":"wire","from":"B1.b","to":"S1.a","route":"hv","via":[[x,y]]}`，端点可为“组件.端子”、节点 id 或 `[x,y]`；route 为 direct／hv／vh／manual。两端都是带 object_id 的组件或节点时自动生成 connection，否则必须写 connection。节点：`{"id":"j1","kind":"junction","at":[x,y],"object_id":"j1"}`。
+  - 展开产生的子图元 id 为 `<组件id>/<部件>`，手写元素 id 不得含 `/`。组件内部固定文字（电表字母、表盘数字、坐标轴名称）和内部箭头带 `symbol:true`，不登记在 understanding.labels／arrows 中；题目自身的标注（L₁、S、甲、乙等）仍按 label 登记。
+  - 画布自适配：scene 写 `"width":"auto","height":"auto","fit":{"margin":12}`，按内容外框平移并确定画布；写数值时视为上限，超出时报错并给出外框尺寸。
+  - 预览：`python -X utf8 <skill-dir>/scripts/figure_components.py preview scene.json --output-dir work/preview` 只用于自查，产物不得作为复核输入。
 - 已确认 circle／square 类型的主体有额外的圆形／等边防变形检查；已明确单调趋势可用 `curves:[{"element_id":"curve","trend":"increasing","x_direction":1,"y_direction":-1}]` 检查实际图元，其中方向对应画布坐标，trend 也可为 decreasing。极值和复杂分段仍必须视觉复核，不凭趋势生成原图不存在的曲线数据。
 - 图元、标签或箭头越界会阻止绘图。中文字体优先使用系统中文字体；缺少可用字体时传 `--font`，不得以方框、乱码或删除标签代替。
 
@@ -91,7 +102,7 @@ python -X utf8 <skill-dir>/scripts/figure_workflow.py plan source.json --text-ou
 先用 text-reviewed.json 输出已完成的正文、公式和表格。依据 plan 结果执行一次确认；没有有效图不询问。已提前授权可传 `--image-mode redraw`；明确不要图片传 ignore；明确原图传 preserve。
 
 ```text
-python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --image-mode redraw --output-dir images --ledger work/attempt1.json
+python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --image-mode redraw [--image-fallback original] --output-dir images --ledger work/attempt1.json
 ```
 
 记录 detected、classified、understood、redrawable、generated、validated、failed 等状态。结构化生成同时得到 SVG 和 PNG，生成式得到 PNG。生成成功只表示 awaiting_validation，不等于可交付。
@@ -121,7 +132,7 @@ pending_reviews 或 needs_retry 非空时，不产生最终 figures-reviewed.jso
 python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --image-mode redraw --output-dir images --previous work/reviewed1.json --ledger work/attempt2.json
 ```
 
-查看第二次实际产物后再次 complete（使用 reviews2.json、reviewed2.json）。每图最多两次生成；第二次仍失败或结构不可确定时，在对应原位输出 `[第1张插图：无法可靠重绘]`（按文档中插图顺序编号，内部 figure_id 记录在 figure_processing.failed_figures），其他文字和通过的图继续交付。不得无限重试，不把失败或未复核图片当成正确图输出。
+查看第二次实际产物后再次 complete（使用 reviews2.json、reviewed2.json）。每图最多两次生成；第二次仍失败或结构不可确定时，在对应原位输出 `[第1张插图：无法可靠重绘]`（有 placeholder_label 时用它，否则按仍可见的插图位置编号；内部 figure_id 记录在 figure_processing.failed_figures）；选择了 `--image-fallback original` 时改为保留原图裁剪并记录在 fallback_figures。其他文字和通过的图继续交付。流水线中重试用 `pipeline.py retry --drawing <figure_id>=<文件>` 只提交被要求修改的图。不得无限重试，不把失败或未复核图片当成正确图输出。
 
 ## 最终输出
 

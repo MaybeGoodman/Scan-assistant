@@ -6,7 +6,6 @@ import sys
 import tempfile
 import unittest
 from docx import Document
-from PIL import Image
 
 TESTS = Path(__file__).resolve().parent
 SCRIPTS = TESTS.parent / 'plugins/image-print-extractor/skills/image-print-extractor/scripts'
@@ -156,8 +155,7 @@ class FallbackTests(unittest.TestCase):
         for row in template['reviews']:
             row.update(status='pass', notes=['已对照'], checks={k: True for k in row['checks']})
         write(self.root / state['files']['reviews'], template)
-        state = pipeline.review_command(state['state'] if 'state' in state else
-                                        self.root / 'r1-work/r1.state.json', self.root / state['files']['reviews'])
+        state = pipeline.review_command(self.root / 'r1-work/r1.state.json', self.root / state['files']['reviews'])
         self.assertEqual(state['status'], 'completed')
         self.assertEqual(state['fallback_figures'], ['f2', 'f3'])
         self.assertEqual(state['skipped_photos'], ['f3'])

@@ -45,7 +45,9 @@ python <skill-dir>/scripts/pdf_batches.py merge work/progress.json --output work
 
 block id 使用 `p<页码>-<序号>`，如 `p3-1`，合并时 id 冲突会报错。一段文字跨批次时，仅在视觉和结构能确认是同一句时，在后一批首个 text block 上加 `"join_previous": true`。批次文件和合并输出放在 progress.json 同一目录内；提交后不得再改批次文件，合并会校验哈希。
 
-会话中断后继续时，先运行 `status`，从 `next_batch` 继续，不重做已完成批次。工作目录在本次会话不可访问时，说明需要重新处理，不假装续做。
+`merge` 会在 candidates.json 中写入 `provenance`（进度文件哈希、源 PDF 哈希、所选页）；`pipeline.py run --source <原 PDF>` 据此核对：超过 5 页的 PDF 没有完整分批来源时拒绝运行，进度文件被改动、批次未完成或源文件不符也会拒绝。provenance 只用于核对，不进入导出正文。
+
+会话中断后继续时，先运行 `status`（或 `pipeline.py resume <工作目录>` 一次列出全部批次和流水线运行），从 `next_batch` 继续，不重做已完成批次。工作目录在本次会话不可访问时，说明需要重新处理，不假装续做。
 
 ## 去干扰并恢复语句
 
