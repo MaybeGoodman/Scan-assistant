@@ -1,10 +1,13 @@
 # 更新记录
 
-## 未发布
+## 0.6.0
 
 - 新增 Claude 市场清单 `.claude-plugin/marketplace.json` 及插件清单 `plugins/image-print-extractor/.claude-plugin/plugin.json`，可在 Claude 中添加市场并安装；Codex 端文件与行为不变。
 - `scripts/validate.py` 增加 Claude 清单与通用清单、Codex 市场目录的一致性检查。
-- 仅打包变更，功能版本保持 `0.5.1`。
+- 长 PDF：`prepare_pdf.py` 新增 `--pages`（原页码），默认 DPI 由 150 提高到 200（范围 72–400），`pages.json` 增加总页数、所选页、DPI、源文件哈希和每页尺寸；新增 `render_pdf_region.py` 局部高清重渲染；新增 `pdf_batches.py` 分批登记、续做和按页序合并，超过 5 页必须分批。
+- 流水线：新增 `pipeline.py`（run／review／retry／status），一条命令完成筛选、图片处理和导出，只在需要看图复核时停下；`figure_workflow.py generate` 新增 `--review-template`，仅预填哈希、判断项为 null；原有脚本接口和全部安全检查不变。
+- 合并确认：开始前预扫描插图，在一条消息中一次询问 Word 与图片处理缺项，两项分别记录，不分项回答需追问；新增 `confirmation.py` 解析回答。
+- 新增 46 项测试，共 165 项。
 
 ## 0.5.1
 

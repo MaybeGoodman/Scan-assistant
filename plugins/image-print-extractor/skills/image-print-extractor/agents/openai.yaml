@@ -4,6 +4,6 @@ interface:
   icon_small: "./assets/icon.png"
   icon_large: "./assets/logo.png"
   brand_color: "#F4B875"
-  default_prompt: "使用 $image-print-extractor 提取主体印刷内容，过滤无关信息并忽略手写，保留公式和表格；完成文字后询问是否需要重绘有效教学插图。"
+  default_prompt: "使用 $image-print-extractor 提取主体印刷内容，过滤无关信息并忽略手写，保留公式和表格；开始前一次确认输出格式和是否重绘有效教学插图。"
 policy:
   allow_implicit_invocation: true
