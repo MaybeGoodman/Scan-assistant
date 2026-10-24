@@ -9,15 +9,43 @@
 
 ## 逐页读取
 
-优先用宿主现有 PDF 阅读与渲染工具。无专用工具时，随附脚本可生成页面 PNG 和文本层候选：
+优先用宿主现有 PDF 阅读工具。无专用工具时，用随附脚本生成页面 PNG 和文本层候选；只处理用户指定的页时加 `--pages`（从 1 开始，如 `3-5,8`）：
 
 ```text
-python <skill-dir>/scripts/prepare_pdf.py input.pdf --output-dir work/pdf-pages
+python <skill-dir>/scripts/prepare_pdf.py input.pdf --output-dir work/pdf-pages --pages 3-10
 ```
+
+默认 200 DPI（范围 72–400）。文件名和 `pages.json` 中的 `page` 均为原 PDF 页码。小字号公式或上下标看不清时，用局部重渲染放大查看后再判断，不凭上下文猜补；该图只供识别，不作为交付插图：
+
+```text
+python <skill-dir>/scripts/render_pdf_region.py input.pdf --page 3 --box 100 200 600 500 --base-dpi 200 --dpi 400 --output work/zoom-p3-1.png
+```
+
+`--box` 为 `--base-dpi` 渲染图（即 pages.json 中对应 PNG）上的像素坐标。
 
 依赖 `pypdfium2`、Pillow；所有脚本依赖列于技能内 `requirements.txt`，只按当前模式需要安装。脚本不是 OCR，不判断手写或水印。`pages.json` 的 `text_candidate` 只能辅助定位，不能直接作为最终正文：扫描 PDF 可能没有文本层，有文本层也可能错误、含手写识别或水印。
 
-逐页查看 PNG，先执行 [主体内容筛选](main-content.md)，再依原有印刷体规则提取。按页序处理，页内双栏先左后右；长文件分批但覆盖全部指定页，不只抽取开头。临时记录已处理页、被过滤元素和不确定片段，供复核，不塞入最终 Word。加密或损坏 PDF 无法读取时说明具体障碍，不跳过页面假装完成。
+逐页查看 PNG，先执行 [主体内容筛选](main-content.md)，再依原有印刷体规则提取。按页序处理，页内双栏先左后右。临时记录已处理页、被过滤元素和不确定片段，供复核，不塞入最终 Word。加密或损坏 PDF 无法读取时说明具体障碍，不跳过页面假装完成。
+
+### 长 PDF 分批与续做
+
+本次需处理的页超过 5 页时，必须分批处理并登记进度：
+
+```text
+python <skill-dir>/scripts/pdf_batches.py init work/pdf-pages/pages.json --progress work/progress.json --batch-size 5
+python <skill-dir>/scripts/pdf_batches.py status work/progress.json
+python <skill-dir>/scripts/pdf_batches.py commit work/progress.json --batch 1 --blocks work/batch-01.json
+python <skill-dir>/scripts/pdf_batches.py merge work/progress.json --output work/candidates.json
+```
+
+1. `init` 按页序切分批次（默认每批 5 页，最多 20）。
+2. 每批：查看该批页面 → 主体筛选和识别 → 写 `batch-NN.json`（`{"batch":N,"pages":[...],"blocks":[...],"figures":[...]}`）→ `commit`。`blocks` 与候选 JSON 结构相同，可带 selection；`figures` 与 `figure_task.figures` 单项结构相同，`source_page` 为原页码，本批无插图时省略。
+3. 每次 commit 后看输出的 `complete`；只要为 false 就继续 `next_batch`，不得只处理前几页就输出结果。
+4. 全部完成后 `merge` 得到 candidates.json；有插图时自动生成 `scan_complete:true` 的 `figure_task`。再进入 SKILL.md 中的导出流程。
+
+block id 使用 `p<页码>-<序号>`，如 `p3-1`，合并时 id 冲突会报错。一段文字跨批次时，仅在视觉和结构能确认是同一句时，在后一批首个 text block 上加 `"join_previous": true`。批次文件和合并输出放在 progress.json 同一目录内；提交后不得再改批次文件，合并会校验哈希。
+
+会话中断后继续时，先运行 `status`，从 `next_batch` 继续，不重做已完成批次。工作目录在本次会话不可访问时，说明需要重新处理，不假装续做。
 
 ## 去干扰并恢复语句
 
