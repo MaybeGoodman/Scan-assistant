@@ -49,6 +49,8 @@ class PipelineTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        self.scan = self.root / 'scan.png'  # the original attachment passed as --source (0.7.0)
+        Image.new('RGB', (40, 30), 'white').save(self.scan)
 
     def text_candidates(self):
         return write(self.root / 'candidates.json', {'blocks': [
@@ -62,7 +64,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_text_only_html_matches_manual_steps(self):
         source = self.text_candidates()
-        state = pipeline.run_command(source, 'r1', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(source, 'r1', source=self.scan, fmt='html', output=self.root / 'out')
         self.assertEqual(state['status'], 'completed')
         select_file(source, self.root / 'manual.json', self.root / 'manual-report.json')
         export(self.root / 'manual.json', self.root / 'manual-out')
@@ -75,10 +77,10 @@ class PipelineTests(unittest.TestCase):
     def test_docx_requires_word_confirmation(self):
         source = self.text_candidates()
         with self.assertRaisesRegex(ValueError, 'word-confirmed'):
-            pipeline.run_command(source, 'r1', fmt='docx', output=self.root / 'out.docx')
+            pipeline.run_command(source, 'r1', source=self.scan, fmt='docx', output=self.root / 'out.docx')
         self.assertFalse((self.root / 'r1-work').exists())
         self.assertFalse((self.root / 'out.docx').exists())
-        state = pipeline.run_command(source, 'r2', fmt='docx', word_confirmed=True, output=self.root / 'out.docx')
+        state = pipeline.run_command(source, 'r2', source=self.scan, fmt='docx', word_confirmed=True, output=self.root / 'out.docx')
         self.assertEqual(state['status'], 'completed')
         self.assertIn('已知', Document(self.root / 'out.docx').paragraphs[0].text)
         self.assertTrue((self.root / 'r2-work/r2.word.review.json').exists())
@@ -86,11 +88,11 @@ class PipelineTests(unittest.TestCase):
     def test_figure_task_requires_image_mode(self):
         source = self.figure_candidates()
         with self.assertRaisesRegex(ValueError, 'image-mode'):
-            pipeline.run_command(source, 'r1', fmt='html', output=self.root / 'out')
+            pipeline.run_command(source, 'r1', source=self.scan, fmt='html', output=self.root / 'out')
 
     def test_ignore_completes_in_one_run(self):
         source = self.figure_candidates()
-        state = pipeline.run_command(source, 'r1', image_mode='ignore', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(source, 'r1', source=self.scan, image_mode='ignore', fmt='html', output=self.root / 'out')
         self.assertEqual(state['status'], 'completed')
         html = (self.root / 'out/result.html').read_text(encoding='utf-8')
         self.assertNotIn('<img', html)
@@ -99,13 +101,13 @@ class PipelineTests(unittest.TestCase):
 
     def test_preserve_completes_in_one_run(self):
         source = self.figure_candidates()
-        state = pipeline.run_command(source, 'r1', image_mode='preserve', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(source, 'r1', source=self.scan, image_mode='preserve', fmt='html', output=self.root / 'out')
         self.assertEqual(state['status'], 'completed')
         self.assertIn('<img', (self.root / 'out/result.html').read_text(encoding='utf-8'))
 
     def test_redraw_stops_with_null_template_matching_ledger(self):
         source = self.figure_candidates()
-        state = pipeline.run_command(source, 'r1', image_mode='redraw', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(source, 'r1', source=self.scan, image_mode='redraw', fmt='html', output=self.root / 'out')
         self.assertEqual(state['status'], 'awaiting_review')
         ledger = read(self.root / state['files']['ledger'])
         template = read(self.root / state['files']['review_template'])
@@ -122,7 +124,7 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue((self.root / 'r1.text-reviewed.json').exists())
 
     def test_unfilled_template_is_rejected_and_run_stays_resumable(self):
-        state = pipeline.run_command(self.figure_candidates(), 'r1', image_mode='redraw', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(self.figure_candidates(), 'r1', source=self.scan, image_mode='redraw', fmt='html', output=self.root / 'out')
         state_path = self.root / 'r1-work/r1.state.json'
         with self.assertRaisesRegex(ValueError, '模板'):
             pipeline.review_command(state_path, self.root / state['files']['review_template'])
@@ -138,7 +140,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_redraw_pass_matches_manual_steps(self):
         source = self.figure_candidates()
-        state = pipeline.run_command(source, 'r1', image_mode='redraw', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(source, 'r1', source=self.scan, image_mode='redraw', fmt='html', output=self.root / 'out')
         state = pipeline.review_command(self.root / 'r1-work/r1.state.json', fill(state))
         self.assertEqual(state['status'], 'completed')
         self.assertEqual(state['failed_figures'], [])
@@ -159,7 +161,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(strip(mine['blocks']), strip(result['blocks']))
 
     def test_major_issue_then_retry_passes(self):
-        state = pipeline.run_command(self.figure_candidates(), 'r1', image_mode='redraw', fmt='docx',
+        state = pipeline.run_command(self.figure_candidates(), 'r1', source=self.scan, image_mode='redraw', fmt='docx',
                                      word_confirmed=True, output=self.root / 'out.docx')
         state_path = self.root / 'r1-work/r1.state.json'
         state = pipeline.review_command(state_path, fill(state, 'major_issue', labels=False))
@@ -174,7 +176,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(Document(self.root / 'out.docx').inline_shapes), 1)
 
     def test_two_major_issues_leave_placeholder(self):
-        state = pipeline.run_command(self.figure_candidates(), 'r1', image_mode='redraw', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(self.figure_candidates(), 'r1', source=self.scan, image_mode='redraw', fmt='html', output=self.root / 'out')
         state_path = self.root / 'r1-work/r1.state.json'
         state = pipeline.review_command(state_path, fill(state, 'major_issue', labels=False))
         fixed = read(self.root / state['files']['figure_source'])
@@ -187,7 +189,7 @@ class PipelineTests(unittest.TestCase):
         self.assertNotIn('<img', html)
 
     def test_retry_cannot_change_understanding_or_text(self):
-        state = pipeline.run_command(self.figure_candidates(), 'r1', image_mode='redraw', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(self.figure_candidates(), 'r1', source=self.scan, image_mode='redraw', fmt='html', output=self.root / 'out')
         state_path = self.root / 'r1-work/r1.state.json'
         state = pipeline.review_command(state_path, fill(state, 'major_issue', labels=False))
         original = read(self.root / state['files']['figure_source'])
@@ -202,7 +204,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_modified_candidates_are_detected(self):
         source = self.figure_candidates()
-        state = pipeline.run_command(source, 'r1', image_mode='redraw', fmt='html', output=self.root / 'out')
+        state = pipeline.run_command(source, 'r1', source=self.scan, image_mode='redraw', fmt='html', output=self.root / 'out')
         reviews = fill(state)
         data = read(source)
         data['blocks'][0]['runs'][0]['text'] = '被修改'
@@ -212,11 +214,11 @@ class PipelineTests(unittest.TestCase):
 
     def test_run_id_reuse_and_format(self):
         source = self.text_candidates()
-        pipeline.run_command(source, 'r1', fmt='html', output=self.root / 'out')
+        pipeline.run_command(source, 'r1', source=self.scan, fmt='html', output=self.root / 'out')
         with self.assertRaises(FileExistsError):
-            pipeline.run_command(source, 'r1', fmt='html', output=self.root / 'out2')
+            pipeline.run_command(source, 'r1', source=self.scan, fmt='html', output=self.root / 'out2')
         with self.assertRaises(ValueError):
-            pipeline.run_command(source, '../x', fmt='html', output=self.root / 'out3')
+            pipeline.run_command(source, '../x', source=self.scan, fmt='html', output=self.root / 'out3')
 
     def qr_candidates(self):
         Image.new('RGB', (60, 60), 'black').save(self.root / 'qr.png')
@@ -232,11 +234,11 @@ class PipelineTests(unittest.TestCase):
 
     def test_explicit_qr_preservation_reaches_export(self):
         source = self.qr_candidates()
-        state = pipeline.run_command(source, 'keep', preserve=['QR_PROMOTION'], image_mode='preserve', fmt='html',
+        state = pipeline.run_command(source, 'keep', source=self.scan, preserve=['QR_PROMOTION'], image_mode='preserve', fmt='html',
                                      output=self.root / 'kept')
         self.assertEqual(state['status'], 'completed')
         self.assertIn('<img', (self.root / 'kept/result.html').read_text(encoding='utf-8'))
-        state = pipeline.run_command(source, 'drop', image_mode='preserve', fmt='html', output=self.root / 'dropped')
+        state = pipeline.run_command(source, 'drop', source=self.scan, image_mode='preserve', fmt='html', output=self.root / 'dropped')
         self.assertEqual(state['figures_removed_by_selection'], ['qr1'])
         self.assertNotIn('<img', (self.root / 'dropped/result.html').read_text(encoding='utf-8'))
 
@@ -264,7 +266,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_cli_prints_next_action(self):
         source = self.figure_candidates()
-        done = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'pipeline.py'), 'run', str(source), '--run-id', 'c1',
+        done = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'pipeline.py'), 'run', str(source), '--source', str(self.scan), '--run-id', 'c1',
                                '--image-mode', 'redraw', '--format', 'html', '--output', str(self.root / 'out')],
                               capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(done.returncode, 0, done.stderr)
@@ -274,7 +276,7 @@ class PipelineTests(unittest.TestCase):
         status = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'pipeline.py'), 'status', '--state', result['state']],
                                 capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(json.loads(status.stdout)['status'], 'awaiting_review')
-        bad = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'pipeline.py'), 'run', str(source), '--run-id', 'c2',
+        bad = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'pipeline.py'), 'run', str(source), '--source', str(self.scan), '--run-id', 'c2',
                               '--format', 'docx', '--output', str(self.root / 'x.docx')],
                              capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(bad.returncode, 1)

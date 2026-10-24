@@ -28,6 +28,8 @@ LEADING = '嗯哦噢喔那额呃'
 TRAILING = '的了吧啊呀哦呢嘛啦'
 SEPARATORS = re.compile(r'[，,、；;。！!？?\s.~～…]+')
 MAX_ATTEMPTS = 2
+FALLBACKS = ('placeholder','original')
+LABEL_FORBIDDEN = re.compile(r'[\[\]\n\r]')
 
 
 def fingerprint(value):
@@ -82,6 +84,9 @@ def figures(document):
                 return item.get('type') in {'math','chemistry'} or any(expression(v) for key in ('runs','cells') for v in item.get(key,[]))
             if not converted or not all(b.get('type')=='table' if figure['figure_type']=='table' else expression(b) for b in converted):
                 raise ValueError('Table/formula regions must reference their converted native content_block_ids')
+        label = figure.get('placeholder_label')
+        if label is not None and (not isinstance(label,str) or not 1<=len(label)<=20 or LABEL_FORBIDDEN.search(label)):
+            raise ValueError(f'插图 {fid} 的 placeholder_label 必须为 1–20 字且不含方括号或换行')
         group = figure.get('figure_group_id')
         if group is not None:
             if not isinstance(group,str) or not group or group in groups:
@@ -105,6 +110,22 @@ def eligible(figure):
     return (figure['relation'] in {'main','supporting'}
             and (figure['figure_type'] in CORE_TYPES
                  or figure['figure_type']=='photo' and figure.get('simple_schematic') is True))
+
+
+def skipped_photo(figure):
+    """A main/supporting photo that redraw mode leaves alone; it must not vanish silently."""
+    return (figure['relation'] in {'main','supporting'} and figure['figure_type']=='photo'
+            and figure.get('simple_schematic') is not True)
+
+
+def fallback_choice(mode, fallback):
+    if fallback is None:
+        return 'placeholder'
+    if fallback not in FALLBACKS:
+        raise ValueError('image_fallback 只能为 placeholder 或 original')
+    if fallback=='original' and mode!='redraw':
+        raise ValueError('image_fallback 仅适用于 redraw 模式')
+    return fallback
 
 
 def preservable(figure):
@@ -167,20 +188,25 @@ def local_path(base, relative):
     return path
 
 
-def generate(document, base, output_dir, *, mode=None, response=None, previous=None, font_path=None):
+def generate(document, base, output_dir, *, mode=None, response=None, previous=None, font_path=None,
+             image_fallback=None):
     choice = plan(document,mode=mode,response=response)
     if choice['status']=='awaiting_confirmation':
         raise ValueError(PROMPT)
+    fallback = fallback_choice(choice['image_mode'],image_fallback)
     base, output_dir = Path(base).resolve(),Path(output_dir).resolve()
     if not output_dir.is_relative_to(base):
         raise ValueError('Keep generated figures inside the input directory')
     ledger = {'schema_version':1,'task_id':choice['task_id'],'image_mode':choice['image_mode'],
+              'image_fallback':fallback,
               'text_hash':fingerprint(text_document(document)),'document':deepcopy(document),'records':[]}
     candidates = figures(document)
     if previous:
         if (previous.get('task_id')!=ledger['task_id'] or previous.get('image_mode')!=ledger['image_mode']
                 or previous.get('text_hash')!=ledger['text_hash']):
             raise ValueError('A retry cannot change task, mode or completed text')
+        if previous.get('image_fallback','placeholder')!=fallback:
+            raise ValueError('重试不能改变 image_fallback')
         old = {f['figure_id']:{k:v for k,v in f.items() if k!='drawing'} for f in figures(previous['document'])}
         new = {f['figure_id']:{k:v for k,v in f.items() if k!='drawing'} for f in candidates}
         if old!=new:
@@ -194,6 +220,15 @@ def generate(document, base, output_dir, *, mode=None, response=None, previous=N
             'detected':True,'classified':True,'understood':False,'redrawable':False,
             'generated':False,'validated':False,'failed':False,'attempts':[]}))
         ledger['records'].append(record)
+        if ledger['image_mode']=='redraw' and skipped_photo(figure):
+            try:
+                source_hash = sha256(image_source(base,figure['source_path']))
+                if record.get('source_sha256',source_hash)!=source_hash:
+                    raise ValueError('Original figure changed during the task')
+                record.update(state='skipped_photo',source_sha256=source_hash)
+            except (ValueError,KeyError,TypeError,OSError) as exc:
+                record.update(state='failed',failed=True,reason=str(exc))
+            continue
         if ledger['image_mode']=='ignore' or not (preservable(figure) if ledger['image_mode']=='preserve' else eligible(figure)):
             record.update(state='ignored')
             continue
@@ -325,15 +360,36 @@ def complete(ledger, reviews, base):
     result = deepcopy(ledger['document'])
     result.pop('figure_task')
     records = {r['figure_id']:r for r in ledger['records']}
+    fallback = ledger.get('image_fallback','placeholder')
     blocks=[]
     ordinal=0
+    used_fallback, fallback_errors = [], {}
     for block in result['blocks']:
         if block.get('type')!='image':
             blocks.append(block)
             continue
-        ordinal+=1
         record = records[block['figure_id']]
         if record['state']=='ignored': continue
+        # Reader-facing order counts only positions that remain visible in the document.
+        ordinal+=1
+        if record['state'] in {'failed','skipped_photo'}:
+            reason = 'photo' if record['state']=='skipped_photo' else 'failed'
+            if fallback=='original':
+                try:
+                    current = sha256(image_source(base,definitions[record['figure_id']]['source_path']))
+                    if not record.get('source_sha256') or current!=record['source_sha256']:
+                        raise ValueError('原图在回退前被修改或无法核对')
+                    block.pop('svg_path',None)
+                    block['fallback'] = {'reason':reason,'source_sha256':current}
+                    blocks.append(block)
+                    used_fallback.append(record['figure_id'])
+                    continue
+                except (ValueError,OSError,KeyError) as exc:
+                    fallback_errors[record['figure_id']] = str(exc)
+            label = definitions[record['figure_id']].get('placeholder_label') or f'第{ordinal}张插图'
+            text = f'[{label}（照片）：未重绘]' if reason=='photo' else f'[{label}：无法可靠重绘]'
+            blocks.append({'type':'text','text':text,'layout':deepcopy(block.get('layout',{}))})
+            continue
         if record['state']=='preserved':
             blocks.append(block)
         elif record['state']=='validated':
@@ -345,12 +401,15 @@ def complete(ledger, reviews, base):
             block['figure'] = {k:deepcopy(record[k]) for k in ('figure_id','source_page','source_bbox','parent_block_id','figure_type','figure_group_id')}
             blocks.append(block)
         else:
-            # Reader-facing position by document order; the internal id stays in figure_processing.
-            blocks.append({'type':'text','text':f'[第{ordinal}张插图：无法可靠重绘]',
-                           'layout':deepcopy(block.get('layout',{}))})
+            raise ValueError(f'插图 {record["figure_id"]} 处于未完成状态 {record["state"]}')
     result['blocks']=blocks
     result['figure_processing']={'task_id':ledger['task_id'],'image_mode':ledger['image_mode'],'status':'completed',
-                                'failed_figures':[r['figure_id'] for r in ledger['records'] if r['failed']]}
+                                'image_fallback':fallback,
+                                'failed_figures':[r['figure_id'] for r in ledger['records'] if r['failed']],
+                                'skipped_photos':[r['figure_id'] for r in ledger['records'] if r['state']=='skipped_photo'],
+                                'fallback_figures':used_fallback}
+    if fallback_errors:
+        result['figure_processing']['fallback_errors']=fallback_errors
     return result,ledger
 
 
@@ -378,6 +437,8 @@ def main():
             p.add_argument('--previous',help='Reviewed ledger of the first failed attempt')
             p.add_argument('--font',help='Font supporting the original labels')
             p.add_argument('--review-template',help='Also write a review template with prefilled hashes and null judgements')
+            p.add_argument('--image-fallback',choices=FALLBACKS,
+                           help='redraw only: placeholder (default) or original crop for failed figures and photos')
         else:
             p.add_argument('--ledger',required=True)
             p.add_argument('--reviews',required=True)
@@ -395,7 +456,7 @@ def main():
         if args.review_template and Path(args.review_template).exists(): raise FileExistsError(args.review_template)
         previous=json.loads(Path(args.previous).read_text(encoding='utf-8')) if args.previous else None
         ledger=generate(document,source.parent,args.output_dir,mode=args.image_mode,response=args.response,
-                        previous=previous,font_path=args.font)
+                        previous=previous,font_path=args.font,image_fallback=args.image_fallback)
         write_json(args.ledger,ledger)
         if args.review_template: write_json(args.review_template,review_template(ledger))
         print(json.dumps({'ledger':args.ledger,'states':{r['figure_id']:r['state'] for r in ledger['records']}},ensure_ascii=False))

@@ -93,14 +93,18 @@ def validate_scene(scene, understanding=None):
     ids = set()
     allowed = {'id','kind','object_id','points','center','radius','rx','ry','at','width',
                'height','start','end','fill','stroke_width','dash','arrow','text','runs',
-               'size','anchor','label_id','connection'}
+               'size','anchor','label_id','connection','symbol'}
     for element in elements:
         if not isinstance(element, dict) or set(element) - allowed:
-            raise ValueError('Unsupported drawing attribute; only black/white primitives are allowed')
+            extra = sorted(set(element) - allowed) if isinstance(element, dict) else []
+            raise ValueError(f'Unsupported drawing attribute {extra}; only black/white primitives are allowed')
         eid = element.get('id')
         if not isinstance(eid, str) or not eid or eid in ids:
-            raise ValueError('Every drawing element must have a unique id')
+            raise ValueError(f'Every drawing element must have a unique id（重复或无效：{eid!r}）')
         ids.add(eid)
+        if 'symbol' in element and (element['symbol'] is not True or '/' not in eid
+                                    or not (element['kind'] == 'label' or element.get('arrow', 'none') != 'none')):
+            raise ValueError(f'元素 {eid}：symbol 只用于组件展开产生的固定文字或箭头，不能手写')
         kind = element['kind']
         if kind not in KINDS or element.get('fill', 'none') not in {'none','black','white'}:
             raise ValueError('Unsupported primitive or non-black/white fill')
@@ -138,7 +142,10 @@ def validate_scene(scene, understanding=None):
             pts += arrow_triangle(samples(element), stroke)
         margin = 0 if kind == 'label' else stroke/2
         if any(not (margin <= x <= w-margin and margin <= y <= h-margin) for x,y in pts):
-            raise ValueError('Drawing would be clipped by the canvas')
+            box = [round(min(x for x, _ in pts) - margin, 1), round(min(y for _, y in pts) - margin, 1),
+                   round(max(x for x, _ in pts) + margin, 1), round(max(y for _, y in pts) + margin, 1)]
+            raise ValueError(f'Drawing would be clipped by the canvas：元素 {eid} 越界，外框 {box}，'
+                             f'画布 {w:g}×{h:g}；可加 fit 或调整坐标')
     if understanding is not None:
         validate_structure(scene, understanding)
     return scene
@@ -154,8 +161,12 @@ def validate_structure(scene, expected):
     if not isinstance(objects, list) or any(not isinstance(o, dict) or not o.get('id') for o in objects):
         raise ValueError('Invalid source objects')
     ids = {o['id'] for o in objects}
-    if len(ids) != len(objects) or {e.get('object_id') for e in scene['elements']} - {None} != ids:
-        raise ValueError('Object count or identity differs from source')
+    drawn = {e.get('object_id') for e in scene['elements']} - {None}
+    if len(ids) != len(objects):
+        raise ValueError('Object count or identity differs from source：原图理解中对象 id 重复')
+    if drawn != ids:
+        raise ValueError(f'Object count or identity differs from source：原图理解有而图中缺少 {sorted(ids - drawn)}；'
+                         f'图中多出 {sorted(drawn - ids)}')
     for obj in objects:
         shapes=[e for e in scene['elements'] if e.get('object_id')==obj['id'] and e['kind']!='label']
         if obj.get('kind')=='circle' and (not any(e['kind']=='circle' for e in shapes) or any(e['kind']=='ellipse' for e in shapes)):
@@ -164,24 +175,33 @@ def validate_structure(scene, expected):
             raise ValueError('A source square must preserve equal side lengths')
     by_id = {e['id']: e for e in scene['elements']}
     labels = expected.get('labels', [])
-    actual_labels = [e for e in scene['elements'] if e['kind'] == 'label']
+    # Fixed component text (meter letters, scale numbers) comes from component params, not source labels.
+    actual_labels = [e for e in scene['elements'] if e['kind'] == 'label' and not e.get('symbol')]
     if len(labels) != len(actual_labels):
-        raise ValueError('Label count differs from source')
+        wanted = sorted(str(label.get('id')) for label in labels)
+        have = sorted(str(e.get('label_id')) for e in actual_labels)
+        raise ValueError(f'Label count differs from source：原图理解 {len(labels)} 个，图中 {len(actual_labels)} 个；'
+                         f'缺少 {sorted(set(wanted) - set(have))}，多出 {sorted(set(have) - set(wanted))}')
     for label in labels:
         matches = [e for e in actual_labels if e.get('label_id') == label['id']]
         if (len(matches) != 1 or matches[0].get('object_id') != label['target']
                 or label_runs(matches[0]) != label_runs(label)):
-            raise ValueError('Label content, script or target differs from source')
+            raise ValueError(f'Label content, script or target differs from source：标注 {label["id"]}')
     connections = expected.get('connections', [])
     actual_connections = [e['connection'] for e in scene['elements'] if 'connection' in e]
     if sorted(map(str,connections)) != sorted(map(str,actual_connections)):
-        raise ValueError('Connection topology differs from source')
+        expected_set, actual_set = list(map(str, connections)), list(map(str, actual_connections))
+        missing = [c for c in expected_set if expected_set.count(c) > actual_set.count(c)]
+        extra = [c for c in actual_set if actual_set.count(c) > expected_set.count(c)]
+        raise ValueError(f'Connection topology differs from source：缺少 {sorted(set(missing))}，多出 {sorted(set(extra))}')
     for connection in connections:
         if not isinstance(connection, list) or len(connection) != 2 or not set(connection) <= ids:
             raise ValueError('Unknown connection endpoint')
     arrows = expected.get('arrows', [])
-    if {a['element_id'] for a in arrows} != {e['id'] for e in scene['elements'] if e.get('arrow','none') != 'none'}:
-        raise ValueError('Arrow count differs from source')
+    wanted = {a['element_id'] for a in arrows}
+    have = {e['id'] for e in scene['elements'] if e.get('arrow','none') != 'none' and not e.get('symbol')}
+    if wanted != have:
+        raise ValueError(f'Arrow count differs from source：缺少 {sorted(wanted - have)}，多出 {sorted(have - wanted)}')
     for arrow in arrows:
         element = by_id[arrow['element_id']]
         pts = samples(element)
@@ -266,6 +286,8 @@ def dashed_segments(points, dash):
 
 
 def render(scene, svg_path, png_path, *, understanding=None, scale=3, font_path=None):
+    from figure_components import expand_scene
+    scene = expand_scene(scene, understanding=understanding, font_path=font_path)
     scene = deepcopy(validate_scene(scene, understanding))
     if type(scale) is not int or not 2 <= scale <= 4:
         raise ValueError('PNG scale must be 2 to 4')
@@ -299,7 +321,8 @@ def render(scene, svg_path, png_path, *, understanding=None, scale=3, font_path=
                 shift = 0 if run['script']=='normal' else size*scale*(.22 if run['script']=='sub' else -.4)
                 box = draw.textbbox((cursor,y*scale+shift),run['text'],font=font,anchor='ls')
                 if box[0]<0 or box[1]<0 or box[2]>image.width or box[3]>image.height:
-                    raise ValueError('Label would be clipped; enlarge canvas or move the label')
+                    raise ValueError(f'Label would be clipped; enlarge canvas or move the label：元素 {element["id"]}，'
+                                     f'外框 {[round(v / scale, 1) for v in box]}，画布 {w:g}×{h:g}')
                 draw.text((cursor,y*scale+shift),run['text'],font=font,fill='black',anchor='ls')
                 span = ET.SubElement(text,'{'+SVG+'}tspan',{'baseline-shift':{'normal':'baseline','sub':'sub','sup':'super'}[run['script']],
                     'font-size':str(size*(1 if run['script']=='normal' else .7))})

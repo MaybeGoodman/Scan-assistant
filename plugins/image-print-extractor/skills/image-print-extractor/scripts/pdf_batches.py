@@ -175,7 +175,12 @@ def merge(progress, output):
                 owners[block['id']] = entry['batch']
             blocks.append(block)
         figures.extend(deepcopy(data.get('figures', [])))
-    result = {'blocks': blocks}
+    result = {'blocks': blocks,
+              # Lets pipeline.py prove the candidates came from a complete batch run of this PDF.
+              'provenance': {'tool': 'pdf_batches', 'schema_version': 1, 'progress': progress.name,
+                             'progress_sha256': sha256(progress), 'source_sha256': state['source_sha256'],
+                             'source_page_count': state['source_page_count'],
+                             'selected_pages': list(state['selected_pages'])}}
     if figures:
         result['figure_task'] = {'schema_version': 1, 'task_id': state['task_id'],
                                  'page_count': state['source_page_count'], 'scan_complete': True,

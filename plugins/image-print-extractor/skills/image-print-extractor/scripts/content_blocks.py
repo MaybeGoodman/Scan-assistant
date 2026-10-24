@@ -19,6 +19,13 @@ def reviewed_blocks(document):
         if 'redraw' in item:
             from figure_drawing import validate_redraw_metadata
             validate_redraw_metadata(item)
+        if 'fallback' in item:
+            data = item['fallback']
+            digest = data.get('source_sha256') if isinstance(data, dict) else None
+            if (item.get('type') != 'image' or not isinstance(data, dict) or set(data) != {'reason', 'source_sha256'}
+                    or data['reason'] not in {'failed', 'photo'} or not isinstance(digest, str) or len(digest) != 64
+                    or any(c not in '0123456789abcdef' for c in digest)):
+                raise ValueError('Invalid original-image fallback metadata')
         for key in ('runs', 'cells'):
             if key in item:
                 if not isinstance(item[key], list):
