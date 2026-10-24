@@ -16,7 +16,8 @@ SEPARATORS = re.compile(r'[，,、；;。！!？?\s~～…]+')
 NUMBERED = re.compile(r'([1-9])\s*[-.:：、．)）]?\s*([a-z])')
 LETTER_ONLY = re.compile(r'^\s*([a-z])\s*$')
 WORD_LETTERS = {'a': True, 'b': False}
-IMAGE_LETTERS = {'a': 'redraw', 'b': 'ignore', 'c': 'preserve'}
+# 'redraw:original' = redraw, and keep the original crop where a figure fails or is a photo.
+IMAGE_LETTERS = {'a': 'redraw', 'b': 'ignore', 'c': 'preserve', 'd': 'redraw:original'}
 WORD_KEYS = ('word', 'docx', '文档')
 WORD_NO_OUTPUT = ('直接输出', '只要提取内容', '只输出内容', '不生成文档')
 IMAGE_KEYS = ('图', '画', '绘', '插图')
@@ -31,7 +32,8 @@ WORD_YES = {'是', '是的', '好', '好的', '可以', '可以的', '行', '对
 WORD_NO = {'否', '不', '不要', '不用', '不需要', '不行', '不是', '算了', '没必要', 'no', 'n'}
 # Option labels shown by multiple-choice tools.
 WORD_LABELS = {'生成word(.docx)': True, '生成word': True, '直接输出提取内容': False}
-IMAGE_LABELS = {'重新绘制插图': 'redraw', '重新绘制': 'redraw', '不要图片': 'ignore', '保留原图': 'preserve'}
+IMAGE_LABELS = {'重新绘制插图': 'redraw', '重新绘制': 'redraw', '不要图片': 'ignore', '保留原图': 'preserve',
+                '重新绘制插图(失败处留占位)': 'redraw'}
 
 
 def normalize(text):
@@ -52,9 +54,17 @@ def word_value(fragment):
     return None
 
 
+def fallback_fragment(fragment):
+    """'失败时保留原图' or '照片保留原图' qualifies a redraw answer instead of meaning preserve."""
+    return '原图' in fragment and ('失败' in fragment or '照片' in fragment)
+
+
 def image_value(fragment):
     if compact(fragment) in IMAGE_LABELS:
         return IMAGE_LABELS[compact(fragment)]
+    if fallback_fragment(fragment) or (any(key in fragment for key in PRESERVE_KEYS)
+                                       and any(key in fragment for key in REDRAW_KEYS)):
+        return 'redraw:original'
     if any(key in fragment for key in PRESERVE_KEYS):
         return 'preserve'
     try:
@@ -136,11 +146,19 @@ def parse(response, ask):
             record('word', word)
         if image is not None:
             record('image', image)
-    result = {'word': None, 'image_mode': None, 'ambiguous': []}
+    if 'image' in found and found['image'] == {'redraw', 'redraw:original'}:
+        found['image'] = {'redraw:original'}  # e.g. "重绘，失败时保留原图"
+    result = {'word': None, 'image_mode': None, 'image_fallback': None, 'ambiguous': []}
     for item in asked:
         values = found[item]
         if len(values) == 1 and 'invalid' not in values:
-            result['word' if item == 'word' else 'image_mode'] = values.pop()
+            value = values.pop()
+            if item == 'word':
+                result['word'] = value
+            else:
+                result['image_mode'] = 'redraw' if value.startswith('redraw') else value
+                if result['image_mode'] == 'redraw':
+                    result['image_fallback'] = 'original' if value == 'redraw:original' else 'placeholder'
         else:
             result['ambiguous'].append(item)
     return result

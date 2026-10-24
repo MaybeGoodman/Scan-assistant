@@ -16,8 +16,8 @@ description: 提取图片或 PDF 的主体印刷内容，过滤无关广告、�
 
 两项都不缺时直接处理。缺图片处理时，先做插图预扫描：浏览全部（或用户指定的）页面，只判断是否有有效教学插图、大约几张，不做转录；没有有效插图就不问图片问题。仍有缺项时，在**一条消息中一次性询问全部缺项**，等待回答后再一次性完成文字、公式、表格、图片和导出：
 
-- 有多选问答工具时，在同一次调用中放入最多两个问题：输出格式“生成 Word（.docx）／直接输出提取内容”；图片处理“重新绘制插图／不要图片／保留原图”，并写明预扫描发现的插图数量。
-- 没有这类工具时，发一条编号消息，例如：“开始提取前请确认两点（可一次回答，如“1A 2A”或“Word，重绘”）：1. 输出格式：A. 生成 Word（.docx） B. 直接输出提取内容；2. 文中有 3 张教学插图：A. 重新绘制 B. 不要图片 C. 保留原图”。
+- 有多选问答工具时，在同一次调用中放入最多两个问题：输出格式“生成 Word（.docx）／直接输出提取内容”；图片处理“重新绘制插图（失败处留占位）／不要图片／保留原图／重新绘制，失败或照片时保留原图”，并写明预扫描发现的插图数量。
+- 没有这类工具时，发一条编号消息，例如：“开始提取前请确认两点（可一次回答，如“1A 2A”或“Word，重绘”）：1. 输出格式：A. 生成 Word（.docx） B. 直接输出提取内容；2. 文中有 3 张教学插图：A. 重新绘制（失败处留占位） B. 不要图片 C. 保留原图 D. 重新绘制，失败或照片时保留原图”。
 - 只缺一项时只问一项。
 
 两项分别记录、分别生效：一个回答只决定它明确对应的那一项；问了两项而回答只是“是”“好的”“可以”等不分项的话，必须追问，不能当作两项都确认。选 Word 不代表要重绘，反之亦然。回答可用 `python -X utf8 <skill-dir>/scripts/confirmation.py parse --ask word,image --response "<用户原话>"` 解析，退出码 2 表示仍有含糊项需追问。选择只作用于当前任务，不保存为偏好。
@@ -55,10 +55,12 @@ PDF 需处理的页超过 5 页，或用户只要求部分页时，先按 [PDF �
    文件导出（HTML／Word）优先使用流水线，一条命令完成筛选、图片处理和导出：
 
    ```text
-   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --run-id r1 --scope <范围> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> --format <html|docx> [--word-confirmed] --output <输出目录或 .docx>
+   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --source <原始附件> --run-id r1 --scope <范围> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> [--image-fallback original] --format <html|docx> [--word-confirmed] --output <输出目录或 .docx>
    ```
 
-   每次命令结束只看输出 JSON 的 `status` 和 `next_action`：`completed` 交付 output；`awaiting_review` 逐图查看 `view_files` 中的原图、PNG 和 SVG，在模板副本中如实填写 status 和全部 checks（不得照抄示例或一律填 true），另存后运行 `pipeline.py review --state <state> --reviews <文件>`；`needs_retry` 只修改对应图片的 drawing，另存源文件后运行 `pipeline.py retry --state <state> --source <文件>`；`error` 按信息修复。`--scope`／`--preserve`／`--include-handwriting` 必须如实反映当前聊天中用户的范围要求，`--image-mode` 和 `--word-confirmed` 必须来自用户的实际选择。候选不含插图任务时可省略 `--image-mode`。单独调用 select_content.py、figure_workflow.py、export_*.py 的方式继续可用，仅在流水线无法使用时采用。
+   每次命令结束只看输出 JSON 的 `status` 和 `next_action`：`completed` 交付 output；`awaiting_review` 逐图查看 `view_files` 中的原图、PNG 和 SVG，在模板副本中如实填写 status 和全部 checks（不得照抄示例或一律填 true），另存后运行 `pipeline.py review --state <state> --reviews <文件>`；`needs_retry` 只为列出的插图各写一个只含 `{"drawing": ...}` 的新文件，运行 `pipeline.py retry --state <state> --drawing <figure_id>=<文件>`（旧用法 `--source <整份源文件>` 仍可用）；`error` 按信息修复。`--source` 为本次处理的原始 PDF 或图片：超过 5 页的 PDF 必须先用 `pdf_batches.py` 分批并 merge，否则流水线拒绝运行。`--scope`／`--preserve`／`--include-handwriting` 必须如实反映当前聊天中用户的范围要求，`--image-mode`、`--image-fallback`（仅选项 D 时传 `original`）和 `--word-confirmed` 必须来自用户的实际选择。候选不含插图任务时可省略 `--image-mode`。单独调用 select_content.py、figure_workflow.py、export_*.py 的方式继续可用，仅在流水线无法使用时采用。
+
+   长任务控制上下文：每批 `commit` 后只依据 `status` 输出继续，不重新打开已提交的批次文件；确认重绘后，每张图的理解与绘图写入单独的 `figure_file`（见图片重绘参考），生成和复核时每次只看当前这张图；电路图和常见实验装置优先用组件库绘制，可先用 `figure_components.py preview` 预览。上下文被压缩、会话恢复或不确定进度时，先运行 `pipeline.py resume <工作目录>`，按其中的 `next_action` 或 `next_batch` 继续，不重做已完成的批次或复核，也不凭记忆重建状态。
 
 5. 逐区域与原图对照，检查过滤是否误删正文、标题、条件、图内标记或印刷答案，以及漏字、重读、印刷/手写混淆、公式层级及正斜体、化学源码、表格合并和空白。文件模式先检查筛选报告，再检查导出复核记录；对待复核项回看原图，不能确定的部分保留 `XXX`，说明具体未完成项。
 

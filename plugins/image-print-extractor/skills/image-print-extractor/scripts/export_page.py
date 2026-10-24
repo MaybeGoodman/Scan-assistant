@@ -72,8 +72,14 @@ def figure_assets(base, block):
                     or svg.suffix.lower()!='.svg' or sha256(svg)!=block['redraw']['svg_sha256']):
                 raise ValueError('Invalid or changed reviewed SVG')
             safe_svg(svg)
+        if 'fallback' in block:
+            raise ValueError('A block cannot be both a validated redraw and an original fallback')
     elif block.get('svg_path'):
         raise ValueError('SVG companion needs validated redraw provenance')
+    if 'fallback' in block:
+        from figure_drawing import sha256
+        if sha256(image)!=block['fallback']['source_sha256']:
+            raise ValueError('回退原图与记录的哈希不一致，原图可能已被修改')
     return image,svg
 
 

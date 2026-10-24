@@ -1,5 +1,16 @@
 # 更新记录
 
+## 0.7.0
+
+- 组件库：新增 `figure_components.py`，提供灯泡、电阻、滑动变阻器、电池（组）、开关、单刀双掷开关、电流表、电压表、电动机、指针式表盘、烧杯、试管、烧瓶、酒精灯、铁架台、温度计、石棉网、坐标轴 18 种组件，以及按端子连线的导线和节点；展开为原有黑白图元后仍执行全部结构校验。组件类型和声明的参数（开关状态、极性、读数等）须与原图理解一致；表盘、坐标轴不可旋转或镜像，实验器材不可横放。
+- 画布自适配：scene 支持 `fit` 和 `"auto"` 宽高，按内容外框统一留边；超限时报出外框尺寸。新增 `figure_components.py preview／list`。
+- 报错定位：越界、对象、标注、连接、箭头不一致等错误指明元素 id、外框或缺失／多出项；判定条件不变。
+- 原图回退：新增 `--image-fallback original`（确认选项 D），重绘失败的图和主体照片在原位保留原图裁剪，回退及导出前核对原图哈希。**行为变更**：重绘模式下主体照片不再被静默删除，默认输出“（照片）：未重绘”占位。新增 `placeholder_label`，占位编号只计仍可见的插图。
+- 强制分批：`pdf_batches.py merge` 写入 provenance；**接口变更**：`pipeline.py run` 必须传 `--source <原始附件>`，超过 5 页的 PDF 没有完整分批来源时拒绝运行。
+- 断点续做：figure 条目可用 `figure_file` 引用单独的插图数据文件；`pipeline.py retry --drawing <figure_id>=<文件>` 只替换待重试图的 drawing（`--source` 仍可用）；新增只读的 `pipeline.py resume <目录>`。
+- `confirmation.py` 返回值新增 `image_fallback` 字段；A／B／C 含义不变。
+- 新增 39 项测试，共 204 项。
+
 ## 0.6.0
 
 - 新增 Claude 市场清单 `.claude-plugin/marketplace.json` 及插件清单 `plugins/image-print-extractor/.claude-plugin/plugin.json`，可在 Claude 中添加市场并安装；Codex 端文件与行为不变。
