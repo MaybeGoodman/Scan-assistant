@@ -78,14 +78,15 @@ class PageRangeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             make_pdf(root / 'source.pdf', 3)
-            done = subprocess.run([sys.executable, str(SCRIPTS / 'prepare_pdf.py'), str(root / 'source.pdf'),
+            done = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'prepare_pdf.py'), str(root / 'source.pdf'),
                                    '--output-dir', str(root / 'pages'), '--dpi', '72', '--pages', '3'],
-                                  capture_output=True, text=True)
+                                  capture_output=True, text=True, encoding='utf-8')
             self.assertEqual(done.returncode, 0, done.stderr)
             manifest = json.loads((root / 'pages/pages.json').read_text(encoding='utf-8'))
             self.assertEqual(manifest['selected_pages'], [3])
-            bad = subprocess.run([sys.executable, str(SCRIPTS / 'prepare_pdf.py'), str(root / 'source.pdf'),
-                                  '--output-dir', str(root / 'bad'), '--pages', '4'], capture_output=True, text=True)
+            bad = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'prepare_pdf.py'), str(root / 'source.pdf'),
+                                  '--output-dir', str(root / 'bad'), '--pages', '4'],
+                                 capture_output=True, text=True, encoding='utf-8')
             self.assertNotEqual(bad.returncode, 0)
             self.assertIn('超出总页数 3', bad.stderr)
 
@@ -268,11 +269,11 @@ class BatchTests(unittest.TestCase):
         self.assertNotIn('扫码领资料', html)
 
     def test_cli_status_and_errors(self):
-        done = subprocess.run([sys.executable, str(SCRIPTS / 'pdf_batches.py'), 'status', str(self.progress)],
+        done = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'pdf_batches.py'), 'status', str(self.progress)],
                               capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertEqual(json.loads(done.stdout)['next_batch']['batch'], 1)
-        bad = subprocess.run([sys.executable, str(SCRIPTS / 'pdf_batches.py'), 'merge', str(self.progress),
+        bad = subprocess.run([sys.executable, '-X', 'utf8', str(SCRIPTS / 'pdf_batches.py'), 'merge', str(self.progress),
                               '--output', str(self.root / 'c.json')], capture_output=True, text=True, encoding='utf-8')
         self.assertEqual(bad.returncode, 1)
         self.assertIn('未完成批次', json.loads(bad.stdout)['error'])
