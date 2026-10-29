@@ -49,7 +49,7 @@ Codex 中上传图片后输入：
 
 ## 更新
 
-Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.7.1`，见 [更新记录](CHANGELOG.md)。
+Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.8.0`，见 [更新记录](CHANGELOG.md)。
 
 Claude：添加市场时开启“自动同步”即可随仓库更新；Claude Code 用户运行 `claude plugin marketplace update scan-assistant` 后重新安装或更新插件。
 
@@ -60,7 +60,7 @@ Claude：添加市场时开启“自动同步”即可随仓库更新；Claude C
 ## 行为
 
 - 默认提取主体及相关支持内容的印刷体，不按答案、解析、注释分类删除；过滤范围与用户覆盖统一见 [主体内容筛选](plugins/image-print-extractor/skills/image-print-extractor/references/main-content.md)。正文标题、相关图注和来源保留，不确定时保留。
-- 不解题、不改写、不摘要；恢复只基于可见笔画及排版结构，禁止上下文猜补，无法确认用 `XXX`，真实空白保持空白。
+- 不解题、不改写、不摘要；看不清或被遮挡的内容可合理推断补写，正文用 `〔〕` 标出并在末尾“补写说明”中列出位置和依据；无法推断用 `XXX`，真实空白保持空白，不借补写纠错或填答案。
 - 中文自然语言使用全角标点，数学/英文/代码保持语法；非 Word 数学输出用 `$...$` 或 `$$...$$`。
 - 双栏先左后右；不额外添加标题、粗体或说明；图文表按原位置排列。
 - HTML 模式的表格使用真实单元格和合并关系，可复制到 Word，公式仍为源码；需要数学原生公式时使用 `.docx` 导出模式。
