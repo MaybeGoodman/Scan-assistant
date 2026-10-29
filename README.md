@@ -49,7 +49,7 @@ Codex 中上传图片后输入：
 
 ## 更新
 
-Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.7.0`，见 [更新记录](CHANGELOG.md)。
+Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.7.1`，见 [更新记录](CHANGELOG.md)。
 
 Claude：添加市场时开启“自动同步”即可随仓库更新；Claude Code 用户运行 `claude plugin marketplace update scan-assistant` 后重新安装或更新插件。
 
