@@ -150,6 +150,20 @@ class ExportFormulaTests(unittest.TestCase):
             self.assertEqual(len(saved_xml.xpath('//m:oMath', namespaces=NS)), 3)
             self.assertIn(chemistry, saved_xml.xpath('//w:t/text()', namespaces=NS))
 
+    def test_chinese_comma_between_split_expressions_stays_outside_omml(self):
+        with tempfile.TemporaryDirectory() as temp:
+            xml, report = self.export_blocks(Path(temp), [
+                {'type': 'text', 'runs': [{'type': 'text', 'text': '且'},
+                    {'type': 'math', 'latex': 'f(2)=-1'}, {'type': 'text', 'text': '，'},
+                    {'type': 'math', 'latex': 'f(4)=3'}, {'type': 'text', 'text': '，则'},
+                    {'type': 'math', 'latex': 'A(1,2)'}]}])
+            self.assertEqual(len(xml.xpath('//m:oMath', namespaces=NS)), 3)
+            in_math = ''.join(xml.xpath('//m:oMath//m:t/text()', namespaces=NS))
+            self.assertNotIn('，', in_math)
+            self.assertIn(',', in_math)
+            self.assertIn('，', xml.xpath('//w:r[not(ancestor::m:oMath)]/w:t/text()', namespaces=NS))
+            self.assertEqual(report['needs_review'], 0)
+
     def test_conditions_isotopes_states_and_unbalanced_source_are_literal(self):
         expressions = [r'\mathrm{H_2}+\mathrm{O_2}\rightarrow\mathrm{H_2O}',
             r'\mathrm{N_2}+3\mathrm{H_2}\overset{\text{催化剂}}{\underset{\text{高温、高压}}{\rightleftharpoons}}2\mathrm{NH_3}',
