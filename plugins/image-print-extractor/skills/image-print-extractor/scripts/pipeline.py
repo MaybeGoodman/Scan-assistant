@@ -18,6 +18,8 @@ from pdf_batches import load as load_progress, replace_atomic, status as batch_s
 RUN_ID = re.compile(r'[A-Za-z0-9_-]{1,32}')
 FORMATS = ('html', 'docx')
 MODES = ('ignore', 'preserve', 'redraw')
+OUTPUT_MODES = ('original', 'student')
+CHEMISTRY_FORMATS = ('native', 'source')
 MAX_UNBATCHED_PAGES = 5
 IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.tif', '.tiff'}
 FIGURE_FILE_KEYS = {'understanding', 'redrawable', 'critical_uncertainty', 'simple_schematic',
@@ -153,18 +155,43 @@ def reconcile_figures(document):
     return document, removed
 
 
-def export_result(run, state, source):
+def selection_review(run, state):
+    """Uncertain selection decisions recorded by select_content.py become review items."""
+    report = state['files'].get('selection_report')
+    if not report:
+        return []
+    rows = read_json(run.base / report).get('records', [])
+    return [{'kind': 'selection', 'location': r['location'], 'detail': '主体筛选不确定，已保留供复核：' + r['reason'],
+             'content': r['selection']} for r in rows if r.get('needs_review')]
+
+
+def export_result(run, state, source, output=None, report_name='word.review.json'):
     options = state['options']
-    output = Path(options['output']).resolve()
+    output = Path(output or options['output']).resolve()
+    mode = options.get('output_mode', 'original')
+    extra = selection_review(run, state)
     if options['format'] == 'html':
-        from export_page import export
-        export(source, output)
+        from export_page import export_result as export_html
+        result = export_html(source, output, output_mode=mode, extra_review=extra)
+        report = run.inwork(report_name.replace('word', 'html'))
+        write_new(report, {key: value if not isinstance(value, Path) else str(value) for key, value in result.items()})
     else:
         from export_docx import export_docx
-        export_docx(source, output, word_confirmed=options['word_confirmed'] is True,
-                    report_path=run.inwork('word.review.json'))
-    state.update(status='completed', output=str(output),
-                 next_action='交付 output；如有失败插图，只简短说明对应位置无法可靠重绘')
+        report = run.inwork(report_name)
+        export_docx(source, output, word_confirmed=options['word_confirmed'] is True, report_path=report,
+                    output_mode=mode, chemistry_format=options.get('chemistry_format', 'native'),
+                    extra_review=extra)
+        result = read_json(report)
+    state['files']['export_source'] = rel(run.base, source)
+    state['files']['export_report'] = rel(run.base, report)
+    state.update(status='completed', output=str(output), delivery=result['delivery'],
+                 open_review_items=result['open_review_items'], output_mode=mode)
+    if result['delivery'] == 'draft':
+        state['next_action'] = (f'output 为待复核草稿（{result["open_review_items"]} 处），交付时说明是草稿；'
+                                f'逐项回看原图复核 {state["files"]["export_report"]} 的 review_items 后，'
+                                '把确认结果写成 resolutions 文件并运行 pipeline.py finalize 生成正式成品')
+    else:
+        state['next_action'] = '交付 output（正式成品）；如有失败插图，只简短说明对应位置无法可靠重绘'
     return state
 
 
@@ -196,7 +223,8 @@ def finish_figures(run, state, result, ledger, attempt):
 
 
 def run_command(candidates, run_id, *, source, scope='main', preserve=(), include_handwriting=False,
-                image_mode=None, image_fallback=None, fmt='html', word_confirmed=False, font=None, output):
+                image_mode=None, image_fallback=None, fmt='html', word_confirmed=False, font=None, output,
+                output_mode='original', chemistry_format='native'):
     candidates = Path(candidates).resolve()
     if not isinstance(run_id, str) or not RUN_ID.fullmatch(run_id):
         raise ValueError('run-id 只能包含字母、数字、下划线和连字符，长度 1–32')
@@ -208,6 +236,8 @@ def run_command(candidates, run_id, *, source, scope='main', preserve=(), includ
         raise ValueError('docx 模式的 --output 必须以 .docx 结尾')
     if image_mode not in (None, *MODES):
         raise ValueError('未知的 image-mode')
+    if output_mode not in OUTPUT_MODES or chemistry_format not in CHEMISTRY_FORMATS:
+        raise ValueError('output-mode 只能为 original/student，chemistry-format 只能为 native/source')
     if image_fallback is not None:
         fallback_choice(image_mode, image_fallback)
     if scope not in SCOPES or not set(preserve) <= CATEGORIES:
@@ -225,7 +255,8 @@ def run_command(candidates, run_id, *, source, scope='main', preserve=(), includ
                          'include_handwriting': include_handwriting, 'image_mode': image_mode,
                          'image_fallback': image_fallback,
                          'format': fmt, 'word_confirmed': word_confirmed is True, 'font': font,
-                         'output': str(Path(output).resolve())},
+                         'output': str(Path(output).resolve()), 'output_mode': output_mode,
+                         'chemistry_format': chemistry_format},
              'inputs': {'candidates': rel(run.base, candidates), 'candidates_sha256': sha256(candidates), **origin},
              'status': 'running', 'step': 'select', 'attempt': 0, 'files': {}}
     run.work.mkdir(parents=True)
@@ -417,6 +448,41 @@ def _retry(run, state, source):
     return finish_figures(run, state, result, ledger, attempt)
 
 
+def finalize_command(state_path, resolutions_path, output):
+    """Re-export with host/user review resolutions; every key must match a current review item."""
+    run, state = load_run(state_path)
+    if state['status'] != 'completed' or state.get('delivery') != 'draft':
+        raise ValueError('只有已完成且交付状态为 draft 的运行可以 finalize')
+    return guarded(run, state, lambda: _finalize(run, state, Path(resolutions_path).resolve(), output), resumable=True)
+
+
+def _finalize(run, state, resolutions_path, output):
+    data = read_json(resolutions_path)
+    rows = data.get('resolutions') if isinstance(data, dict) else None
+    if not isinstance(rows, list) or not rows:
+        raise ValueError('resolutions 文件必须包含非空的 resolutions 列表')
+    report = read_json(run.base / state['files']['export_report'])
+    current = {item['key'] for item in report['review_items']}
+    for row in rows:
+        if not isinstance(row, dict) or row.get('resolution') not in {'confirmed', 'accepted'}:
+            raise ValueError('每条 resolution 只能为 confirmed 或 accepted')
+        if row.get('by') not in {'host', 'user'} or not isinstance(row.get('note', ''), str):
+            raise ValueError('每条 resolution 须写明 by（host 或 user）和 note')
+        if row.get('key') not in current:
+            raise ValueError(f'复核结论 {row.get("key")} 与当前待复核项不一致（内容已变化或确认已过期），不能沿用')
+    source = run.base / state['files']['export_source']
+    document = read_json(source)
+    document['review_resolutions'] = rows
+    attempt = sum(1 for p in run.work.iterdir() if re.fullmatch(re.escape(run.id) + r'\.final\d+\.json', p.name)) + 1
+    final_source = run.at(f'final{attempt}-source.json')
+    write_new(final_source, document)
+    record = run.inwork(f'final{attempt}.json')
+    write_new(record, {'resolutions': str(resolutions_path), 'resolutions_sha256': sha256(resolutions_path)})
+    state = export_result(run, state, final_source, output=output, report_name=f'final{attempt}.word.review.json')
+    state['files']['finalize'] = rel(run.base, record)
+    return state
+
+
 def guarded(run, state, action, *, resumable=False):
     """Record failures in the state file. review/retry failures keep the resumable status."""
     snapshot = json.loads(json.dumps(state))
@@ -435,7 +501,7 @@ def guarded(run, state, action, *, resumable=False):
 
 
 def summary(state):
-    keys = ('status', 'run_id', 'next_action', 'output', 'view_files', 'needs_retry', 'missing_reviews',
+    keys = ('status', 'delivery', 'open_review_items', 'output_mode', 'run_id', 'next_action', 'output', 'view_files', 'needs_retry', 'missing_reviews',
             'failed_figures', 'skipped_photos', 'fallback_figures', 'fallback_errors',
             'figures_removed_by_selection', 'uncertain_figures', 'selection_needs_review', 'error')
     result = {k: state[k] for k in keys if k in state}
@@ -462,6 +528,14 @@ def main():
     p.add_argument('--word-confirmed', action='store_true', help='Use only after the user explicitly chose Word')
     p.add_argument('--font', help='Font supporting figure labels')
     p.add_argument('--output', required=True, help='HTML output directory or .docx file')
+    p.add_argument('--output-mode', choices=OUTPUT_MODES, default='original',
+                   help='original keeps printed answers (default); student removes answer-role content')
+    p.add_argument('--chemistry-format', choices=CHEMISTRY_FORMATS, default='native',
+                   help='Word chemistry: native display (V1.0 default) or 0.8.1 literal LaTeX source')
+    p = sub.add_parser('finalize')
+    p.add_argument('--state', required=True)
+    p.add_argument('--resolutions', required=True, help='JSON {"resolutions": [{key, resolution, by, note}]}')
+    p.add_argument('--output', required=True, help='New HTML directory or .docx for the reviewed product')
     p = sub.add_parser('review')
     p.add_argument('--state', required=True)
     p.add_argument('--reviews', required=True)
@@ -481,7 +555,10 @@ def main():
                                 include_handwriting=args.include_handwriting, image_mode=args.image_mode,
                                 image_fallback=args.image_fallback,
                                 fmt=args.format, word_confirmed=args.word_confirmed, font=args.font,
-                                output=args.output)
+                                output=args.output, output_mode=args.output_mode,
+                                chemistry_format=args.chemistry_format)
+        elif args.command == 'finalize':
+            state = finalize_command(args.state, args.resolutions, args.output)
         elif args.command == 'review':
             state = review_command(args.state, args.reviews)
         elif args.command == 'retry':

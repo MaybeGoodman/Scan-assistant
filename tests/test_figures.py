@@ -294,7 +294,7 @@ class FigureFlowTests(unittest.TestCase):
         self.assertIn('.png',(self.root/'html/result.html').read_text(encoding='utf-8'))
         self.assertEqual(len(list((self.root/'html/figures').iterdir())),2)
         with self.assertRaisesRegex(ValueError,'Confirm Word'):export_docx(path,self.root/'result.docx')
-        docx=Document(export_docx(path,self.root/'result.docx',word_confirmed=True))
+        docx=Document(export_docx(path,self.root/'result.docx',word_confirmed=True,chemistry_format='source'))
         self.assertEqual(len(docx.inline_shapes),1)
         shape=docx.inline_shapes[0]
         self.assertAlmostEqual(shape.width/shape.height,4/3,places=4)

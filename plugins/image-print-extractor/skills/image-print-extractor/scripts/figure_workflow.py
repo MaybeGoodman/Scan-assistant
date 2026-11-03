@@ -388,7 +388,12 @@ def complete(ledger, reviews, base):
                     fallback_errors[record['figure_id']] = str(exc)
             label = definitions[record['figure_id']].get('placeholder_label') or f'第{ordinal}张插图'
             text = f'[{label}（照片）：未重绘]' if reason=='photo' else f'[{label}：无法可靠重绘]'
-            blocks.append({'type':'text','text':text,'layout':deepcopy(block.get('layout',{}))})
+            placeholder = {'type':'text','text':text,'layout':deepcopy(block.get('layout',{}))}
+            # V1.0: keep the block id/role so question indexes and review gates still find the figure.
+            for key in ('id','role'):
+                if key in block: placeholder[key]=block[key]
+            placeholder['figure_placeholder'] = {'figure_id':record['figure_id'],'reason':reason}
+            blocks.append(placeholder)
             continue
         if record['state']=='preserved':
             blocks.append(block)

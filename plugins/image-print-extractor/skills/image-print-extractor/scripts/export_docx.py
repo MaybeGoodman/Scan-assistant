@@ -10,6 +10,9 @@ from PIL import Image
 from export_page import figure_assets, table_html
 from content_blocks import parts, check_word_text, reviewed_blocks
 from formulas import FormulaError, to_omml, validate_latex, node
+from questions import DRAFT_NOTICE, MODES, delivery_status, project, review_items, student_leak_strings
+
+CHEMISTRY_FORMATS = ('native', 'source')
 
 
 def paragraph_layout(blocks, index):
@@ -54,7 +57,8 @@ def apply_layout(paragraph, settings):
     paragraph.paragraph_format.widow_control = True
 
 
-def add_expression(paragraph, expression, records, location, *, display=False, source_location=None):
+def add_expression(paragraph, expression, records, location, *, display=False, source_location=None,
+                   chemistry_format='native'):
     kind = expression['type']
     latex = expression.get('latex')
     if not isinstance(latex, str):
@@ -83,29 +87,58 @@ def add_expression(paragraph, expression, records, location, *, display=False, s
                 paragraph._p.append(formula)
         elif kind == 'chemistry':
             validate_latex(latex, chemistry=True)
-            paragraph.add_run(latex)  # Literal text; never feed chemistry to the math converter.
+            if chemistry_format == 'source':
+                paragraph.add_run(latex)  # 0.8.1 compatible literal source; never fed to the math converter.
+                record['rendering'] = 'source'
+            else:
+                from chemistry_word import ChemistryRenderError, add_chemistry
+                try:
+                    record['rendering'] = add_chemistry(paragraph, latex, display=display)
+                except ChemistryRenderError as exc:
+                    # Keep the reliable source visible and send the element to review.
+                    paragraph.add_run(latex)
+                    record.update(rendering='source', status='needs_review',
+                                  reason='化学式未能直接呈现，已保留源码：' + str(exc))
+                    records.append(record)
+                    return
         else:
             raise ValueError('Unknown expression type: ' + kind)
-        record['status'] = 'needs_review' if 'XXX' in latex or repairs else 'converted' if kind == 'math' else 'preserved'
+        native = kind == 'math' or record.get('rendering') in {'rich_text', 'omml'}
+        record['status'] = 'needs_review' if 'XXX' in latex or repairs else 'converted' if native else 'preserved'
     except FormulaError as exc:
         paragraph.add_run('XXX')
         record.update(status='needs_review', reason=str(exc))
     records.append(record)
 
 
-def add_content(paragraph, item, records, location, source_location=None):
+def add_content(paragraph, item, records, location, source_location=None, chemistry_format='native'):
     for index, part in enumerate(parts(item)):
         if part['type'] == 'text':
             check_word_text(part['text'])
             paragraph.add_run(part['text'])
         else:
             add_expression(paragraph, part, records, f'{location}.runs[{index}]',
-                           source_location=item.get('source', source_location))
+                           source_location=item.get('source', source_location),
+                           chemistry_format=chemistry_format)
 
 
-def export_docx(source, output, *, word_confirmed=False, report_path=None):
+def mark_draft(document, count):
+    """A bold notice in every page header; the body keeps exactly the reviewed content."""
+    for section in document.sections:
+        paragraph = section.header.paragraphs[0]
+        paragraph.text = ''
+        notice = paragraph.add_run(DRAFT_NOTICE.format(count=count))
+        notice.bold = True
+
+
+def export_docx(source, output, *, word_confirmed=False, report_path=None, output_mode='original',
+                chemistry_format='native', extra_review=(), forbidden=()):
     if word_confirmed is not True:
         raise ValueError('Confirm Word output with the user first')
+    if output_mode not in MODES:
+        raise ValueError('output_mode must be original or student')
+    if chemistry_format not in CHEMISTRY_FORMATS:
+        raise ValueError('chemistry_format must be native or source')
     source, output = Path(source).resolve(), Path(output).resolve()
     if output.suffix.lower() != '.docx':
         raise ValueError('Output must end in .docx')
@@ -116,7 +149,10 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
         raise ValueError('Review report must be a separate JSON file')
     if report_path.exists():
         raise FileExistsError(report_path)
-    blocks = reviewed_blocks(json.loads(source.read_text(encoding='utf-8')))
+    loaded = json.loads(source.read_text(encoding='utf-8'))
+    reviewed_blocks(loaded)
+    projected, removed = project(loaded, output_mode)
+    blocks = reviewed_blocks(projected)
     document = Document()
     section = document.sections[0]
     section.page_width, section.page_height = Cm(21), Cm(29.7)
@@ -138,10 +174,10 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
         paragraph = None
         if kind == 'text':
             paragraph = document.add_paragraph()
-            add_content(paragraph, block, records, location)
+            add_content(paragraph, block, records, location, chemistry_format=chemistry_format)
         elif kind in {'math', 'chemistry'}:
             paragraph = document.add_paragraph()
-            add_expression(paragraph, block, records, location, display=True)
+            add_expression(paragraph, block, records, location, display=True, chemistry_format=chemistry_format)
         elif kind == 'table':
             table_html(block)  # Shared grid validation, including blank and merged cells.
             table = document.add_table(rows=block['rows'], cols=block['cols'])
@@ -157,7 +193,7 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
                     cell = cell.merge(table.cell(r + rs - 1, c + cs - 1))
                 cell.text = ''
                 add_content(cell.paragraphs[0], item, records, f'{location}.cells[{cell_index}]',
-                            block.get('source'))
+                            block.get('source'), chemistry_format=chemistry_format)
         elif kind == 'image':
             image, _ = figure_assets(source.parent, block)
             with Image.open(image) as pixels:
@@ -182,14 +218,25 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
             raise ValueError(f'Unknown block type: {kind}')
         if paragraph is not None:
             apply_layout(paragraph, settings)
-    document.core_properties.author = ''
-    document.core_properties.last_modified_by = ''
-    document.core_properties.comments = ''
+    for name in ('author', 'last_modified_by', 'comments', 'title', 'subject', 'keywords', 'category'):
+        setattr(document.core_properties, name, '')
+    known = {item['location'] for item in review_items(projected, mode=output_mode)}
+    extra = [{'kind': 'expression', 'location': r['location'], 'detail': r.get('reason', '表达式待复核'),
+              'content': r['latex']} for r in records if r['status'] == 'needs_review' and r['location'] not in known]
+    items = review_items(projected, mode=output_mode, extra=[*extra, *extra_review])
+    delivery, open_items = delivery_status(items)
+    if delivery == 'draft':
+        mark_draft(document, len(open_items))
     output.parent.mkdir(parents=True, exist_ok=True)
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    report = {'schema_version': 1, 'source_file': str(source), 'expressions': records,
+    report = {'schema_version': 2, 'source_file': str(source), 'expressions': records,
               'needs_review': sum(record['status'] == 'needs_review' for record in records),
-              'figures':[{'figure':block.get('figure'),'validation':block['redraw']} for block in blocks if 'redraw' in block]}
+              'figures':[{'figure':block.get('figure'),'validation':block['redraw']} for block in blocks if 'redraw' in block],
+              'output_mode': output_mode, 'chemistry_format': chemistry_format,
+              'delivery': delivery, 'review_items': items, 'open_review_items': len(open_items)}
+    if output_mode == 'student':
+        # Locations only: the report must not carry the removed answer text.
+        report['removed'] = [{'location': r['location'], 'role': r['role']} for r in removed]
     # Exclusive creation prevents accidental replacement if another process wrote meanwhile.
     created = []
     try:
@@ -199,6 +246,12 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None):
         with output.open('xb') as stream:
             created.append(output)
             document.save(stream)
+        if output_mode == 'student':
+            from docx_audit import audit
+            # Caller-supplied strings are used as given; only removed answer material is split.
+            result = audit(output, student_leak_strings(projected, removed) + list(forbidden))
+            if not result['ok']:
+                raise ValueError('学生版泄漏检查未通过：' + '；'.join(result['problems']))
     except Exception:
         for path in created:
             path.unlink(missing_ok=True)
@@ -213,5 +266,10 @@ if __name__ == '__main__':
     parser.add_argument('--word-confirmed', action='store_true',
                         help='Use only after the user explicitly chose Word')
     parser.add_argument('--report', help='Internal review JSON (default: output.review.json)')
+    parser.add_argument('--output-mode', choices=MODES, default='original',
+                        help='original keeps printed answers; student removes answer-role content')
+    parser.add_argument('--chemistry-format', choices=CHEMISTRY_FORMATS, default='native',
+                        help='native: chemistry displayed directly (V1.0); source: 0.8.1 literal LaTeX text')
     args = parser.parse_args()
-    print(export_docx(args.source, args.output, word_confirmed=args.word_confirmed, report_path=args.report))
+    print(export_docx(args.source, args.output, word_confirmed=args.word_confirmed, report_path=args.report,
+                      output_mode=args.output_mode, chemistry_format=args.chemistry_format))

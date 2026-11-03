@@ -7,6 +7,7 @@ import struct
 from pathlib import Path
 from content_blocks import plain_source, reviewed_blocks
 from latex_validation import validate_latex
+from questions import DRAFT_NOTICE, MODES, delivery_status, project, review_items
 
 
 def escape(text):
@@ -83,10 +84,26 @@ def figure_assets(base, block):
     return image,svg
 
 
-def export(source, output):
+def export(source, output, *, output_mode='original', extra_review=()):
+    """Write result.html / result.md; returns the HTML path. Delivery info: export_result()."""
+    return export_result(source, output, output_mode=output_mode, extra_review=extra_review)['output']
+
+
+def export_result(source, output, *, output_mode='original', extra_review=()):
+    if output_mode not in MODES:
+        raise ValueError('output_mode must be original or student')
     source, output = Path(source).resolve(), Path(output).resolve()
-    blocks = reviewed_blocks(json.loads(source.read_text(encoding='utf-8')))
+    loaded = json.loads(source.read_text(encoding='utf-8'))
+    reviewed_blocks(loaded)
+    projected, removed = project(loaded, output_mode)
+    blocks = reviewed_blocks(projected)
+    items = review_items(projected, mode=output_mode, extra=extra_review)
+    delivery, open_items = delivery_status(items)
     fragments, markdown, copies = [], [], []
+    if delivery == 'draft':
+        notice = DRAFT_NOTICE.format(count=len(open_items))
+        fragments.append('<p class="draft-notice"><strong>' + escape(notice) + '</strong></p>')
+        markdown.append(notice)
     for index, block in enumerate(blocks, 1):
         kind = block['type']
         if kind == 'text':
@@ -136,12 +153,15 @@ def export(source, output):
                 '</style></head><body>' + '\n'.join(fragments) + '</body></html>')
     (output / 'result.html').write_text(document, encoding='utf-8')
     (output / 'result.md').write_text('\n\n'.join(markdown) + '\n', encoding='utf-8')
-    return output / 'result.html'
+    return {'output': output / 'result.html', 'markdown': output / 'result.md', 'delivery': delivery,
+            'review_items': items, 'open_review_items': len(open_items), 'output_mode': output_mode,
+            'removed': [{'location': r['location'], 'role': r['role']} for r in removed]}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('source')
     parser.add_argument('--output-dir', required=True)
+    parser.add_argument('--output-mode', choices=MODES, default='original')
     args = parser.parse_args()
-    print(export(args.source, args.output_dir))
+    print(export(args.source, args.output_dir, output_mode=args.output_mode))
