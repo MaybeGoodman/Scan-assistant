@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "image-print-extractor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "提取图片与 PDF 主体印刷内容，可导出原题版或去答案学生版，支持教学插图黑白重绘；Word 中数学为原生公式、化学直接显示；按完整原题生成三道经验证的同类题。",
   "author": {
     "name": "MaybeGoodman"

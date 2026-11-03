@@ -39,9 +39,9 @@ python <skill-dir>/scripts/pdf_batches.py merge work/progress.json --output work
 ```
 
 1. `init` 按页序切分批次（默认每批 5 页，最多 20）。
-2. 每批：查看该批页面 → 主体筛选和识别 → 写 `batch-NN.json`（`{"batch":N,"pages":[...],"blocks":[...],"figures":[...]}`）→ `commit`。`blocks` 与候选 JSON 结构相同，可带 selection；`figures` 与 `figure_task.figures` 单项结构相同，`source_page` 为原页码，本批无插图时省略。
+2. 每批：查看该批页面 → 主体筛选和识别 → 写 `batch-NN.json`（`{"batch":N,"pages":[...],"blocks":[...],"figures":[...]}`）→ `commit`。`blocks` 与候选 JSON 结构相同，可带 selection；`figures` 与 `figure_task.figures` 单项结构相同，`source_page` 为原页码，本批无插图时省略。需要题目索引时，批次文件可带 `questions`、`materials`（结构见题目结构规则）；跨批的大题可在任一批声明，也可在多批重复声明，但同一 `question_id`／`material_id` 的声明必须完全一致。
 3. 每次 commit 后看输出的 `complete`；只要为 false 就继续 `next_batch`，不得只处理前几页就输出结果。
-4. 全部完成后 `merge` 得到 candidates.json；有插图时自动生成 `scan_complete:true` 的 `figure_task`。再进入 SKILL.md 中的导出流程。
+4. 全部完成后 `merge` 得到 candidates.json；有插图时自动生成 `scan_complete:true` 的 `figure_task`。批次带题目索引时，`questions`、`materials` 按稳定 ID 合并保留，未声明 `source_spans` 的题目自动补记各块所在批次和原页；声明不一致时 merge 报错并指出批次；引用的块不在任何批次中（缺页或被页范围切断）时写入 `index_check`，该题在复核前只能交付草稿，也不能用于生成同类题。再进入 SKILL.md 中的导出流程。
 
 block id 使用 `p<页码>-<序号>`，如 `p3-1`，合并时 id 冲突会报错。一段文字跨批次时，仅在视觉和结构能确认是同一句时，在后一批首个 text block 上加 `"join_previous": true`。批次文件和合并输出放在 progress.json 同一目录内；提交后不得再改批次文件，合并会校验哈希。
 

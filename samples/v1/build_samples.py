@@ -22,6 +22,7 @@ sys.path[:0] = [str(HERE), str(SCRIPTS)]
 from content import ALL, para, checklist  # noqa: E402
 from figures import circuit, triangle  # noqa: E402
 from render_page import Page  # noqa: E402
+from variants import FIGURE_CHECKS  # noqa: E402
 
 OUT, WORK = HERE / 'out', HERE / 'work'
 HEADER = '江南第二中学 2026—2027 学年第一学期 课后练习'
@@ -195,6 +196,7 @@ def variant_candidate(module, index, variant, work, slot=None):
             draw_clean(scene, understanding, target)
         blocks.append({'type': 'image', 'id': 'fig', 'path': f'variant-figs/v{index}.png', 'role': 'figure', 'alt': ''})
         stem.append('fig')
+        figure_review = variant_figure_review(code, index, target)
     subs = []
     deps = [entry[2] for entry in module['subs']]
     numbers = [entry[0] for entry in module['subs']]
@@ -207,12 +209,35 @@ def variant_candidate(module, index, variant, work, slot=None):
             ids.append(f's{i + 1}o')
         subs.append({'number': numbers[i], 'blocks': ids, 'depends_on': deps[i]})
     design = {**module['design'], **variant['design']}
+    review = checklist(code, ['独立复核：重新求解全部小问并逐项核对 checklist'])
+    if module['figure'] and figure_review:
+        review['figures'] = [figure_review]
     return {'question_id': f'q{code}', 'slot': slot or index,
             'variant': {'blocks': blocks, 'stem': stem, 'materials': materials, 'subquestions': subs},
             'design': design,
             'internal': {'answers': [{'item': k, 'answer': v} for k, v in variant['answers'].items()],
                          'solution': variant['solution'], 'checks': variant['checks']},
-            'review': checklist(code, ['独立复核：重新求解全部小问并逐项核对 checklist'])}
+            'review': review}
+
+
+def variant_figure_review(code, index, figure):
+    """The recorded host visual review of this variant figure, only if it was made on these exact bytes."""
+    import hashlib
+    from PIL import Image, ImageChops
+    reviews = json.loads((HERE / 'reviews' / 'variant-figures.json').read_text(encoding='utf-8'))
+    entry = reviews.get(code, {}).get(str(index))
+    reviewed = HERE / 'reviews' / 'variant-figures' / f'{code}-v{index}.png'
+    if entry and reviewed.exists():
+        with Image.open(figure) as drawn, Image.open(reviewed) as seen:
+            same = drawn.size == seen.size and ImageChops.difference(drawn.convert('RGB'), seen.convert('RGB')).getbbox() is None
+        if same:  # Identical pixels, possibly different PNG encoding: deliver the exact bytes that were viewed.
+            shutil.copyfile(reviewed, figure)
+    digest = hashlib.sha256(figure.read_bytes()).hexdigest()
+    if not entry or entry['sha256'] != digest:
+        print(f'{code} 变式 {index} 插图 {digest[:12]} 没有对应的视觉复核记录，该候选将不能通过验证')
+        return None
+    return {'id': 'fig', 'sha256': digest, 'reviewed_by': 'host_vision', 'status': 'pass',
+            'checks': {key: True for key in FIGURE_CHECKS}, 'notes': entry['notes']}
 
 
 def write_candidate(work, name, candidate):

@@ -124,6 +124,14 @@ def commit(progress, batch, blocks_file):
             raise ValueError(f'第 {batch} 批 blocks[{index}]：join_previous 只能用于批次首个 block')
     if batch == state['batches'][0]['batch'] and blocks[0].get('join_previous'):
         raise ValueError('第 1 批不能使用 join_previous')
+    for key, id_key in (('questions', 'question_id'), ('materials', 'material_id')):
+        values = data.get(key, [])
+        if not isinstance(values, list) or not all(isinstance(v, dict) and isinstance(v.get(id_key), str)
+                                                   and v[id_key] for v in values):
+            raise ValueError(f'第 {batch} 批 {key} 必须是带非空 {id_key} 的对象列表')
+        ids = [v[id_key] for v in values]
+        if len(set(ids)) != len(ids):
+            raise ValueError(f'第 {batch} 批 {key} 中 {id_key} 重复')
     block_figures = image_ids(blocks)
     listed = [f.get('figure_id') for f in figures]
     if sorted(block_figures) != sorted(listed) or len(set(listed)) != len(listed):
@@ -150,11 +158,24 @@ def merge(progress, output):
     if unfinished:
         raise ValueError(f'仍有未完成批次：{unfinished}')
     blocks, figures, owners = [], [], {}
+    index_layers = {'questions': ({}, 'question_id'), 'materials': ({}, 'material_id')}
     for entry in state['batches']:
         path = progress.parent / entry['blocks_file']
         if sha256(path) != entry['blocks_sha256']:
             raise ValueError(f'第 {entry["batch"]} 批文件在提交后被修改：{entry["blocks_file"]}')
         data = read_json(path)
+        # F07: the V1 question/material index travels with the blocks. A question spanning
+        # batches may be declared in any of them, but every declaration must be identical.
+        for key, (merged, id_key) in index_layers.items():
+            for item in data.get(key, []) or []:
+                known = merged.get(item[id_key])
+                if known is None:
+                    merged[item[id_key]] = {'value': deepcopy(item), 'batches': [entry['batch']]}
+                elif known['value'] != item:
+                    raise ValueError(f'{key} 中 {item[id_key]} 在第 {known["batches"][0]} 批与第 {entry["batch"]} 批'
+                                     '的声明不一致，请人工确认题目边界后统一')
+                else:
+                    known['batches'].append(entry['batch'])
         for index, block in enumerate(deepcopy(data['blocks'])):
             if block.pop('join_previous', False):
                 previous = blocks[-1] if blocks else None
@@ -185,6 +206,33 @@ def merge(progress, output):
         result['figure_task'] = {'schema_version': 1, 'task_id': state['task_id'],
                                  'page_count': state['source_page_count'], 'scan_complete': True,
                                  'figures': figures}
+    pages = {b['batch']: b['pages'] for b in state['batches']}
+    for key, (merged, _) in index_layers.items():
+        if not merged:
+            continue
+        values = []
+        for record in merged.values():
+            value = record['value']
+            if key == 'questions' and 'source_spans' not in value:
+                # Which batches (and their original pages) hold each of the question's blocks.
+                refs = list(value.get('blocks', []) or [])
+                for sub in value.get('subquestions', []) or []:
+                    refs += sub.get('blocks', []) or []
+                spans = {}
+                for block_id in refs:
+                    if block_id in owners:
+                        spans.setdefault(owners[block_id], []).append(block_id)
+                value['source_spans'] = [{'batch': n, 'pages': pages[n], 'blocks': ids} for n, ids in sorted(spans.items())]
+            values.append(value)
+        result[key] = values
+    if 'questions' in result or 'materials' in result:
+        # Structural check only (references, order, ownership). Missing references stay in the
+        # document as review items so delivery is a draft and generation is blocked until fixed.
+        from questions import validate_questions
+        missing = validate_questions(result)
+        if missing:
+            result['index_check'] = {'missing_blocks': missing,
+                                     'note': '题目或材料引用的块不在已合并批次中（可能缺页或题目被页范围切断）'}
     write_new(output, result)
     return result
 

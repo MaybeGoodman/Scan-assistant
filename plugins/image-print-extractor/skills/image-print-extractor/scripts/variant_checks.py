@@ -114,43 +114,164 @@ def check_substitute(check, _):
     return ok, f'代入后左边 {float(left):g}，右边 {float(right):g}'
 
 
+class NotPolynomial(Exception):
+    pass
+
+
+def _poly(expression, var):
+    """Exact rational coefficients (lowest degree first) of a polynomial in ``var``.
+
+    Raises NotPolynomial for anything else (division by the variable, roots, functions,
+    irrational constants); those cannot be proven complete by this check.
+    """
+    expression = expression.strip().replace('^', '**').replace('×', '*')
+    tree = ast.parse(expression, mode='eval')
+
+    def trim(p):
+        while len(p) > 1 and p[-1] == 0:
+            p = p[:-1]
+        return p
+
+    def mul(a, b):
+        out = [Fraction(0)] * (len(a) + len(b) - 1)
+        for i, x in enumerate(a):
+            for j, y in enumerate(b):
+                out[i + j] += x * y
+        return trim(out)
+
+    def add(a, b, sign=1):
+        out = [Fraction(0)] * max(len(a), len(b))
+        for i, x in enumerate(a):
+            out[i] += x
+        for i, y in enumerate(b):
+            out[i] += sign * y
+        return trim(out)
+
+    def walk(node):
+        if isinstance(node, ast.Expression):
+            return walk(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+            return [Fraction(str(node.value))]
+        if isinstance(node, ast.Name):
+            if node.id == var:
+                return [Fraction(0), Fraction(1)]
+            raise NotPolynomial(node.id)
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+            value = walk(node.operand)
+            return value if isinstance(node.op, ast.UAdd) else [-c for c in value]
+        if isinstance(node, ast.BinOp):
+            if isinstance(node.op, ast.Pow):
+                exponent = walk(node.right)
+                if len(exponent) != 1 or exponent[0].denominator != 1 or not 0 <= exponent[0] <= 64:
+                    raise NotPolynomial('exponent')
+                result, base = [Fraction(1)], walk(node.left)
+                for _ in range(int(exponent[0])):
+                    result = mul(result, base)
+                return result
+            left, right = walk(node.left), walk(node.right)
+            if isinstance(node.op, ast.Add):
+                return add(left, right)
+            if isinstance(node.op, ast.Sub):
+                return add(left, right, -1)
+            if isinstance(node.op, ast.Mult):
+                return mul(left, right)
+            if isinstance(node.op, ast.Div) and len(right) == 1 and right[0] != 0:
+                return [c / right[0] for c in left]
+        raise NotPolynomial(type(node).__name__)
+
+    return trim(walk(tree))
+
+
+def _peval(p, x):
+    total = Fraction(0) if isinstance(x, Fraction) else 0.0
+    for c in reversed(p):
+        total = total * x + c
+    return total
+
+
+def _pdiv(a, b):
+    """Quotient and remainder of exact polynomial division."""
+    a = list(a)
+    if len(b) == 1:
+        return [c / b[0] for c in a], [Fraction(0)]
+    q = [Fraction(0)] * max(1, len(a) - len(b) + 1)
+    while len(a) >= len(b) and any(a):
+        factor = a[-1] / b[-1]
+        shift = len(a) - len(b)
+        q[shift] = factor
+        for i, c in enumerate(b):
+            a[i + shift] -= factor * c
+        a.pop()
+        while len(a) > 1 and a[-1] == 0:
+            a.pop()
+    return q, a or [Fraction(0)]
+
+
+def _derivative(p):
+    return [i * c for i, c in enumerate(p)][1:] or [Fraction(0)]
+
+
+def _distinct_real_roots(p, lo, hi):
+    """Number of distinct real roots in the closed interval [lo, hi] (Sturm's theorem, exact)."""
+    if len(p) == 1:
+        return None if p[0] == 0 else 0
+    a, b = p, _derivative(p)
+    while any(b):
+        a, b = b, _pdiv(a, b)[1]
+    square_free = _pdiv(p, a)[0]  # p / gcd(p, p') keeps every root once.
+    chain = [square_free, _derivative(square_free)]
+    while len(chain[-1]) > 1 or chain[-1][0] != 0:
+        remainder = _pdiv(chain[-2], chain[-1])[1]
+        if not any(remainder):
+            break
+        chain.append([-c for c in remainder])
+
+    def changes(x):
+        signs = [v for v in (_peval(q, x) for q in chain) if v != 0]
+        return sum(1 for s, t in zip(signs, signs[1:]) if (s > 0) != (t > 0))
+    # Sturm counts roots in (lo, hi]; add a root sitting exactly on lo.
+    return changes(lo) - changes(hi) + (1 if _peval(square_free, lo) == 0 else 0)
+
+
 def check_roots(check, _):
-    """Each claimed root satisfies f=0 and the sign-change count in the interval matches."""
+    """Claimed roots satisfy f=0 and, for polynomials, are all the distinct real roots in the interval.
+
+    Completeness is proven exactly (rational coefficients, Sturm sequence), so double roots
+    off any grid and roots on the interval ends are counted. For expressions that are not
+    polynomials the check cannot prove nothing is missing and returns ``None`` (needs review)
+    instead of a pass (F06).
+    """
     var, expr = check['var'], check['expr']
-    claimed = sorted(float(_value(v)) for v in check['claimed'])
-    lo, hi = (float(_value(v)) for v in check.get('interval', ['-100', '100']))
+    claimed_values = [_value(v) for v in check['claimed']]
+    lo, hi = (_value(v) for v in check.get('interval', ['-100', '100']))
+    if not lo < hi:
+        raise CheckError('interval 必须满足下限小于上限')
 
     def f(x):
-        return float(evaluate(expr, {var: Fraction(x).limit_denominator(10 ** 9) if isinstance(x, float) else x}))
+        return evaluate(expr, {var: x})
 
-    for root in claimed:
-        if abs(f(root)) > 1e-7 * max(1.0, abs(root)):
-            return False, f'x={root:g} 不满足方程'
-    found, steps = [], 20000
-    width = (hi - lo) / steps
-    previous_x, previous = lo, f(lo)
-    for index in range(1, steps + 1):
-        x = lo + index * width
-        current = f(x)
-        if previous == 0 or previous * current < 0 or current == 0:
-            root = previous_x if previous == 0 else x if current == 0 else None
-            if root is None:
-                a, b = previous_x, x
-                for _ in range(80):
-                    mid = (a + b) / 2
-                    if f(a) * f(mid) <= 0:
-                        b = mid
-                    else:
-                        a = mid
-                root = (a + b) / 2
-            if not found or abs(found[-1] - root) > 1e-6:
-                found.append(root)
-        previous_x, previous = x, current
-    # Double roots without sign change are caught by direct substitution above.
-    missing = [r for r in found if all(abs(r - c) > 1e-5 for c in claimed)]
-    if missing:
-        return False, f'区间内还有未列出的根：{", ".join(f"{r:.6g}" for r in missing)}'
-    return True, f'列出的根 {claimed} 均满足且区间 [{lo:g},{hi:g}] 内无遗漏'
+    for root in claimed_values:
+        value = f(root)
+        if (value != 0) if isinstance(value, Fraction) else abs(float(value)) > 1e-7 * max(1.0, abs(float(root))):
+            return False, f'x={float(root):g} 不满足方程'
+    try:
+        poly = _poly(expr, var)
+    except NotPolynomial:
+        return None, ('列出的根代入成立，但该表达式不是多项式，脚本无法证明区间内没有遗漏的根'
+                      '（重根、不连续点等），需独立复核')
+    if not all(isinstance(v, Fraction) for v in (lo, hi)):
+        return None, 'interval 端点必须是有理数才能精确判定根的个数，需独立复核'
+    total = _distinct_real_roots(poly, Fraction(lo), Fraction(hi))
+    if total is None:
+        return False, '表达式恒为 0，不是方程'
+    inside = []
+    for root in sorted(float(r) for r in claimed_values):
+        if lo <= root <= hi and all(abs(root - r) > 1e-9 for r in inside):
+            inside.append(root)
+    if total != len(inside):
+        return False, (f'区间 [{float(lo):g},{float(hi):g}] 内共有 {total} 个不同实根，'
+                       f'只列出 {len(inside)} 个，存在遗漏')
+    return True, f'列出的根 {sorted(inside)} 均满足且为区间 [{float(lo):g},{float(hi):g}] 内全部 {total} 个不同实根'
 
 
 BASE = ('m', 'kg', 's', 'A', 'K', 'mol', 'cd')
