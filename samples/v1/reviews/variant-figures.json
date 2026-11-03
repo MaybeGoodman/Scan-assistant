@@ -1,0 +1,20 @@
+{
+  "note": "1.0.1 host visual reviews of the generated variant figures (F02). Each entry is bound to the sha256 of the PNG that was actually viewed; build_samples.py attaches a review only when the rebuilt PNG has exactly this hash, otherwise the candidate fails verification.",
+  "reviewed": "2026-11-03, Claude (host_vision), by opening each PNG and comparing it with the candidate's stem and subquestions",
+  "M01": {
+    "1": {"sha256": "6b2e0e3c31aeb4d599b8b1dc7d853177c9b2c36429b80b4d426e28d3b6aa5d12",
+          "notes": ["看图核对：A/B/C/D/E 五点齐全；D 在 BC 中点，AD 竖直垂直于 BC；DE 交 AB 于 E 并有直角符号；高与半底之比约 12:5，与 AB=AC=13、BC=10 一致；图中无任何长度数值或答案"]},
+    "2": {"sha256": "64193695bc1e11cd9ee08a44e58e14c247023bae151a539e8d915f65d4e61acb",
+          "notes": ["看图核对：A/B/C/D/E 五点齐全；D 在 BC 中点，AD⊥BC；DE⊥AB 于 E 有直角符号；高与半底之比约 6:8，与腰 10、底 16 一致；图中无数值，不泄露腰长或 AD"]},
+    "3": {"sha256": "0e85e3cdb4dbc694cff9766bc97dcdd989e53d2155f16cb36cb5a21507ed9537",
+          "notes": ["看图核对：A/B/C/D/E 五点齐全；D 在 BC 中点，AD⊥BC；DE⊥AB 于 E 有直角符号；高与半底之比约 15:8，与 AB=17、AD=15 一致；图中不标 BC 长度（第（2）问所求）"]}
+  },
+  "M02": {
+    "1": {"sha256": "b0b50f95cb70543839b8630d22e7c238d08d3e416a11874f58e2c69689373e92",
+          "notes": ["看图核对：电池、开关 S、电流表 A 串联于干路；R1 与 R2 串联；电压表 V 并联在 R2 两端，与题面“电压表示数为 R2 两端电压”一致；图中无电阻值或读数"]},
+    "2": {"sha256": "b0b50f95cb70543839b8630d22e7c238d08d3e416a11874f58e2c69689373e92",
+          "notes": ["看图核对：同一串联电路，A 串联、V 并联 R2，与“电压表测得 R2 两端电压”一致；图中无数值"]},
+    "3": {"sha256": "b0b50f95cb70543839b8630d22e7c238d08d3e416a11874f58e2c69689373e92",
+          "notes": ["看图核对：同一串联电路，R2 位置即第（3）问 R3 替换处；A 串联、V 并联 R2；图中无数值或答案"]}
+  }
+}

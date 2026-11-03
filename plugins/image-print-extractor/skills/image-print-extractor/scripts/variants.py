@@ -103,11 +103,22 @@ def gate(document, qid):
         match = re.match(r'blocks\[(\d+)\]', item['location'])
         if match and id(document['blocks'][int(match[1])]) in owned:
             reasons.append(f'{item["location"]}：{item["detail"]}')
-    wanted = list(question.get('blocks', [])) + [b for s in question.get('subquestions', []) or []
-                                                for b in s.get('blocks', [])]
+    # F03: every block the question needs -- shared materials included -- must be present.
+    # A missing passage is never guessed during generation.
+    materials = {m.get('material_id'): m for m in document.get('materials', []) or []}
+    wanted = []
+    for mid in question.get('materials', []) or []:
+        material_blocks = (materials.get(mid) or {}).get('blocks', []) or []
+        if not material_blocks:
+            reasons.append(f'共享材料 {mid} 没有任何题面块')
+        wanted += [(f'共享材料 {mid}', b) for b in material_blocks]
+    wanted += [(f'题目 {qid}', b) for b in question.get('blocks', []) or []]
+    for sub in question.get('subquestions', []) or []:
+        wanted += [(f'小问 {sub.get("subquestion_id")}', b) for b in sub.get('blocks', []) or []]
     present = {b.get('id') for b in document['blocks']}
-    if any(b not in present for b in wanted):
-        reasons.append('题目引用的块缺失（可能是未处理的插图）')
+    for owner, block_id in wanted:
+        if block_id not in present:
+            reasons.append(f'{owner} 引用的块 {block_id} 不在文档中（缺页、缺语篇或未处理的插图）')
     return reasons
 
 
@@ -191,6 +202,28 @@ def slot_state(ledger, target, slot):
     return 'open', attempts
 
 
+FIGURE_CHECKS = {'consistent_with_text': '图中对象、数据、标注与本题题面一致',
+                 'labels_complete': '作答所需的标注、刻度、连接齐全且可辨',
+                 'no_answer_content': '图中没有答案、解题痕迹或答案暗示',
+                 'print_legible': '黑白打印后线条与文字清楚'}
+
+
+def figure_review_problem(entry, asset):
+    """Why a variant figure's visual review is missing or does not bind the actual file."""
+    if entry is None:
+        return 'review.figures 中缺少（或重复）该图的视觉复核记录'
+    if entry.get('reviewed_by') != 'host_vision' or entry.get('status') != 'pass':
+        return '视觉复核必须由宿主实际看图完成（reviewed_by=host_vision）且 status=pass'
+    checks = entry.get('checks')
+    if not isinstance(checks, dict) or set(checks) != set(FIGURE_CHECKS) or any(v is not True for v in checks.values()):
+        return f'视觉复核 checks 必须逐项为 true：{sorted(FIGURE_CHECKS)}'
+    if entry.get('sha256') != asset['sha256']:
+        return '视觉复核记录的 sha256 与实际 PNG 不一致（复核后图件被修改，或复核的不是这张图）'
+    if 'svg_sha256' in asset and entry.get('svg_sha256') != asset['svg_sha256']:
+        return '视觉复核记录的 svg_sha256 与实际 SVG 不一致'
+    return None
+
+
 def verify(candidate, target, ledger, siblings):
     """Return (status, results, failures) for one candidate. Pure: never writes files."""
     failures, results = [], []
@@ -206,6 +239,16 @@ def verify(candidate, target, ledger, siblings):
     ids = [b.get('id') for b in blocks]
     if any(not isinstance(i, str) or not i for i in ids) or len(set(ids)) != len(ids):
         failures.append('每个题面块都需要唯一 id')
+    else:
+        # F04: a generated question has no "source" to infer from. Inference brackets, XXX,
+        # unresolved expressions, unclear roles or figure placeholders mean it is not verified;
+        # the same gate the source question passed through applies here (R09, R11).
+        try:
+            open_items = review_items({'blocks': blocks})
+        except ValueError as exc:
+            open_items = [{'location': 'variant', 'detail': str(exc)}]
+        for item in open_items:
+            failures.append(f'题面含待复核内容，不能计为验证通过：{item["location"]} {item["detail"]}')
 
     def roles(item):
         yield item.get('role')
@@ -217,7 +260,21 @@ def verify(candidate, target, ledger, siblings):
     for key in ('stem', 'materials'):
         if any(b not in ids for b in variant.get(key, []) or []):
             failures.append(f'{key} 引用了不存在的块')
+    by_id = {b.get('id'): b for b in blocks}
+    # F01: each block belongs to exactly one owner (stem, shared material or one subquestion).
+    # Re-using another part's block must not stand in for a missing subquestion.
+    owners = {}
+    for key in ('stem', 'materials'):
+        for block_id in variant.get(key, []) or []:
+            owners.setdefault(block_id, []).append(key)
     subs = variant.get('subquestions', []) or []
+    for sub in subs:
+        for block_id in sub.get('blocks', []) or []:
+            owners.setdefault(block_id, []).append(f'小问 {sub.get("number")}')
+    for block_id, claimed in owners.items():
+        if len(claimed) > 1:
+            failures.append(f'块 {block_id} 被 {"、".join(claimed)} 重复引用；每个小问必须有自己的题面块，'
+                            '共享内容请放入 materials')
     expected = target['subquestions']
     if len(subs) != len(expected):
         failures.append(f'小问数量 {len(subs)} 与原题 {len(expected)} 不一致')
@@ -231,19 +288,37 @@ def verify(candidate, target, ledger, siblings):
                 failures.append(f'小问 {sub.get("number")} 的依赖关系与原题不一致')
             if not sub.get('blocks') or any(b not in ids for b in sub['blocks']):
                 failures.append(f'小问 {sub.get("number")} 缺少题面块')
+            elif not any(by_id[b].get('type') != 'image' and student_text([by_id[b]]) for b in sub['blocks']):
+                failures.append(f'小问 {sub.get("number")} 没有可作答的文字题面')
     if target['has_materials'] and not variant.get('materials'):
         failures.append('原题含共享材料，变式也必须提供对应材料')
     images = [b for b in blocks if b.get('type') == 'image']
     if target['has_figures'] and not images:
         failures.append('原题含必要插图，变式缺少对应插图')
+    # F02: every figure is bound by hash to its own visual review and frozen at submit, so
+    # a file changed after verification can never reach the student package.
+    figure_reviews = review.get('figures', []) or []
+    if not isinstance(figure_reviews, list) or not all(isinstance(r, dict) for r in figure_reviews):
+        failures.append('review.figures 必须是对象列表')
+        figure_reviews = []
+    assets = []
     for image in images:
         try:
             from export_page import figure_assets
-            path, _ = figure_assets(base, image)
+            path, svg = figure_assets(base, image)
             from figure_drawing import check_black_white
             check_black_white(path)
         except (ValueError, OSError, KeyError) as exc:
             failures.append(f'插图 {image.get("id")} 不可用：{exc}')
+            continue
+        asset = {'id': image.get('id'), 'path': image['path'], 'sha256': sha256(path)}
+        if svg is not None:
+            asset.update(svg_path=image['svg_path'], svg_sha256=sha256(svg))
+        assets.append(asset)
+        matching = [r for r in figure_reviews if r.get('id') == image.get('id')]
+        problem = figure_review_problem(matching[0] if len(matching) == 1 else None, asset)
+        if problem:
+            failures.append(f'插图 {image.get("id")}：{problem}')
     for key in DESIGN_KEYS:
         if not design.get(key):
             failures.append(f'design.{key} 未填写')
@@ -301,7 +376,8 @@ def verify(candidate, target, ledger, siblings):
                 failures.append(f'复核项未通过：{wanted[key]}')
     if not isinstance(review.get('notes'), list):
         failures.append('review.notes 必须为列表')
-    record = {'similarity_to_source': round(similarity, 3), 'similarity_to_siblings': sibling_scores}
+    record = {'similarity_to_source': round(similarity, 3), 'similarity_to_siblings': sibling_scores,
+              'assets': assets}
     if failures:
         return 'failed', results, failures, record
     return ('needs_review' if uncertain else 'passed'), results, failures, record
@@ -325,6 +401,22 @@ def submit(ledger_file, candidate_file):
                 if c['question_id'] == target['question_id'] and c['status'] == 'passed']
     status_value, results, failures, record = verify(candidate, target, ledger, siblings)
     shutil.copyfile(candidate_file, stored)  # Frozen copy; delivery re-checks its hash.
+    frozen_dir = path.parent / 'assets' / candidate_id
+    base = Path(ledger['base'])
+    for asset in record.get('assets', []):
+        # Freeze the exact verified bytes; delivery uses these copies, never the editable originals.
+        for key, suffix in (('path', '.png'), ('svg_path', '.svg')):
+            if key not in asset:
+                continue
+            frozen = frozen_dir / f'{asset["id"]}{suffix}'
+            frozen.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(base / asset[key], frozen)
+            want = asset['sha256' if key == 'path' else 'svg_sha256']
+            if sha256(frozen) != want:
+                shutil.rmtree(frozen_dir, ignore_errors=True)
+                stored.unlink()
+                raise ValueError(f'插图 {asset["id"]} 在验证期间被修改，请重新提交')
+            asset['frozen' if key == 'path' else 'svg_frozen'] = frozen.relative_to(base).as_posix()
     entry = {'candidate_id': candidate_id, 'question_id': target['question_id'], 'slot': slot, 'attempt': attempt,
              'file': stored.relative_to(path.parent).as_posix(), 'sha256': sha256(stored), 'status': status_value,
              'checks': results, 'failures': failures, **record,
@@ -334,6 +426,7 @@ def submit(ledger_file, candidate_file):
     # Refuse to overwrite a concurrent submission that landed after we read the ledger.
     if len(read_json(path)['candidates']) != len(ledger['candidates']) - 1:
         stored.unlink()
+        shutil.rmtree(frozen_dir, ignore_errors=True)
         raise ValueError('台账在本次提交期间被其他调用修改，请重新运行 submit')
     replace_atomic(path, ledger)
     result = status(path)
@@ -375,6 +468,22 @@ def status(ledger_file):
             'questions': rows, 'waiting': waiting, 'next_action': action}
 
 
+def frozen_figure(base, entry, asset):
+    """Paths of the frozen, verified copy of one figure; refuses any changed or unbound file (F02)."""
+    name = entry['candidate_id']
+    if not asset or 'frozen' not in asset:
+        raise ValueError(f'候选 {name} 的插图没有在提交时冻结并绑定哈希（可能来自旧台账），请用新的 run-id 重新生成')
+    pairs = [('frozen', 'path', 'sha256')] + ([('svg_frozen', 'svg_path', 'svg_sha256')] if 'svg_frozen' in asset else [])
+    for frozen, original, digest in pairs:
+        if sha256(base / asset[frozen]) != asset[digest]:
+            raise ValueError(f'候选 {name} 的插图 {asset["id"]} 冻结副本在验证后被修改，不能交付')
+        current = base / asset[original]
+        if not current.is_file() or sha256(current) != asset[digest]:
+            raise ValueError(f'候选 {name} 的插图 {asset["id"]}（{asset[original]}）在验证后被修改或删除，'
+                             '原验证失效，不能交付；请修正后重新提交该变式')
+    return {'path': asset['frozen'], **({'svg_path': asset['svg_frozen']} if 'svg_frozen' in asset else {})}
+
+
 def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
     path, ledger = load(ledger_file)
     if fmt not in {'chat', 'docx', 'both'}:
@@ -412,8 +521,11 @@ def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
             blocks.append({'type': 'text', 'id': prefix + 'label', 'role': 'title', 'text': f'同类题 {index}',
                            'layout': {'keep_with_next': True}})
             variant_blocks = candidate['variant']['blocks']
+            assets = {a['id']: a for a in entry.get('assets', [])}
             for position, block in enumerate(variant_blocks):
                 block = deepcopy(block)
+                if block.get('type') == 'image':
+                    block.update(frozen_figure(base, entry, assets.get(block.get('id'))))
                 block['id'] = prefix + block['id']
                 following = variant_blocks[position + 1] if position + 1 < len(variant_blocks) else None
                 # Keep a stem with its figure and a subquestion with its options on one page.
@@ -470,7 +582,7 @@ def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
         report = internal / 'student.word.review.json'
         export_docx(student_doc, word, word_confirmed=True, report_path=report, output_mode='student',
                     forbidden=forbidden)
-        check = consistency(word, read_json(student_doc))
+        check = consistency(word, read_json(student_doc), source=student_doc)
         if not check['ok']:
             word.unlink()
             raise ValueError('Word 与聊天内容不一致：' + '；'.join(check['problems']))
@@ -484,9 +596,12 @@ def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
     (internal / 'answer-key.md').write_text('\n'.join(key_lines) + '\n', encoding='utf-8')
     if delivery == 'final' and shortfalls:
         delivery = 'partial'
+    if delivery == 'draft':
+        head = '学生文件为带标记的待复核草稿，不是正式成品；复核导出报告中的待复核项后再交付'
+    else:
+        head = '交付学生文件；' + ('；'.join(shortfalls) if shortfalls else '全部达到目标数量')
     result.update(delivery=delivery, shortfalls=shortfalls, internal=str(internal),
-                  next_action=('交付学生文件；' + ('；'.join(shortfalls) if shortfalls else '全部达到目标数量')
-                               + '。答案与验证记录在 internal 目录，不随学生文件交付'))
+                  next_action=head + '。答案与验证记录在 internal 目录，不随学生文件交付')
     return result
 
 

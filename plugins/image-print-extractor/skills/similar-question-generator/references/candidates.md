@@ -1,6 +1,6 @@
 # 候选文件格式
 
-每个候选是一道完整新题，单独存成一个 UTF-8 JSON 文件，放在源 JSON 所在目录内，配图路径相对该目录。`submit` 会冻结一份副本并记录哈希；交付时会重新核对哈希，提交后再修改原文件不会影响已登记的候选。
+每个候选是一道完整新题，单独存成一个 UTF-8 JSON 文件，放在源 JSON 所在目录内，配图路径相对该目录。`submit` 会冻结候选 JSON 和每张配图（PNG，以及有的 SVG）的副本并记录哈希；交付只使用这些冻结副本，并重新核对冻结副本和原文件的哈希：提交后原图被改动或删除，交付会被拒绝，需修正后重新提交该变式。
 
 ```json
 {
@@ -39,7 +39,13 @@
       {"kind": "semantic", "item": "(2)", "independent_answer": "AD=12", "method": "独立重算"}
     ]
   },
-  "review": {"checklist": {"solution_exists": true, "...": true}, "notes": ["逐问独立重算并核对清单"]}
+  "review": {
+    "checklist": {"solution_exists": true, "...": true},
+    "notes": ["逐问独立重算并核对清单"],
+    "figures": [{"id": "fig", "sha256": "<实际查看的 PNG 的 sha256>", "reviewed_by": "host_vision", "status": "pass",
+                 "checks": {"consistent_with_text": true, "labels_complete": true, "no_answer_content": true, "print_legible": true},
+                 "notes": ["看图核对：……"]}]
+  }
 }
 ```
 
@@ -47,6 +53,9 @@
 
 - 题面块只放学生可见内容，不得出现 `answer` 等答案角色；数学、化学用有类型的 runs（规则同提取技能）。
 - `subquestions` 的 `number` 与原题逐一对应，`depends_on` 写所依赖小问的编号。
+- 每个块只能属于一处：题干（`stem`）、共享材料（`materials`）或某一个小问。不同小问不得引用同一个块，小问也不得引用题干块；每个小问至少有一个带文字的题面块。复用别处的块冒充某一小问会被判为失败。
+- 题面中不得出现 `〔〕`、`XXX`、`status: unresolved` 的表达式、`role: uncertain` 或插图占位。新题没有“原文”可推断，出现这些即判为失败，不计入合格数，改好后作为新候选重新提交。
+- 每张配图都要在 `review.figures` 中有一条视觉复核：`id` 对应图块，`sha256`（有 SVG 时另加 `svg_sha256`）是实际查看的文件哈希，`reviewed_by` 为 `host_vision`，`status` 为 `pass`，四项 `checks` 如实逐项核对后才能为 `true`。哈希不符、缺项或任一项为 `false`，候选不通过。不得照抄示例或一律填 true。
 - `internal.answers` 每个小问一条，没有小问时 `item` 写 `"all"`。
 - `design.open_task: true` 表示开放写作或开放实验题，此时必须提供 `rubric` 检查。
 
@@ -58,7 +67,7 @@
 |---|---|---|
 | arith | expr, expect, tolerance | 表达式求值等于期望值（默认精确分数比较） |
 | substitute | equation（恰好一个 `=`）, vars | 代入后左右两边相等 |
-| roots | expr, var, claimed, interval | 所列的根都满足方程，且区间内没有漏根 |
+| roots | expr, var, claimed, interval | 所列的根都满足方程。多项式用精确有理系数和 Sturm 序列判定闭区间内的全部不同实根（含偶重根和端点根），有遗漏即失败；非多项式（含除以变量、根号、三角函数等）无法证明没有漏根，结果为“不确定”，候选进入 `needs_review`。interval 端点需为有理数 |
 | units | expr, units, expect | 量纲分析结果等于期望单位（支持 kg、m/s^2、Ohm/Ω、V、A、J、W、Pa 等） |
 | balance | equation，如 `Cu + 2Ag^+ = Cu^2+ + 2Ag` | 元素守恒、电荷守恒（离子电荷写 `^`，电子写 `e-`） |
 | choice | options, answer, multi | 答案在选项内；单选恰好一个答案；选项内容不重复 |

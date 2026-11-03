@@ -135,7 +135,11 @@ def validate_questions(document):
                 if dep not in sub_ids:
                     raise QuestionError(f'小问 {sid} 只能依赖排在它前面的小问，{dep} 不满足')
             sub_ids.append(sid)
-            used |= refs(f'小问 {sid}', sub.get('blocks', []))
+            own = refs(f'小问 {sid}', sub.get('blocks', []))
+            if own & used:
+                raise QuestionError(f'小问 {sid} 与同题其他部分共用块 {sorted(own & used)}；'
+                                    '每个小问必须有自己的题面块，共享内容请放入 materials')
+            used |= own
         for block_id in used:
             if block_id in owners and owners[block_id] != qid:
                 raise QuestionError(f'块 {block_id} 同时属于题目 {owners[block_id]} 和 {qid}；共享内容请放入 materials')
