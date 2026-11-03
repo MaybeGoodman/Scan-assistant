@@ -1,0 +1,93 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M03/orig.reviewed.json",
+  "expressions": [
+    {
+      "location": "blocks[1].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          264
+        ]
+      },
+      "type": "chemistry",
+      "latex": "\\mathrm{KClO_3}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[3]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          264
+        ]
+      },
+      "type": "chemistry",
+      "latex": "\\mathrm{MnO_2}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[3].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          322,
+          1150,
+          380
+        ]
+      },
+      "type": "math",
+      "latex": "9.6\\,\\mathrm{g}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          380,
+          1150,
+          482
+        ]
+      },
+      "type": "math",
+      "latex": "30.0\\,\\mathrm{g}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": [
+    {
+      "location": "blocks[5]",
+      "role": "answer"
+    },
+    {
+      "location": "blocks[6]",
+      "role": "analysis"
+    }
+  ]
+}

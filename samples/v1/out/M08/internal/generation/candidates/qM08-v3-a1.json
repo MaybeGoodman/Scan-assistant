@@ -1,0 +1,187 @@
+{
+  "question_id": "qM08",
+  "slot": 3,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "mat",
+        "text": "Tom was the youngest member of the town's tree-planting club, and he mostly listened during planning meetings. Last autumn, half of the young trees the club planted along the river died within weeks. The older members thought the soil was too poor and wanted to buy expensive fertiliser. Tom, who walked along the river every morning, had noticed that the dead trees were all on the side where people let their dogs run. He suggested putting up simple wooden fences instead. The club tried his idea on twenty new trees, and every one of them survived the winter. At the spring meeting, the chairwoman asked Tom to lead the next planting day.",
+        "role": "material"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "1. Why did many young trees die?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s1o",
+        "text": "A. The soil had no fertiliser.    B. Dogs damaged them on one side of the river.    C. The winter was too cold.    D. They were planted too late.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "2. What can we infer about Tom?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2o",
+        "text": "A. He noticed things others missed.    B. He knew a lot about fertiliser.    C. He owned several dogs.    D. He disliked meetings.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "3. Why did the chairwoman ask Tom to lead the next planting day?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3o",
+        "text": "A. He was the oldest member.    B. His idea had proved effective.    C. He had bought the fences.    D. He asked for the job.",
+        "role": "option"
+      }
+    ],
+    "stem": [],
+    "materials": [
+      "mat"
+    ],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1",
+          "s1o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2",
+          "s2o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3",
+          "s3o"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "细节理解",
+      "推理判断",
+      "观点态度/意图理解"
+    ],
+    "method": "定位证据句→推断人物特点→理解结尾观点",
+    "question_type": "共享语篇推断型阅读（三题）",
+    "difficulty": "same",
+    "difficulty_evidence": "语篇约110词，含因果与推断，设问层级同原题",
+    "difference_from_source": "情境改为植树社团，第3题为因果推断",
+    "difference_from_siblings": "第3题询问原因并有证据句"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "B"
+      },
+      {
+        "item": "(2)",
+        "answer": "A"
+      },
+      {
+        "item": "(3)",
+        "answer": "B"
+      }
+    ],
+    "solution": "(1)：B；(2)：A；(3)：B（依据见证据句与题意推断）",
+    "checks": [
+      {
+        "kind": "choice",
+        "item": "(1)",
+        "options": {
+          "A": "The soil had no fertiliser.",
+          "B": "Dogs damaged them on one side of the river.",
+          "C": "The winter was too cold.",
+          "D": "They were planted too late."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "evidence",
+        "item": "(1)",
+        "quote": "the dead trees were all on the side where people let their dogs run"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "B"
+      },
+      {
+        "kind": "choice",
+        "item": "(2)",
+        "options": {
+          "A": "He noticed things others missed.",
+          "B": "He knew a lot about fertiliser.",
+          "C": "He owned several dogs.",
+          "D": "He disliked meetings."
+        },
+        "answer": "A"
+      },
+      {
+        "kind": "evidence",
+        "item": "(2)",
+        "quote": "had noticed that the dead trees were all on the side"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "A"
+      },
+      {
+        "kind": "choice",
+        "item": "(3)",
+        "options": {
+          "A": "He was the oldest member.",
+          "B": "His idea had proved effective.",
+          "C": "He had bought the fences.",
+          "D": "He asked for the job."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "evidence",
+        "item": "(3)",
+        "quote": "every one of them survived the winter"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "B"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "language_natural": true,
+      "evidence_sentences": true,
+      "no_ambiguity": true,
+      "discourse_ability": true,
+      "task_standard": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M02/orig.figures-reviewed.json",
+  "expressions": [
+    {
+      "location": "blocks[1].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          308
+        ]
+      },
+      "type": "math",
+      "latex": "R_1=10\\,\\Omega",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[3]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          308
+        ]
+      },
+      "type": "math",
+      "latex": "S",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[5]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          308
+        ]
+      },
+      "type": "math",
+      "latex": "0.3\\,\\mathrm{A}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[7]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          308
+        ]
+      },
+      "type": "math",
+      "latex": "3\\,\\mathrm{V}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[3].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          648,
+          1150,
+          706
+        ]
+      },
+      "type": "math",
+      "latex": "U",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          706,
+          1150,
+          769
+        ]
+      },
+      "type": "math",
+      "latex": "R_2",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          769,
+          1150,
+          832
+        ]
+      },
+      "type": "math",
+      "latex": "R_2",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[3]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          769,
+          1150,
+          832
+        ]
+      },
+      "type": "math",
+      "latex": "20\\,\\Omega",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[5]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          769,
+          1150,
+          832
+        ]
+      },
+      "type": "math",
+      "latex": "R_3",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [
+    {
+      "figure": {
+        "figure_id": "f1",
+        "source_page": 1,
+        "source_bbox": [
+          450,
+          308,
+          790,
+          628
+        ],
+        "parent_block_id": "stem1",
+        "figure_type": "circuit",
+        "figure_group_id": null
+      },
+      "validation": {
+        "source_sha256": "a9ef8b56429391442f75435f0153b1bd9ceaa7770e4f301f3e7b70763570654e",
+        "png_sha256": "b0b50f95cb70543839b8630d22e7c238d08d3e416a11874f58e2c69689373e92",
+        "drawing_method": "structured",
+        "review": {
+          "figure_id": "f1",
+          "attempt": 1,
+          "source_sha256": "a9ef8b56429391442f75435f0153b1bd9ceaa7770e4f301f3e7b70763570654e",
+          "png_sha256": "b0b50f95cb70543839b8630d22e7c238d08d3e416a11874f58e2c69689373e92",
+          "svg_sha256": "d2511ed3d9a9af1bf1ba543c612d61cba01be6a7b0ae1c206d9920ba00d23c06",
+          "reviewed_by": "host_vision",
+          "status": "pass",
+          "notes": [
+            "逐项对照原图裁片：电池、断开的开关 S、电流表、R1、R2 串联成回路；电压表并联在 R2 两端（两节点）；R1、R2 下标和 S 标注正确；水印已去除",
+            "说明：合成样本的原图由同一结构场景渲染后加噪，属开发自测，真实扫描图需验收侧复测"
+          ],
+          "checks": {
+            "subject_count": true,
+            "connections": true,
+            "labels": true,
+            "arrow_directions": true,
+            "relative_positions": true,
+            "geometry": true,
+            "coordinates": true,
+            "black_white": true,
+            "completeness": true,
+            "no_unrelated_elements": true,
+            "scientific_meaning": true
+          },
+          "view_files": {
+            "source": "source-fig.png",
+            "png": "orig-images/figure-f1-a1.png",
+            "svg": "orig-images/figure-f1-a1.svg"
+          }
+        },
+        "svg_sha256": "d2511ed3d9a9af1bf1ba543c612d61cba01be6a7b0ae1c206d9920ba00d23c06"
+      }
+    }
+  ],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": [
+    {
+      "location": "blocks[2].alt",
+      "role": "alt_text"
+    },
+    {
+      "location": "blocks[6]",
+      "role": "answer"
+    },
+    {
+      "location": "blocks[7]",
+      "role": "analysis"
+    }
+  ]
+}

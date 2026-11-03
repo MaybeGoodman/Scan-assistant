@@ -113,10 +113,10 @@ class FormulaTests(unittest.TestCase):
 
 
 class ExportFormulaTests(unittest.TestCase):
-    def export_blocks(self, root, blocks):
+    def export_blocks(self, root, blocks, **options):
         source = root / 'source.json'
         source.write_text(json.dumps({'blocks': blocks}, ensure_ascii=False), encoding='utf-8')
-        target = export_docx(source, root / 'result.docx', word_confirmed=True)
+        target = export_docx(source, root / 'result.docx', word_confirmed=True, **options)
         with ZipFile(target) as zipped:
             xml = etree.fromstring(zipped.read('word/document.xml'))
             self.assertFalse(any(name.startswith('word/media/') for name in zipped.namelist()))
@@ -135,7 +135,8 @@ class ExportFormulaTests(unittest.TestCase):
                 {'type': 'chemistry', 'latex': chemistry},
                 {'type': 'table', 'rows': 1, 'cols': 1, 'cells': [{'row': 0, 'col': 0, 'runs': [
                     {'type': 'math', 'latex': 'a_1'}, {'type': 'text', 'text': '；'},
-                    {'type': 'chemistry', 'latex': r'\mathrm{CuSO_4}\cdot 5\mathrm{H_2O}'}]}]}])
+                    {'type': 'chemistry', 'latex': r'\mathrm{CuSO_4}\cdot 5\mathrm{H_2O}'}]}]}],
+                chemistry_format='source')  # 0.8.1 literal-source compatibility path
             self.assertEqual(len(xml.xpath('//m:oMath', namespaces=NS)), 3)
             self.assertEqual(len(xml.xpath('//m:oMathPara', namespaces=NS)), 1)
             self.assertEqual(len(xml.xpath('//w:tbl//m:oMath', namespaces=NS)), 1)
@@ -170,7 +171,8 @@ class ExportFormulaTests(unittest.TestCase):
             r'{}^{14}_{6}\mathrm{C}', r'\mathrm{H_2(g)}', r'\mathrm{e^-}',
             r'\mathrm{[Fe(CN)_6]^{3-}}', r'\mathrm{H_2}\xrightarrow{\text{点燃}}\mathrm{XXX}\uparrow']
         with tempfile.TemporaryDirectory() as temp:
-            xml, report = self.export_blocks(Path(temp), [{'type': 'chemistry', 'latex': s} for s in expressions])
+            xml, report = self.export_blocks(Path(temp), [{'type': 'chemistry', 'latex': s} for s in expressions],
+                                             chemistry_format='source')
             self.assertEqual(xml.xpath('//w:t/text()', namespaces=NS), expressions)
             self.assertFalse(xml.xpath('//m:oMath', namespaces=NS))
             self.assertEqual(report['needs_review'], 1)

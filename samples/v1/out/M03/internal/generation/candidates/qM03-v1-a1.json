@@ -1,0 +1,189 @@
+{
+  "question_id": "qM03",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "加热氯酸钾（"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{KClO_3}"
+          },
+          {
+            "type": "text",
+            "text": "）与二氧化锰（"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{MnO_2}"
+          },
+          {
+            "type": "text",
+            "text": "）的混合物制取氧气，完全反应后共收集到氧气"
+          },
+          {
+            "type": "math",
+            "latex": "4.8\\,\\mathrm{g}"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "（1）写出该反应的化学方程式；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "（2）求参加反应的氯酸钾的质量；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）若原混合物的质量为"
+          },
+          {
+            "type": "math",
+            "latex": "16.0\\,\\mathrm{g}"
+          },
+          {
+            "type": "text",
+            "text": "，求反应后剩余固体中二氧化锰的质量分数（结果精确到0.1%）。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(2)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "化学方程式书写",
+      "根据化学方程式计算",
+      "质量分数"
+    ],
+    "method": "写方程式→比例计算→质量守恒求剩余固体",
+    "question_type": "化学计算（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "与原题相同的三步链式计算",
+    "difference_from_source": "氧气质量与混合物质量组合改变",
+    "difference_from_siblings": "催化剂占比较高"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "2KClO3=(MnO2,△)2KCl+3O2↑"
+      },
+      {
+        "item": "(2)",
+        "answer": "12.25 g"
+      },
+      {
+        "item": "(3)",
+        "answer": "33.5%"
+      }
+    ],
+    "solution": "2KClO3~3O2，245:96；m(KClO3)=4.8×245/96=12.25 g；m(MnO2)=3.75 g；剩余固体11.2 g；33.5%。",
+    "checks": [
+      {
+        "kind": "balance",
+        "item": "(1)",
+        "equation": "2KClO3 -> 2KCl + 3O2"
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "2*(39+35.5+48)",
+        "expect": "245"
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "4.8*245/96",
+        "expect": "12.25",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "(16.0-12.25)/(16.0-4.8)*100",
+        "expect": "33.5",
+        "tolerance": 0.05
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "2KClO3=(MnO2,△)2KCl+3O2↑"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "12.25 g"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "33.5%"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "principle_kept": true,
+      "formula_mass": true,
+      "conservation": true,
+      "conditions_apparatus": true,
+      "junior_scope": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

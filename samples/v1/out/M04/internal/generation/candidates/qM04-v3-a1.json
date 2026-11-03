@@ -1,0 +1,181 @@
+{
+  "question_id": "qM04",
+  "slot": 3,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "mat",
+        "text": "Last month, Jane's class spent a day at the science museum as young guides. They met the museum keeper at half past eight. She gave each student a badge and a map. In the morning, the students learned about the old clocks on the second floor. After lunch, they took turns to explain the clocks to younger visitors. Jane said, \"I never knew that the first clocks used water.\" At the end of the day, the keeper thanked them with a small gift.",
+        "role": "material"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "1. What did the museum keeper give each student?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s1o",
+        "text": "A. A badge and a map.    B. A small clock.    C. A ticket.    D. Some water.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "2. What did Jane learn at the museum?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2o",
+        "text": "A. Clocks are cheap.    B. The first clocks used water.    C. Guides need maps.    D. Museums open late.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "3. What is the best title for the passage?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3o",
+        "text": "A. Young Guides at the Science Museum    B. Old Maps    C. A Small Gift    D. The Second Floor",
+        "role": "option"
+      }
+    ],
+    "stem": [],
+    "materials": [
+      "mat"
+    ],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1",
+          "s1o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2",
+          "s2o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3",
+          "s3o"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "细节理解",
+      "主旨大意"
+    ],
+    "method": "定位关键词→比对选项→归纳标题",
+    "question_type": "共享语篇阅读理解（三题）",
+    "difficulty": "same",
+    "difficulty_evidence": "语篇约90词、一般过去时、初二词汇，设问层级同原题",
+    "difference_from_source": "细节题由“时间”改为“物品”，情境为科技馆讲解",
+    "difference_from_siblings": "第1题考物品而非时间"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "A"
+      },
+      {
+        "item": "(2)",
+        "answer": "B"
+      },
+      {
+        "item": "(3)",
+        "answer": "A"
+      }
+    ],
+    "solution": "(1)：A；(2)：B；(3)：A（依据见证据句与题意推断）",
+    "checks": [
+      {
+        "kind": "choice",
+        "item": "(1)",
+        "options": {
+          "A": "A badge and a map.",
+          "B": "A small clock.",
+          "C": "A ticket.",
+          "D": "Some water."
+        },
+        "answer": "A"
+      },
+      {
+        "kind": "evidence",
+        "item": "(1)",
+        "quote": "She gave each student a badge and a map."
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "A"
+      },
+      {
+        "kind": "choice",
+        "item": "(2)",
+        "options": {
+          "A": "Clocks are cheap.",
+          "B": "The first clocks used water.",
+          "C": "Guides need maps.",
+          "D": "Museums open late."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "evidence",
+        "item": "(2)",
+        "quote": "the first clocks used water"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "B"
+      },
+      {
+        "kind": "choice",
+        "item": "(3)",
+        "options": {
+          "A": "Young Guides at the Science Museum",
+          "B": "Old Maps",
+          "C": "A Small Gift",
+          "D": "The Second Floor"
+        },
+        "answer": "A"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "A"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "target_language": true,
+      "length_vocabulary": true,
+      "unique_answer": true,
+      "evidence_located": true,
+      "task_executable": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

@@ -1,0 +1,380 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "id": "hdr",
+      "text": "江南第二中学 2026—2027 学年第一学期 课后练习",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          90,
+          1150,
+          138
+        ]
+      },
+      "selection": {
+        "category": "HEADER_FOOTER",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "学校页眉，与题目内容无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "wm",
+      "text": "扫码关注 刷题宝 海量真题免费领",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "WATERMARK",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "半透明推广水印，覆盖正文但与题目无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "text": "九年级化学 根据化学方程式的计算",
+      "role": "title",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          138,
+          1150,
+          201
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "stem1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "16．实验室用氯酸钾（"
+        },
+        {
+          "type": "chemistry",
+          "latex": "\\mathrm{KClO_3}"
+        },
+        {
+          "type": "text",
+          "text": "）和二氧化锰（"
+        },
+        {
+          "type": "chemistry",
+          "latex": "\\mathrm{MnO_2}"
+        },
+        {
+          "type": "text",
+          "text": "）的混合物加热制取氧气。"
+        }
+      ],
+      "role": "stem",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          264
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1",
+      "text": "（1）写出该反应的化学方程式；",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          264,
+          1150,
+          322
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2",
+      "runs": [
+        {
+          "type": "text",
+          "text": "（2）若完全反应后生成氧气"
+        },
+        {
+          "type": "math",
+          "latex": "9.6\\,\\mathrm{g}"
+        },
+        {
+          "type": "text",
+          "text": "，求参加反应的氯酸钾的质量；"
+        }
+      ],
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          322,
+          1150,
+          380
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3",
+      "runs": [
+        {
+          "type": "text",
+          "text": "（3）若原混合物共"
+        },
+        {
+          "type": "math",
+          "latex": "30.0\\,\\mathrm{g}"
+        },
+        {
+          "type": "text",
+          "text": "，求反应后剩余固体中二氧化锰的质量分数（结果精确到0.1%）。"
+        }
+      ],
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          380,
+          1150,
+          482
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "【答案】（1）"
+        },
+        {
+          "type": "chemistry",
+          "latex": "2\\mathrm{KClO_3}\\xrightarrow[\\Delta]{\\mathrm{MnO_2}}2\\mathrm{KCl}+3\\mathrm{O_2}\\uparrow"
+        },
+        {
+          "type": "text",
+          "text": "；（2）"
+        },
+        {
+          "type": "math",
+          "latex": "24.5\\,\\mathrm{g}"
+        },
+        {
+          "type": "text",
+          "text": "；（3）27.0%。"
+        }
+      ],
+      "role": "answer",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          482,
+          1150,
+          547
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans2",
+      "runs": [
+        {
+          "type": "text",
+          "text": "【解析】（3）"
+        },
+        {
+          "type": "chemistry",
+          "latex": "\\mathrm{MnO_2}"
+        },
+        {
+          "type": "text",
+          "text": "的质量为"
+        },
+        {
+          "type": "math",
+          "latex": "30.0-24.5=5.5\\,\\mathrm{g}"
+        },
+        {
+          "type": "text",
+          "text": "，剩余固体为"
+        },
+        {
+          "type": "math",
+          "latex": "30.0-9.6=20.4\\,\\mathrm{g}"
+        },
+        {
+          "type": "text",
+          "text": "。"
+        }
+      ],
+      "role": "analysis",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          547,
+          1150,
+          605
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "hw",
+      "text": "对了!",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "HANDWRITING",
+        "relation": "main",
+        "certainty": "high"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "qM03",
+      "number": "16",
+      "module": "M03",
+      "question_type": "comprehensive",
+      "blocks": [
+        "stem1",
+        "ans1",
+        "ans2"
+      ],
+      "materials": [],
+      "subquestions": [
+        {
+          "subquestion_id": "qM03-1",
+          "number": "(1)",
+          "blocks": [
+            "s1"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM03-2",
+          "number": "(2)",
+          "blocks": [
+            "s2"
+          ],
+          "depends_on": [
+            "qM03-1"
+          ]
+        },
+        {
+          "subquestion_id": "qM03-3",
+          "number": "(3)",
+          "blocks": [
+            "s3"
+          ],
+          "depends_on": [
+            "qM03-2"
+          ]
+        }
+      ],
+      "source_spans": [
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            201,
+            1150,
+            264
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            264,
+            1150,
+            322
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            322,
+            1150,
+            380
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            380,
+            1150,
+            482
+          ]
+        }
+      ],
+      "review_status": "confirmed",
+      "completeness": {
+        "complete": true,
+        "missing": []
+      }
+    }
+  ],
+  "materials": []
+}

@@ -1,0 +1,182 @@
+{
+  "question_id": "qM08",
+  "slot": 2,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "mat",
+        "text": "Sara joined the school newspaper as a photographer and seldom offered opinions in meetings. While the writers rushed to finish stories, she kept a small table of every number the paper printed. Before the issue about the canteen survey went out, she noticed something odd: the article said 70 percent of students liked the new menu, but only 120 of the 300 forms said so. The editor checked the forms and found that the writer had counted the same pile twice. The story was corrected just in time. At the end of the term, the editor gave Sara a new role. \"Checking facts,\" he explained, \"is as important as telling stories.\"",
+        "role": "material"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "1. What was wrong with the canteen article?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s1o",
+        "text": "A. It used an old photo.    B. Its percentage did not match the forms.    C. It was printed too late.    D. It criticised the cooks.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "2. What can we infer about Sara?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2o",
+        "text": "A. She was careful with details.    B. She wanted to be a writer.    C. She disliked the new menu.    D. She often argued with the editor.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "3. What new role was Sara most probably given?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3o",
+        "text": "A. Photographer.    B. Fact checker.    C. Canteen manager.    D. Story writer.",
+        "role": "option"
+      }
+    ],
+    "stem": [],
+    "materials": [
+      "mat"
+    ],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1",
+          "s1o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2",
+          "s2o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3",
+          "s3o"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "细节理解",
+      "推理判断",
+      "观点态度/意图理解"
+    ],
+    "method": "定位证据句→推断人物特点→理解结尾观点",
+    "question_type": "共享语篇推断型阅读（三题）",
+    "difficulty": "same",
+    "difficulty_evidence": "语篇约110词，含因果与推断，设问层级同原题",
+    "difference_from_source": "情境改为校报数据核查；第3题由句意理解变为角色推断",
+    "difference_from_siblings": "第3题推断新职务"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "B"
+      },
+      {
+        "item": "(2)",
+        "answer": "A"
+      },
+      {
+        "item": "(3)",
+        "answer": "B"
+      }
+    ],
+    "solution": "(1)：B；(2)：A；(3)：B（依据见证据句与题意推断）",
+    "checks": [
+      {
+        "kind": "choice",
+        "item": "(1)",
+        "options": {
+          "A": "It used an old photo.",
+          "B": "Its percentage did not match the forms.",
+          "C": "It was printed too late.",
+          "D": "It criticised the cooks."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "evidence",
+        "item": "(1)",
+        "quote": "only 120 of the 300 forms said so"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "B"
+      },
+      {
+        "kind": "choice",
+        "item": "(2)",
+        "options": {
+          "A": "She was careful with details.",
+          "B": "She wanted to be a writer.",
+          "C": "She disliked the new menu.",
+          "D": "She often argued with the editor."
+        },
+        "answer": "A"
+      },
+      {
+        "kind": "evidence",
+        "item": "(2)",
+        "quote": "she kept a small table of every number the paper printed"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "A"
+      },
+      {
+        "kind": "choice",
+        "item": "(3)",
+        "options": {
+          "A": "Photographer.",
+          "B": "Fact checker.",
+          "C": "Canteen manager.",
+          "D": "Story writer."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "B"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "language_natural": true,
+      "evidence_sentences": true,
+      "no_ambiguity": true,
+      "discourse_ability": true,
+      "task_standard": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

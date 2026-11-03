@@ -1,0 +1,122 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M06/gen.student.json",
+  "expressions": [
+    {
+      "location": "blocks[2].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "a_1=3\\,\\mathrm{m/s^2}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "4\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "5\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[7]",
+      "source": null,
+      "type": "math",
+      "latex": "3\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "4\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "20\\,\\mathrm{m}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "6\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[7]",
+      "source": null,
+      "type": "math",
+      "latex": "2.5\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[12].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "a_1=1.5\\,\\mathrm{m/s^2}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[12].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "6\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[12].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "4\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[12].runs[7]",
+      "source": null,
+      "type": "math",
+      "latex": "13.5\\,\\mathrm{m}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": []
+}

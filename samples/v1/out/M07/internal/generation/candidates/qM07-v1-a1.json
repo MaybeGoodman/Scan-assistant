@@ -1,0 +1,178 @@
+{
+  "question_id": "qM07",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "用铁片、石墨棒和"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{FeCl_3}"
+          },
+          {
+            "type": "text",
+            "text": "溶液组成原电池。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）写出铁与"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{FeCl_3}"
+          },
+          {
+            "type": "text",
+            "text": "溶液反应的离子方程式；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "（2）该原电池的负极材料是什么？写出正极的电极反应式；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）若电路中通过"
+          },
+          {
+            "type": "math",
+            "latex": "0.4\\,\\mathrm{mol}"
+          },
+          {
+            "type": "text",
+            "text": "电子，求负极质量减少了多少克。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(2)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "离子方程式",
+      "原电池正负极判断",
+      "电子转移计算"
+    ],
+    "method": "写总反应→拆分电极反应→电子守恒计算",
+    "question_type": "电化学综合（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "三小问链式依赖，与原题相同",
+    "difference_from_source": "负极材料改为铁，产物只有Fe²⁺（归中反应）",
+    "difference_from_siblings": "归中反应，产物单一"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "Fe+2Fe3+=3Fe2+"
+      },
+      {
+        "item": "(2)",
+        "answer": "铁；Fe3++e-=Fe2+"
+      },
+      {
+        "item": "(3)",
+        "answer": "11.2 g"
+      }
+    ],
+    "solution": "负极Fe−2e⁻=Fe²⁺，0.4 mol e⁻对应0.2 mol Fe，质量11.2 g。",
+    "checks": [
+      {
+        "kind": "balance",
+        "item": "(1)",
+        "equation": "Fe + 2Fe^3+ = 3Fe^2+"
+      },
+      {
+        "kind": "balance",
+        "item": "(2)",
+        "equation": "Fe^3+ + e- = Fe^2+"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "0.4/2*56",
+        "expect": "11.2",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "Fe+2Fe3+=3Fe2+"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "铁；Fe3++e-=Fe2+"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "11.2 g"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "system_kept": true,
+      "conservation": true,
+      "equilibrium_electrochem": true,
+      "reagents_apparatus": true,
+      "inference_chain": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

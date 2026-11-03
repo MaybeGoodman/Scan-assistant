@@ -1,0 +1,935 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "id": "hdr",
+      "text": "江南第二中学 2026—2027 学年第一学期 课后练习",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          90,
+          1150,
+          138
+        ]
+      },
+      "selection": {
+        "category": "HEADER_FOOTER",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "学校页眉，与题目内容无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "wm",
+      "text": "扫码关注 刷题宝 海量真题免费领",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "WATERMARK",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "半透明推广水印，覆盖正文但与题目无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "text": "九年级物理 欧姆定律计算",
+      "role": "title",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          138,
+          1150,
+          201
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "stem1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "21．如图所示电路，电源电压保持不变，定值电阻"
+        },
+        {
+          "type": "math",
+          "latex": "R_1=10\\,\\Omega"
+        },
+        {
+          "type": "text",
+          "text": "。闭合开关"
+        },
+        {
+          "type": "math",
+          "latex": "S"
+        },
+        {
+          "type": "text",
+          "text": "，电流表示数为"
+        },
+        {
+          "type": "math",
+          "latex": "0.3\\,\\mathrm{A}"
+        },
+        {
+          "type": "text",
+          "text": "，电压表示数为"
+        },
+        {
+          "type": "math",
+          "latex": "3\\,\\mathrm{V}"
+        },
+        {
+          "type": "text",
+          "text": "。"
+        }
+      ],
+      "role": "stem",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          308
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "image",
+      "id": "fig",
+      "figure_id": "f1",
+      "path": "source-fig.png",
+      "role": "figure",
+      "alt": "原题插图",
+      "source": {
+        "page": 1,
+        "bbox": [
+          450,
+          308,
+          790,
+          628
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "（1）求电源电压"
+        },
+        {
+          "type": "math",
+          "latex": "U"
+        },
+        {
+          "type": "text",
+          "text": "；"
+        }
+      ],
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          648,
+          1150,
+          706
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2",
+      "runs": [
+        {
+          "type": "text",
+          "text": "（2）求电阻"
+        },
+        {
+          "type": "math",
+          "latex": "R_2"
+        },
+        {
+          "type": "text",
+          "text": "的阻值；"
+        }
+      ],
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          706,
+          1150,
+          769
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3",
+      "runs": [
+        {
+          "type": "text",
+          "text": "（3）若将"
+        },
+        {
+          "type": "math",
+          "latex": "R_2"
+        },
+        {
+          "type": "text",
+          "text": "换成阻值为"
+        },
+        {
+          "type": "math",
+          "latex": "20\\,\\Omega"
+        },
+        {
+          "type": "text",
+          "text": "的电阻"
+        },
+        {
+          "type": "math",
+          "latex": "R_3"
+        },
+        {
+          "type": "text",
+          "text": "，求此时电流表的示数。"
+        }
+      ],
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          769,
+          1150,
+          832
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "【答案】（1）"
+        },
+        {
+          "type": "math",
+          "latex": "6\\,\\mathrm{V}"
+        },
+        {
+          "type": "text",
+          "text": "；（2）"
+        },
+        {
+          "type": "math",
+          "latex": "10\\,\\Omega"
+        },
+        {
+          "type": "text",
+          "text": "；（3）"
+        },
+        {
+          "type": "math",
+          "latex": "0.2\\,\\mathrm{A}"
+        },
+        {
+          "type": "text",
+          "text": "。"
+        }
+      ],
+      "role": "answer",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          832,
+          1150,
+          886
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans2",
+      "runs": [
+        {
+          "type": "text",
+          "text": "【解析】"
+        },
+        {
+          "type": "math",
+          "latex": "U=IR_1+U_2=3\\,\\mathrm{V}+3\\,\\mathrm{V}=6\\,\\mathrm{V}"
+        },
+        {
+          "type": "text",
+          "text": "。"
+        }
+      ],
+      "role": "analysis",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          886,
+          1150,
+          944
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "hw",
+      "text": "对了!",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "HANDWRITING",
+        "relation": "main",
+        "certainty": "high"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "qM02",
+      "number": "21",
+      "module": "M02",
+      "question_type": "comprehensive",
+      "blocks": [
+        "stem1",
+        "fig",
+        "ans1",
+        "ans2"
+      ],
+      "materials": [],
+      "subquestions": [
+        {
+          "subquestion_id": "qM02-1",
+          "number": "(1)",
+          "blocks": [
+            "s1"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM02-2",
+          "number": "(2)",
+          "blocks": [
+            "s2"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM02-3",
+          "number": "(3)",
+          "blocks": [
+            "s3"
+          ],
+          "depends_on": [
+            "qM02-1"
+          ]
+        }
+      ],
+      "source_spans": [
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            201,
+            1150,
+            308
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            648,
+            1150,
+            706
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            706,
+            1150,
+            769
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            769,
+            1150,
+            832
+          ]
+        }
+      ],
+      "review_status": "confirmed",
+      "completeness": {
+        "complete": true,
+        "missing": []
+      }
+    }
+  ],
+  "materials": [],
+  "figure_task": {
+    "schema_version": 1,
+    "task_id": "M02-page",
+    "page_count": 1,
+    "scan_complete": true,
+    "figures": [
+      {
+        "figure_id": "f1",
+        "source_page": 1,
+        "source_bbox": [
+          450,
+          308,
+          790,
+          628
+        ],
+        "source_path": "source-fig.png",
+        "parent_block_id": "stem1",
+        "figure_type": "circuit",
+        "relation": "main",
+        "redrawable": true,
+        "critical_uncertainty": false,
+        "placeholder_label": "第21题图",
+        "understanding": {
+          "objects": [
+            {
+              "id": "B",
+              "kind": "battery"
+            },
+            {
+              "id": "S",
+              "kind": "switch",
+              "params": {
+                "state": "open"
+              }
+            },
+            {
+              "id": "R1",
+              "kind": "resistor"
+            },
+            {
+              "id": "R2",
+              "kind": "resistor"
+            },
+            {
+              "id": "A",
+              "kind": "ammeter"
+            },
+            {
+              "id": "V",
+              "kind": "voltmeter"
+            },
+            {
+              "id": "j1",
+              "kind": "node"
+            },
+            {
+              "id": "j2",
+              "kind": "node"
+            }
+          ],
+          "labels": [
+            {
+              "id": "lR1",
+              "target": "R1",
+              "runs": [
+                {
+                  "text": "R",
+                  "script": "normal"
+                },
+                {
+                  "text": "1",
+                  "script": "sub"
+                }
+              ]
+            },
+            {
+              "id": "lR2",
+              "target": "R2",
+              "runs": [
+                {
+                  "text": "R",
+                  "script": "normal"
+                },
+                {
+                  "text": "2",
+                  "script": "sub"
+                }
+              ]
+            },
+            {
+              "id": "lS",
+              "target": "S",
+              "text": "S"
+            }
+          ],
+          "arrows": [],
+          "connections": [
+            [
+              "B",
+              "S"
+            ],
+            [
+              "S",
+              "A"
+            ],
+            [
+              "A",
+              "j2"
+            ],
+            [
+              "j2",
+              "R2"
+            ],
+            [
+              "R2",
+              "j1"
+            ],
+            [
+              "j1",
+              "R1"
+            ],
+            [
+              "R1",
+              "B"
+            ],
+            [
+              "V",
+              "j1"
+            ],
+            [
+              "V",
+              "j2"
+            ]
+          ],
+          "facts": {
+            "series": [
+              "B",
+              "S",
+              "A",
+              "R2",
+              "R1"
+            ],
+            "voltmeter_across": "R2",
+            "switch": "open"
+          }
+        },
+        "drawing": {
+          "scene": {
+            "width": "auto",
+            "height": "auto",
+            "fit": {
+              "margin": 14
+            },
+            "structure": {
+              "objects": [
+                {
+                  "id": "B",
+                  "kind": "battery"
+                },
+                {
+                  "id": "S",
+                  "kind": "switch",
+                  "params": {
+                    "state": "open"
+                  }
+                },
+                {
+                  "id": "R1",
+                  "kind": "resistor"
+                },
+                {
+                  "id": "R2",
+                  "kind": "resistor"
+                },
+                {
+                  "id": "A",
+                  "kind": "ammeter"
+                },
+                {
+                  "id": "V",
+                  "kind": "voltmeter"
+                },
+                {
+                  "id": "j1",
+                  "kind": "node"
+                },
+                {
+                  "id": "j2",
+                  "kind": "node"
+                }
+              ],
+              "labels": [
+                {
+                  "id": "lR1",
+                  "target": "R1",
+                  "runs": [
+                    {
+                      "text": "R",
+                      "script": "normal"
+                    },
+                    {
+                      "text": "1",
+                      "script": "sub"
+                    }
+                  ]
+                },
+                {
+                  "id": "lR2",
+                  "target": "R2",
+                  "runs": [
+                    {
+                      "text": "R",
+                      "script": "normal"
+                    },
+                    {
+                      "text": "2",
+                      "script": "sub"
+                    }
+                  ]
+                },
+                {
+                  "id": "lS",
+                  "target": "S",
+                  "text": "S"
+                }
+              ],
+              "arrows": [],
+              "connections": [
+                [
+                  "B",
+                  "S"
+                ],
+                [
+                  "S",
+                  "A"
+                ],
+                [
+                  "A",
+                  "j2"
+                ],
+                [
+                  "j2",
+                  "R2"
+                ],
+                [
+                  "R2",
+                  "j1"
+                ],
+                [
+                  "j1",
+                  "R1"
+                ],
+                [
+                  "R1",
+                  "B"
+                ],
+                [
+                  "V",
+                  "j1"
+                ],
+                [
+                  "V",
+                  "j2"
+                ]
+              ],
+              "facts": {
+                "series": [
+                  "B",
+                  "S",
+                  "A",
+                  "R2",
+                  "R1"
+                ],
+                "voltmeter_across": "R2",
+                "switch": "open"
+              }
+            },
+            "elements": [
+              {
+                "id": "B",
+                "kind": "component",
+                "type": "battery",
+                "object_id": "B",
+                "at": [
+                  70,
+                  40
+                ],
+                "params": {
+                  "cells": 2
+                }
+              },
+              {
+                "id": "S",
+                "kind": "component",
+                "type": "switch",
+                "object_id": "S",
+                "at": [
+                  180,
+                  40
+                ],
+                "params": {
+                  "state": "open"
+                }
+              },
+              {
+                "id": "A",
+                "kind": "component",
+                "type": "ammeter",
+                "object_id": "A",
+                "at": [
+                  260,
+                  110
+                ],
+                "orientation": "v"
+              },
+              {
+                "id": "R2",
+                "kind": "component",
+                "type": "resistor",
+                "object_id": "R2",
+                "at": [
+                  190,
+                  180
+                ]
+              },
+              {
+                "id": "R1",
+                "kind": "component",
+                "type": "resistor",
+                "object_id": "R1",
+                "at": [
+                  70,
+                  180
+                ]
+              },
+              {
+                "id": "V",
+                "kind": "component",
+                "type": "voltmeter",
+                "object_id": "V",
+                "at": [
+                  190,
+                  240
+                ]
+              },
+              {
+                "id": "j1",
+                "kind": "junction",
+                "object_id": "j1",
+                "at": [
+                  140,
+                  180
+                ]
+              },
+              {
+                "id": "j2",
+                "kind": "junction",
+                "object_id": "j2",
+                "at": [
+                  240,
+                  180
+                ]
+              },
+              {
+                "id": "w1",
+                "kind": "wire",
+                "from": "B.b",
+                "to": "S.a"
+              },
+              {
+                "id": "w2",
+                "kind": "wire",
+                "from": "S.b",
+                "to": "A.a",
+                "route": "hv"
+              },
+              {
+                "id": "w3",
+                "kind": "wire",
+                "from": "A.b",
+                "to": "j2",
+                "route": "vh"
+              },
+              {
+                "id": "w4",
+                "kind": "wire",
+                "from": "j2",
+                "to": "R2.b"
+              },
+              {
+                "id": "w5",
+                "kind": "wire",
+                "from": "R2.a",
+                "to": "j1"
+              },
+              {
+                "id": "w6",
+                "kind": "wire",
+                "from": "j1",
+                "to": "R1.b"
+              },
+              {
+                "id": "w7",
+                "kind": "wire",
+                "from": "R1.a",
+                "to": "B.a",
+                "route": "manual",
+                "via": [
+                  [
+                    20,
+                    180
+                  ],
+                  [
+                    20,
+                    40
+                  ]
+                ]
+              },
+              {
+                "id": "w8",
+                "kind": "wire",
+                "from": "V.a",
+                "to": "j1",
+                "route": "hv"
+              },
+              {
+                "id": "w9",
+                "kind": "wire",
+                "from": "V.b",
+                "to": "j2",
+                "route": "hv"
+              },
+              {
+                "id": "lR1",
+                "kind": "label",
+                "object_id": "R1",
+                "label_id": "lR1",
+                "at": [
+                  70,
+                  165
+                ],
+                "anchor": "middle",
+                "size": 14,
+                "runs": [
+                  {
+                    "text": "R"
+                  },
+                  {
+                    "text": "1",
+                    "script": "sub"
+                  }
+                ]
+              },
+              {
+                "id": "lR2",
+                "kind": "label",
+                "object_id": "R2",
+                "label_id": "lR2",
+                "at": [
+                  190,
+                  165
+                ],
+                "anchor": "middle",
+                "size": 14,
+                "runs": [
+                  {
+                    "text": "R"
+                  },
+                  {
+                    "text": "2",
+                    "script": "sub"
+                  }
+                ]
+              },
+              {
+                "id": "lS",
+                "kind": "label",
+                "object_id": "S",
+                "label_id": "lS",
+                "at": [
+                  180,
+                  25
+                ],
+                "anchor": "middle",
+                "size": 14,
+                "runs": [
+                  {
+                    "text": "S"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

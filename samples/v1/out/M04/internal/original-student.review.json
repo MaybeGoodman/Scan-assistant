@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M04/orig.reviewed.json",
+  "expressions": [],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": [
+    {
+      "location": "blocks[9]",
+      "role": "answer"
+    }
+  ]
+}

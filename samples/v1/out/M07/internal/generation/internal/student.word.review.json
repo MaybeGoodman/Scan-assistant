@@ -1,0 +1,101 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M07/gen.student.json",
+  "expressions": [
+    {
+      "location": "blocks[2].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{FeCl_3}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[3].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{FeCl_3}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "0.4\\,\\mathrm{mol}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{CuSO_4}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{CuSO_4}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[10].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "0.2\\,\\mathrm{mol}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[12].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{AgNO_3}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[13].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{AgNO_3}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[15].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "0.3\\,\\mathrm{mol}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": []
+}

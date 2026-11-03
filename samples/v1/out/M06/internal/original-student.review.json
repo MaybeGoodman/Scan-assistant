@@ -1,0 +1,94 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M06/orig.final1-source.json",
+  "expressions": [
+    {
+      "location": "blocks[1].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          310
+        ]
+      },
+      "type": "math",
+      "latex": "a_1=2\\,\\mathrm{m/s^2}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[3]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          310
+        ]
+      },
+      "type": "math",
+      "latex": "4\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[5]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          310
+        ]
+      },
+      "type": "math",
+      "latex": "\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[7]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          310
+        ]
+      },
+      "type": "math",
+      "latex": "2\\,\\mathrm{s}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "draft",
+  "review_items": [
+    {
+      "key": "inference:blocks[1].runs[4]:43aa434c582e",
+      "kind": "inference",
+      "location": "blocks[1].runs[4]",
+      "detail": "推断补写内容待复核"
+    }
+  ],
+  "open_review_items": 1,
+  "removed": [
+    {
+      "location": "blocks[5]",
+      "role": "answer"
+    }
+  ]
+}

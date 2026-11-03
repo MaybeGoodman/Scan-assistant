@@ -1,0 +1,686 @@
+{
+  "M01": {
+    "module": "M01",
+    "original": {
+      "status": "completed",
+      "delivery": "final",
+      "open_review_items": 0,
+      "file": "original.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM01-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM01-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM01-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM01",
+          "number": "18",
+          "module": "M01",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第18题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 3,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[2].alt",
+        "role": "alt_text"
+      },
+      {
+        "location": "blocks[6]",
+        "role": "answer"
+      },
+      {
+        "location": "blocks[7]",
+        "role": "analysis"
+      }
+    ],
+    "rendered_pages": {
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png",
+        "student-p2.png"
+      ]
+    }
+  },
+  "M02": {
+    "module": "M02",
+    "original": {
+      "status": "completed",
+      "delivery": "final",
+      "open_review_items": 0,
+      "file": "original.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM02-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM02-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM02-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM02",
+          "number": "21",
+          "module": "M02",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第21题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 3,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[2].alt",
+        "role": "alt_text"
+      },
+      {
+        "location": "blocks[6]",
+        "role": "answer"
+      },
+      {
+        "location": "blocks[7]",
+        "role": "analysis"
+      }
+    ],
+    "rendered_pages": {
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png",
+        "student-p2.png"
+      ]
+    }
+  },
+  "M03": {
+    "module": "M03",
+    "original": {
+      "status": "completed",
+      "delivery": "final",
+      "open_review_items": 0,
+      "file": "original.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM03-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM03-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM03-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM03",
+          "number": "16",
+          "module": "M03",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第16题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 0,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[5]",
+        "role": "answer"
+      },
+      {
+        "location": "blocks[6]",
+        "role": "analysis"
+      }
+    ],
+    "rendered_pages": {
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png"
+      ],
+      "variants-partial/student.docx": [
+        "student-p1.png"
+      ]
+    }
+  },
+  "M04": {
+    "module": "M04",
+    "original": {
+      "status": "completed",
+      "delivery": "final",
+      "open_review_items": 0,
+      "file": "original.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM04-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM04-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM04-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM04",
+          "number": "31-33",
+          "module": "M04",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第31-33题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 0,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[9]",
+        "role": "answer"
+      }
+    ],
+    "rendered_pages": {
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png",
+        "student-p2.png"
+      ]
+    }
+  },
+  "M05": {
+    "module": "M05",
+    "original": {
+      "status": "completed",
+      "delivery": "final",
+      "open_review_items": 0,
+      "file": "original.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM05-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM05-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM05-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM05",
+          "number": "19",
+          "module": "M05",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第19题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 0,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[5]",
+        "role": "answer"
+      },
+      {
+        "location": "blocks[6]",
+        "role": "analysis"
+      }
+    ],
+    "rendered_pages": {
+      "difficulty-easier/student.docx": [
+        "student-p1.png"
+      ],
+      "difficulty-harder/student.docx": [
+        "student-p1.png"
+      ],
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png"
+      ]
+    }
+  },
+  "M06": {
+    "module": "M06",
+    "original": {
+      "status": "completed",
+      "delivery": "draft",
+      "open_review_items": 1,
+      "file": "original.docx"
+    },
+    "generation_gate_on_draft": {
+      "status": "error",
+      "error": "以下原题暂不能用于生成，请先补充或复核：\nqM06：blocks[1].runs[4]：推断补写内容待复核"
+    },
+    "finalized": {
+      "status": "completed",
+      "delivery": "final",
+      "file": "original-final.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM06-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM06-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM06-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM06",
+          "number": "15",
+          "module": "M06",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第15题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 0,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[5]",
+        "role": "answer"
+      }
+    ],
+    "rendered_pages": {
+      "original-final.docx": [
+        "original-final-p1.png"
+      ],
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png"
+      ]
+    }
+  },
+  "M07": {
+    "module": "M07",
+    "original": {
+      "status": "completed",
+      "delivery": "final",
+      "open_review_items": 0,
+      "file": "original.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM07-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM07-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM07-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM07",
+          "number": "17",
+          "module": "M07",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第17题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 0,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[5]",
+        "role": "answer"
+      }
+    ],
+    "rendered_pages": {
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png"
+      ]
+    }
+  },
+  "M08": {
+    "module": "M08",
+    "original": {
+      "status": "completed",
+      "delivery": "final",
+      "open_review_items": 0,
+      "file": "original.docx"
+    },
+    "generation": {
+      "submissions": [
+        {
+          "candidate_id": "qM08-v1-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM08-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM08-v3-a1",
+          "status": "passed",
+          "failures": []
+        }
+      ],
+      "delivery": "final",
+      "shortfalls": [],
+      "questions": [
+        {
+          "question_id": "qM08",
+          "number": "24-26",
+          "module": "M08",
+          "target": 3,
+          "passed": 3,
+          "exhausted": 0,
+          "summary": "第24-26题目标 3 道，验证通过 3 道"
+        }
+      ]
+    },
+    "student_variants_audit": {
+      "ok": true,
+      "problems": [],
+      "pictures": 0,
+      "consistency": {
+        "ok": true,
+        "problems": []
+      }
+    },
+    "original_student_removed": [
+      {
+        "location": "blocks[9]",
+        "role": "answer"
+      }
+    ],
+    "rendered_pages": {
+      "original-student.docx": [
+        "original-student-p1.png"
+      ],
+      "original.docx": [
+        "original-p1.png"
+      ],
+      "variants/student.docx": [
+        "student-p1.png",
+        "student-p2.png"
+      ]
+    }
+  },
+  "extra": {
+    "M05-easier": {
+      "submitted": {
+        "candidate_id": "qM05-v1-a1",
+        "status": "passed",
+        "failures": []
+      },
+      "delivery": "final"
+    },
+    "M05-harder": {
+      "submitted": {
+        "candidate_id": "qM05-v1-a1",
+        "status": "passed",
+        "failures": []
+      },
+      "delivery": "final"
+    },
+    "M03-injection": {
+      "submissions": [
+        {
+          "candidate_id": "qM03-v1-a1",
+          "status": "failed",
+          "failures": [
+            "balance（(1)）未通过：元素不守恒：{'O': (3, 2)}"
+          ]
+        },
+        {
+          "candidate_id": "qM03-v1-a2",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM03-v2-a1",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "candidate_id": "qM03-v3-a1",
+          "status": "failed",
+          "failures": [
+            "semantic（(2)）未通过：独立求解 36.75 g 与答案 24.5 g 不一致"
+          ]
+        },
+        {
+          "candidate_id": "qM03-v3-a2",
+          "status": "failed",
+          "failures": [
+            "与已通过的 qM03-v2-a1 近似重复（相似度 1.00）"
+          ]
+        }
+      ],
+      "delivery": "partial",
+      "shortfalls": [
+        "第16题目标 3 道，验证通过 2 道，缺 1 道"
+      ]
+    },
+    "M02-injection": {
+      "submitted": {
+        "candidate_id": "qM02-v1-a1",
+        "status": "failed",
+        "failures": [
+          "units（(1)）未通过：量纲 (2, 1, -3, -1, 0, 0, 0)，期望 A (0, 0, 0, 1, 0, 0, 0)"
+        ]
+      },
+      "delivery": "blocked",
+      "shortfalls": [
+        "第21题目标 1 道，验证通过 0 道，缺 1 道"
+      ],
+      "output_created": false
+    },
+    "M05-injection": {
+      "submitted": {
+        "candidate_id": "qM05-v1-a1",
+        "status": "failed",
+        "failures": [
+          "roots（(1)）未通过：区间内还有未列出的根：5"
+        ]
+      },
+      "delivery": "blocked",
+      "shortfalls": [
+        "第19题目标 1 道，验证通过 0 道，缺 1 道"
+      ],
+      "output_created": false
+    },
+    "M04-injection": {
+      "submitted": {
+        "candidate_id": "qM04-v1-a1",
+        "status": "failed",
+        "failures": [
+          "choice（(1)）未通过：单选题必须恰好一个答案"
+        ]
+      },
+      "delivery": "blocked",
+      "shortfalls": [
+        "第31-33题目标 1 道，验证通过 0 道，缺 1 道"
+      ],
+      "output_created": false
+    }
+  }
+}

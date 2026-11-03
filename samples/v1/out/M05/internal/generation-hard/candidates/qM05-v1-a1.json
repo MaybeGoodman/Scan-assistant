@@ -1,0 +1,272 @@
+{
+  "question_id": "qM05",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "已知函数"
+          },
+          {
+            "type": "math",
+            "latex": "f(x)=x^2-2ax+3"
+          },
+          {
+            "type": "text",
+            "text": "，"
+          },
+          {
+            "type": "math",
+            "latex": "a\\in\\mathbf{R}"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）若"
+          },
+          {
+            "type": "math",
+            "latex": "f(1)=0"
+          },
+          {
+            "type": "text",
+            "text": "，求"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "的值；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（2）在（1）的条件下，若"
+          },
+          {
+            "type": "math",
+            "latex": "f(x)"
+          },
+          {
+            "type": "text",
+            "text": "在区间"
+          },
+          {
+            "type": "math",
+            "latex": "[0,m]"
+          },
+          {
+            "type": "text",
+            "text": "上的最大值为"
+          },
+          {
+            "type": "math",
+            "latex": "3"
+          },
+          {
+            "type": "text",
+            "text": "、最小值为"
+          },
+          {
+            "type": "math",
+            "latex": "-1"
+          },
+          {
+            "type": "text",
+            "text": "，求实数"
+          },
+          {
+            "type": "math",
+            "latex": "m"
+          },
+          {
+            "type": "text",
+            "text": "的取值范围；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）若存在"
+          },
+          {
+            "type": "math",
+            "latex": "x\\in[1,2]"
+          },
+          {
+            "type": "text",
+            "text": "，使得"
+          },
+          {
+            "type": "math",
+            "latex": "f(x)<0"
+          },
+          {
+            "type": "text",
+            "text": "成立，求实数"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "的取值范围。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "二次函数解析式",
+      "闭区间最值",
+      "恒成立与分离参数"
+    ],
+    "method": "代入求参→配方讨论对称轴→分离参数结合基本不等式或单调性",
+    "question_type": "函数综合（三小问）",
+    "difficulty": "harder",
+    "difficulty_evidence": "增加逆向条件转换与“恒成立/存在性”区分，推理步数增加",
+    "difference_from_source": "第（2）问由“求最值”改为“由最值反求区间端点”，第（3）问由恒成立改为存在性",
+    "difference_from_siblings": "单题"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "a=2"
+      },
+      {
+        "item": "(2)",
+        "answer": "2≤m≤4"
+      },
+      {
+        "item": "(3)",
+        "answer": "a>√3"
+      }
+    ],
+    "solution": "a=2，f=x²−4x+3；最小值−1需2∈[0,m]即m≥2，最大值3需f(m)≤3即m≤4；存在性问题：2a>min(x+3/x)=2√3，a>√3。",
+    "checks": [
+      {
+        "kind": "substitute",
+        "item": "(1)",
+        "equation": "x**2-2*a*x+3 = 0",
+        "vars": {
+          "x": "1",
+          "a": "2"
+        }
+      },
+      {
+        "kind": "roots",
+        "item": "(2)",
+        "expr": "m**2-4*m+3-3",
+        "var": "m",
+        "claimed": [
+          "0",
+          "4"
+        ],
+        "interval": [
+          "-10",
+          "10"
+        ]
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "2**2-4*2+3",
+        "expect": "-1"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "(sqrt(3)+3/sqrt(3))/2",
+        "expect": "1.7320508075688772",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "a=2"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "2≤m≤4"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "a>√3"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "core_idea": true,
+      "domain_parameters": true,
+      "boundary_cases": true,
+      "solution_set": true,
+      "geometry_proof": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

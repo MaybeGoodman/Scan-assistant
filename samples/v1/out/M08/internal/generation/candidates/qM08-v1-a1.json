@@ -1,0 +1,182 @@
+{
+  "question_id": "qM08",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "mat",
+        "text": "Leo had played the violin in the school orchestra for a year, yet few people noticed him. During breaks he would wander off alone, listening closely to the hall's empty corners. A month before the spring concert, the music teacher complained that the brass section always sounded muddy. The players practised harder, but nothing changed. Leo finally suggested a simple test: he moved the brass chairs two metres away from the back wall. Their sound immediately became clearer, because the wall had been bouncing it back too early. On concert night, the teacher asked Leo to explain the new seating to the audience. \"Sometimes,\" she said, \"the best listener in the room solves the problem.\"",
+        "role": "material"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "1. Why did the brass section sound muddy?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s1o",
+        "text": "A. The players did not practise enough.    B. The back wall reflected their sound too early.    C. Their instruments were old.    D. The hall was too small.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "2. What can we infer about Leo?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2o",
+        "text": "A. He paid careful attention to how sound behaved.    B. He wanted to leave the orchestra.    C. He led the brass section.    D. He found practice boring.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "3. What does the teacher mean by her last words?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3o",
+        "text": "A. Careful listening can lead to solutions.    B. Only teachers can solve problems.    C. Audiences should stay quiet.    D. Musicians must speak more often.",
+        "role": "option"
+      }
+    ],
+    "stem": [],
+    "materials": [
+      "mat"
+    ],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1",
+          "s1o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2",
+          "s2o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3",
+          "s3o"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "细节理解",
+      "推理判断",
+      "观点态度/意图理解"
+    ],
+    "method": "定位证据句→推断人物特点→理解结尾观点",
+    "question_type": "共享语篇推断型阅读（三题）",
+    "difficulty": "same",
+    "difficulty_evidence": "语篇约110词，含因果与推断，设问层级同原题",
+    "difference_from_source": "情境改为乐团声学问题，推断依据为倾听行为",
+    "difference_from_siblings": "原因细节题涉及声音反射"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "B"
+      },
+      {
+        "item": "(2)",
+        "answer": "A"
+      },
+      {
+        "item": "(3)",
+        "answer": "A"
+      }
+    ],
+    "solution": "(1)：B；(2)：A；(3)：A（依据见证据句与题意推断）",
+    "checks": [
+      {
+        "kind": "choice",
+        "item": "(1)",
+        "options": {
+          "A": "The players did not practise enough.",
+          "B": "The back wall reflected their sound too early.",
+          "C": "Their instruments were old.",
+          "D": "The hall was too small."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "evidence",
+        "item": "(1)",
+        "quote": "the wall had been bouncing it back too early"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "B"
+      },
+      {
+        "kind": "choice",
+        "item": "(2)",
+        "options": {
+          "A": "He paid careful attention to how sound behaved.",
+          "B": "He wanted to leave the orchestra.",
+          "C": "He led the brass section.",
+          "D": "He found practice boring."
+        },
+        "answer": "A"
+      },
+      {
+        "kind": "evidence",
+        "item": "(2)",
+        "quote": "listening closely to the hall's empty corners"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "A"
+      },
+      {
+        "kind": "choice",
+        "item": "(3)",
+        "options": {
+          "A": "Careful listening can lead to solutions.",
+          "B": "Only teachers can solve problems.",
+          "C": "Audiences should stay quiet.",
+          "D": "Musicians must speak more often."
+        },
+        "answer": "A"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "A"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "language_natural": true,
+      "evidence_sentences": true,
+      "no_ambiguity": true,
+      "discourse_ability": true,
+      "task_standard": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

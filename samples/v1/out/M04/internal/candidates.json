@@ -1,0 +1,340 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "id": "hdr",
+      "text": "江南第二中学 2026—2027 学年第一学期 课后练习",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          90,
+          1150,
+          138
+        ]
+      },
+      "selection": {
+        "category": "HEADER_FOOTER",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "学校页眉，与题目内容无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "wm",
+      "text": "扫码关注 刷题宝 海量真题免费领",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "WATERMARK",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "半透明推广水印，覆盖正文但与题目无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "text": "八年级英语 阅读理解",
+      "role": "title",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          138,
+          1150,
+          201
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "mat-label",
+      "text": "A",
+      "role": "material",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "mat",
+      "text": "Li Ming's class planned a clean-up day at the city park. On Saturday morning, twenty students met at the park gate at eight o'clock. Mr. Wang, their teacher, gave everyone a pair of gloves and a bag. The students picked up bottles, paper and plastic bags along the lake. At noon they had a picnic under the big trees. In the afternoon, some park workers showed them how to sort the rubbish into four kinds. Li Ming said, \"I never knew that old batteries need a special box.\" Before they left, the students put up a sign: \"Keep our park clean!\"",
+      "role": "material",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          259,
+          1150,
+          606
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1",
+      "text": "31. When did the students meet at the park gate?",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          606,
+          1150,
+          664
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1o",
+      "text": "A. At seven.    B. At eight.    C. At noon.    D. In the afternoon.",
+      "role": "option",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          664,
+          1150,
+          717
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2",
+      "text": "32. What did Li Ming learn from the park workers?",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          717,
+          1150,
+          775
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2o",
+      "text": "A. How to plant trees.    B. How to cook a picnic.    C. How to sort rubbish.    D. How to make a sign.",
+      "role": "option",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          775,
+          1150,
+          868
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3",
+      "text": "33. What is the best title for the passage?",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          868,
+          1150,
+          926
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3o",
+      "text": "A. A Busy Teacher    B. A Day to Clean the Park    C. Old Batteries    D. Picnic by the Lake",
+      "role": "option",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          926,
+          1150,
+          1018
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans1",
+      "text": "【答案】31. B  32. C  33. B",
+      "role": "answer",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          1018,
+          1150,
+          1072
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "hw",
+      "text": "对了!",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "HANDWRITING",
+        "relation": "main",
+        "certainty": "high"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "qM04",
+      "number": "31-33",
+      "module": "M04",
+      "question_type": "comprehensive",
+      "blocks": [
+        "ans1"
+      ],
+      "materials": [
+        "m1"
+      ],
+      "subquestions": [
+        {
+          "subquestion_id": "qM04-1",
+          "number": "(1)",
+          "blocks": [
+            "s1",
+            "s1o"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM04-2",
+          "number": "(2)",
+          "blocks": [
+            "s2",
+            "s2o"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM04-3",
+          "number": "(3)",
+          "blocks": [
+            "s3",
+            "s3o"
+          ],
+          "depends_on": []
+        }
+      ],
+      "source_spans": [
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            606,
+            1150,
+            664
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            717,
+            1150,
+            775
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            868,
+            1150,
+            926
+          ]
+        }
+      ],
+      "review_status": "confirmed",
+      "completeness": {
+        "complete": true,
+        "missing": []
+      }
+    }
+  ],
+  "materials": [
+    {
+      "material_id": "m1",
+      "blocks": [
+        "mat-label",
+        "mat"
+      ]
+    }
+  ]
+}

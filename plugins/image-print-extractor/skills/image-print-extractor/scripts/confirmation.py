@@ -11,7 +11,7 @@ import sys
 import unicodedata
 from figure_workflow import reply_mode
 
-ITEMS = ('word', 'image')
+ITEMS = ('word', 'image', 'generate')
 SEPARATORS = re.compile(r'[，,、；;。！!？?\s~～…]+')
 NUMBERED = re.compile(r'([1-9])\s*[-.:：、．)）]?\s*([a-z])')
 LETTER_ONLY = re.compile(r'^\s*([a-z])\s*$')
@@ -21,6 +21,9 @@ IMAGE_LETTERS = {'a': 'redraw', 'b': 'ignore', 'c': 'preserve', 'd': 'redraw:ori
 WORD_KEYS = ('word', 'docx', '文档')
 WORD_NO_OUTPUT = ('直接输出', '只要提取内容', '只输出内容', '不生成文档')
 IMAGE_KEYS = ('图', '画', '绘', '插图')
+# V1.0 (R08): the single post-extraction invitation to generate similar questions.
+GENERATE_KEYS = ('同类题', '变式', '练习', '出题', '类似题', '举一反三', '相似题', '再出', '生成题')
+GENERATE_LETTERS = {'a': True, 'b': False}
 NEGATIONS = ('不要', '不用', '不需要', '无需', '不生成', '别', '不画', '不重绘', '忽略', '跳过', '不')
 PRESERVE_KEYS = ('保留原图', '原图保留', '用原图', '原图即可', '保留图片原样')
 REDRAW_KEYS = ('重绘', '重新绘制', '重画', '画出来', '画一下', '也要', '要图', '图也生成', '图片也处理', '绘制')
@@ -82,13 +85,21 @@ def image_value(fragment):
     return None
 
 
+def generate_value(fragment):
+    if any(key in fragment for key in GENERATE_KEYS):
+        return False if any(neg in fragment for neg in NEGATIONS) else True
+    if fragment in {'不生成', '只要原题', '只提取', '不用出题'}:
+        return False
+    return None
+
+
 def parse(response, ask):
-    """Return {'word': bool|None, 'image_mode': str|None, 'ambiguous': [...]} for the asked items."""
+    """Return {'word', 'image_mode', 'image_fallback', 'generate', 'ambiguous'} for the asked items."""
     if not isinstance(response, str):
         raise ValueError('回答必须是文字')
     asked = [item for item in ITEMS if item in set(ask)]
     if not asked or set(ask) - set(ITEMS):
-        raise ValueError('ask 只能包含 word、image')
+        raise ValueError('ask 只能包含 word、image、generate')
     text = normalize(response)
     found = {item: set() for item in asked}
 
@@ -98,7 +109,7 @@ def parse(response, ask):
         found[item].add(value)
 
     def letter(item, value):
-        table = WORD_LETTERS if item == 'word' else IMAGE_LETTERS
+        table = {'word': WORD_LETTERS, 'image': IMAGE_LETTERS, 'generate': GENERATE_LETTERS}[item]
         found[item].add(table.get(value, 'invalid'))
 
     numbered = NUMBERED.findall(text)
@@ -123,20 +134,38 @@ def parse(response, ask):
                 fragments = []
             except ValueError:
                 pass
+        elif item == 'generate':
+            value = generate_value(whole)
+            if value is None and (whole in WORD_YES or whole in WORD_NO):
+                value = whole in WORD_YES
+            if value is None and any(whole.startswith(neg) for neg in NEGATIONS):
+                value = False  # e.g. "不用了", "不要"
+            if value is None and any(whole.startswith(key) for key in ('要', '好', '可以', '行', '需要')):
+                value = True   # e.g. "要，出三道", "好的，生成吧"
+            if value is not None:
+                found['generate'].add(value)
+                fragments = []
         elif compact(text) in WORD_LABELS or whole in WORD_YES or whole in WORD_NO:
             found['word'].add(WORD_LABELS.get(compact(text), whole in WORD_YES))
             fragments = []
     for fragment in fragments:
         if fragment in GENERIC:
             if len(asked) == 1:
-                if asked[0] == 'word':
-                    found['word'].add(fragment in WORD_YES if fragment in WORD_YES | WORD_NO else 'invalid')
+                if asked[0] in {'word', 'generate'}:
+                    found[asked[0]].add(fragment in WORD_YES if fragment in WORD_YES | WORD_NO else 'invalid')
                 else:
                     try:
                         found['image'].add(reply_mode(fragment))
                     except ValueError:
                         found['image'].add('invalid')
             continue  # Generic words cannot tell which of two questions they answer.
+        generate = generate_value(fragment) if 'generate' in asked else None
+        if generate is not None:
+            record('generate', generate)
+            continue
+        if asked == ['generate']:
+            found['generate'].add('invalid')  # Unrecognised reply to the only question: ask again.
+            continue
         word, image = word_value(fragment), image_value(fragment)
         if word is not None and image is not None and any(neg in fragment for neg in NEGATIONS):
             for item in asked:
@@ -149,12 +178,16 @@ def parse(response, ask):
     if 'image' in found and found['image'] == {'redraw', 'redraw:original'}:
         found['image'] = {'redraw:original'}  # e.g. "重绘，失败时保留原图"
     result = {'word': None, 'image_mode': None, 'image_fallback': None, 'ambiguous': []}
+    if 'generate' in asked:
+        result['generate'] = None  # Present only when asked, so 0.8.1 callers see the same keys.
     for item in asked:
         values = found[item]
         if len(values) == 1 and 'invalid' not in values:
             value = values.pop()
             if item == 'word':
                 result['word'] = value
+            elif item == 'generate':
+                result['generate'] = value
             else:
                 result['image_mode'] = 'redraw' if value.startswith('redraw') else value
                 if result['image_mode'] == 'redraw':
@@ -170,7 +203,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     p = sub.add_parser('parse')
-    p.add_argument('--ask', required=True, help='word, image or word,image: the items actually asked')
+    p.add_argument('--ask', required=True, help='word, image, generate or a comma list: the items actually asked')
     p.add_argument('--response', required=True, help="The user's actual reply in the current chat")
     args = parser.parse_args()
     try:

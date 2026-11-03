@@ -1,0 +1,95 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M05/easy.student.json",
+  "expressions": [
+    {
+      "location": "blocks[2].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "f(x)=x^2-2ax",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "a\\in\\mathbf{R}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[3].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "f(2)=0",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[3].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "a",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "f(x)",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "[0,3]",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "f(x)\\geq 0",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "x\\in[2,3]",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "a",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": []
+}

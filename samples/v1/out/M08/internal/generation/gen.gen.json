@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M08",
+  "source": {
+    "file": "orig.reviewed.json",
+    "sha256": "dac1c57cecbd9cf9744d842fee501241dba82b2cf5ecf22cbf92c5b256e5125a"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM08",
+      "number": "24-26",
+      "module": "M08",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": []
+        },
+        {
+          "number": "(3)",
+          "depends_on": []
+        }
+      ],
+      "has_materials": true,
+      "has_figures": false,
+      "source_text": "BWhenMayafirstjoinedtheroboticsclub,sherarelyspoke.Shesatattheback,sketchinggearsinhernotebookwhileothersarguedloudlyaboutmotorsandcode.Threeweeksbeforetheregionalcontest,theteam'srobotkepttippingoverontheramp.Everyoneblamedthesoftware.Mayaquietlyplacedhernotebookonthetable.Herdrawingshowedtherobot'sbatterymountedtoohigh,shiftingitsweightbackwardonslopes.Theteammovedthebatterylowerthatevening,andtherobotclimbedtheramponitsfirsttry.Atthecontest,thecaptaininsistedthatMayapresentthedesign.\"Goodideas,\"hetoldthejudges,\"don'talwayscomefromtheloudestvoice.\"24.Whydidtherobotkeeptippingoverontheramp?A.Thecodehadaseriouserror.B.Themotorsweretooweak.C.Itsweightwasplacedtoohighattheback.D.Therampwasbadlybuilt.25.WhatcanweinferaboutMayafromthepassage?A.Shepreferredobservingtoarguing.B.Shedislikedworkinginateam.C.Shewasthebestprogrammer.D.Shewantedtobecomecaptain.26.Whatisthecaptain'smainpointinthelastsentence?A.Loudpeoplearerude.B.Quietmembersmayoffervaluableideas.C.Judgesshouldlistencarefully.D.Presentationsneedstrongvoices.",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM08-v1-a1",
+      "question_id": "qM08",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM08-v1-a1.json",
+      "sha256": "66f67b652909177a3f4cefb192daef9543b981e9d57690d0711c270166cf0a1f",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "choice",
+          "item": "(1)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(1)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(2)",
+          "ok": true,
+          "detail": "答案 A 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(2)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(3)",
+          "ok": true,
+          "detail": "答案 A 合法，选项互不重复"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.09,
+      "similarity_to_siblings": {},
+      "text": "Leohadplayedtheviolinintheschoolorchestraforayear,yetfewpeoplenoticedhim.Duringbreakshewouldwanderoffalone,listeningcloselytothehall'semptycorners.Amonthbeforethespringconcert,themusicteachercomplainedthatthebrasssectionalwayssoundedmuddy.Theplayerspractisedharder,butnothingchanged.Leofinallysuggestedasimpletest:hemovedthebrasschairstwometresawayfromthebackwall.Theirsoundimmediatelybecameclearer,becausethewallhadbeenbouncingitbacktooearly.Onconcertnight,theteacheraskedLeotoexplainthenewseatingtotheaudience.\"Sometimes,\"shesaid,\"thebestlistenerintheroomsolvestheproblem.\"1.Whydidthebrasssectionsoundmuddy?A.Theplayersdidnotpractiseenough.B.Thebackwallreflectedtheirsoundtooearly.C.Theirinstrumentswereold.D.Thehallwastoosmall.2.WhatcanweinferaboutLeo?A.Hepaidcarefulattentiontohowsoundbehaved.B.Hewantedtoleavetheorchestra.C.Heledthebrasssection.D.Hefoundpracticeboring.3.Whatdoestheteachermeanbyherlastwords?A.Carefullisteningcanleadtosolutions.B.Onlyteacherscansolveproblems.C.Audiencesshouldstayquiet.D.Musiciansmustspeakmoreoften."
+    },
+    {
+      "candidate_id": "qM08-v2-a1",
+      "question_id": "qM08",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM08-v2-a1.json",
+      "sha256": "3cc62ef3fec0a3b26c269a551fe206df12fb13ab2859b07a8eef2fae8c597446",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "choice",
+          "item": "(1)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(1)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(2)",
+          "ok": true,
+          "detail": "答案 A 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(2)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(3)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.104,
+      "similarity_to_siblings": {
+        "qM08-v1-a1": 0.076
+      },
+      "text": "Sarajoinedtheschoolnewspaperasaphotographerandseldomofferedopinionsinmeetings.Whilethewritersrushedtofinishstories,shekeptasmalltableofeverynumberthepaperprinted.Beforetheissueaboutthecanteensurveywentout,shenoticedsomethingodd:thearticlesaid70percentofstudentslikedthenewmenu,butonly120ofthe300formssaidso.Theeditorcheckedtheformsandfoundthatthewriterhadcountedthesamepiletwice.Thestorywascorrectedjustintime.Attheendoftheterm,theeditorgaveSaraanewrole.\"Checkingfacts,\"heexplained,\"isasimportantastellingstories.\"1.Whatwaswrongwiththecanteenarticle?A.Itusedanoldphoto.B.Itspercentagedidnotmatchtheforms.C.Itwasprintedtoolate.D.Itcriticisedthecooks.2.WhatcanweinferaboutSara?A.Shewascarefulwithdetails.B.Shewantedtobeawriter.C.Shedislikedthenewmenu.D.Sheoftenarguedwiththeeditor.3.WhatnewrolewasSaramostprobablygiven?A.Photographer.B.Factchecker.C.Canteenmanager.D.Storywriter."
+    },
+    {
+      "candidate_id": "qM08-v3-a1",
+      "question_id": "qM08",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM08-v3-a1.json",
+      "sha256": "fde3814d2b035203e7f86194501d422eebae0a652fe04c888cae86c33ddd209f",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "choice",
+          "item": "(1)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(1)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(2)",
+          "ok": true,
+          "detail": "答案 A 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(2)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(3)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(3)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.069,
+      "similarity_to_siblings": {
+        "qM08-v1-a1": 0.094,
+        "qM08-v2-a1": 0.073
+      },
+      "text": "Tomwastheyoungestmemberofthetown'stree-plantingclub,andhemostlylistenedduringplanningmeetings.Lastautumn,halfoftheyoungtreestheclubplantedalongtheriverdiedwithinweeks.Theoldermembersthoughtthesoilwastoopoorandwantedtobuyexpensivefertiliser.Tom,whowalkedalongtherivereverymorning,hadnoticedthatthedeadtreeswereallonthesidewherepeoplelettheirdogsrun.Hesuggestedputtingupsimplewoodenfencesinstead.Theclubtriedhisideaontwentynewtrees,andeveryoneofthemsurvivedthewinter.Atthespringmeeting,thechairwomanaskedTomtoleadthenextplantingday.1.Whydidmanyyoungtreesdie?A.Thesoilhadnofertiliser.B.Dogsdamagedthemononesideoftheriver.C.Thewinterwastoocold.D.Theywereplantedtoolate.2.WhatcanweinferaboutTom?A.Henoticedthingsothersmissed.B.Heknewalotaboutfertiliser.C.Heownedseveraldogs.D.Hedislikedmeetings.3.WhydidthechairwomanaskTomtoleadthenextplantingday?A.Hewastheoldestmember.B.Hisideahadprovedeffective.C.Hehadboughtthefences.D.Heaskedforthejob."
+    }
+  ]
+}

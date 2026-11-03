@@ -185,7 +185,7 @@ class MainContentTests(unittest.TestCase):
             source=root/'candidates.json';source.write_text(json.dumps(data),encoding='utf-8')
             reviewed=select_file(source,root/'reviewed.json',root/'selection.review.json')
             export(reviewed,root/'html')
-            export_docx(reviewed,root/'result.docx',word_confirmed=True)
+            export_docx(reviewed,root/'result.docx',word_confirmed=True,chemistry_format='source')
             html=(root/'html/result.html').read_text(encoding='utf-8')
             markdown=(root/'html/result.md').read_text(encoding='utf-8')
             self.assertNotIn('广告',html);self.assertNotIn('手写',html)

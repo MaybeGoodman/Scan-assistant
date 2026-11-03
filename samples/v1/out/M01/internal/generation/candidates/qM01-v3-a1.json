@@ -1,0 +1,240 @@
+{
+  "question_id": "qM01",
+  "slot": 3,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "如图，在"
+          },
+          {
+            "type": "math",
+            "latex": "\\triangle ABC"
+          },
+          {
+            "type": "text",
+            "text": "中，"
+          },
+          {
+            "type": "math",
+            "latex": "AB=AC=17"
+          },
+          {
+            "type": "text",
+            "text": "，"
+          },
+          {
+            "type": "math",
+            "latex": "D"
+          },
+          {
+            "type": "text",
+            "text": "是"
+          },
+          {
+            "type": "math",
+            "latex": "BC"
+          },
+          {
+            "type": "text",
+            "text": "的中点，"
+          },
+          {
+            "type": "math",
+            "latex": "AD=15"
+          },
+          {
+            "type": "text",
+            "text": "，"
+          },
+          {
+            "type": "math",
+            "latex": "DE\\perp AB"
+          },
+          {
+            "type": "text",
+            "text": "于点"
+          },
+          {
+            "type": "math",
+            "latex": "E"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "image",
+        "id": "fig",
+        "path": "variant-figs/v3.png",
+        "role": "figure",
+        "alt": ""
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）求证："
+          },
+          {
+            "type": "math",
+            "latex": "\\angle BAD=\\angle CAD"
+          },
+          {
+            "type": "text",
+            "text": "；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（2）求"
+          },
+          {
+            "type": "math",
+            "latex": "BC"
+          },
+          {
+            "type": "text",
+            "text": "的长；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）求"
+          },
+          {
+            "type": "math",
+            "latex": "DE"
+          },
+          {
+            "type": "text",
+            "text": "的长。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1",
+      "fig"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(2)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "等腰三角形三线合一",
+      "勾股定理",
+      "面积法求高"
+    ],
+    "method": "全等证明→勾股定理→等积法",
+    "question_type": "几何综合（证明＋计算）",
+    "difficulty": "same",
+    "difficulty_evidence": "三小问，证明一步全等，计算两步，与原题相同",
+    "difference_from_source": "已知腰和中线求底边，逆向使用勾股定理",
+    "difference_from_siblings": "所求量由中线改为底边"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "由SSS证△ABD≌△ACD，得∠BAD=∠CAD"
+      },
+      {
+        "item": "(2)",
+        "answer": "BC=16"
+      },
+      {
+        "item": "(3)",
+        "answer": "DE=120/17"
+      }
+    ],
+    "solution": "AD⊥BC，BD=√(17²−15²)=8，BC=16；17·DE=8·15，DE=120/17。",
+    "checks": [
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "2*sqrt(17**2-15**2)",
+        "expect": "16"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "8*15/17",
+        "expect": "120/17"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "由SSS证△ABD≌△ACD，得∠BAD=∠CAD"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "BC=16"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "DE=120/17"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "solution_exists": true,
+      "domain_parameters": true,
+      "geometry_conditions": true,
+      "steps_controlled": true,
+      "junior_scope": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

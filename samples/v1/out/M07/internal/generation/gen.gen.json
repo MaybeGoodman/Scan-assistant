@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M07",
+  "source": {
+    "file": "orig.reviewed.json",
+    "sha256": "7b873c12b0f994dae79379cdb913b7549cdec4d8ee7065e35e31a8e2df3592ef"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM07",
+      "number": "17",
+      "module": "M07",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": [
+            0
+          ]
+        },
+        {
+          "number": "(3)",
+          "depends_on": [
+            1
+          ]
+        }
+      ],
+      "has_materials": false,
+      "has_figures": false,
+      "source_text": "17．用铜片、石墨棒和\\mathrm{FeCl_3}溶液可以组成原电池。（1）写出铜与\\mathrm{FeCl_3}溶液反应的离子方程式；（2）该原电池的负极材料是什么？写出正极的电极反应式；（3）若电路中通过0.2\\,\\mathrm{mol}电子，求负极质量减少了多少克。",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM07-v1-a1",
+      "question_id": "qM07",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM07-v1-a1.json",
+      "sha256": "f05856d3844474c9c570c69b25b63a97af7c3a0134e74de34e32026fc6bd6cb2",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "balance",
+          "item": "(1)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "balance",
+          "item": "(2)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "0.4/2*56 = 11.2，期望 11.2"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.959,
+      "similarity_to_siblings": {},
+      "text": "用铁片、石墨棒和\\mathrm{FeCl_3}溶液组成原电池。（1）写出铁与\\mathrm{FeCl_3}溶液反应的离子方程式；（2）该原电池的负极材料是什么？写出正极的电极反应式；（3）若电路中通过0.4\\,\\mathrm{mol}电子，求负极质量减少了多少克。"
+    },
+    {
+      "candidate_id": "qM07-v2-a1",
+      "question_id": "qM07",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM07-v2-a1.json",
+      "sha256": "95266a1797efb3f79c9b7edf5d987763eb9091a8ff2deaa19267422d912a03ab",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "balance",
+          "item": "(1)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "balance",
+          "item": "(2)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "0.2/2*65 = 6.5，期望 6.5"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.888,
+      "similarity_to_siblings": {
+        "qM07-v1-a1": 0.897
+      },
+      "text": "用锌片、铜片和\\mathrm{CuSO_4}溶液组成原电池。（1）写出锌与\\mathrm{CuSO_4}溶液反应的离子方程式；（2）该原电池的负极材料是什么？写出正极的电极反应式；（3）若电路中通过0.2\\,\\mathrm{mol}电子，求负极质量减少了多少克。"
+    },
+    {
+      "candidate_id": "qM07-v3-a1",
+      "question_id": "qM07",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM07-v3-a1.json",
+      "sha256": "9b85fbd58f8d909a68dd177dc7a8ee7b5558a17855841bf8ac5f3d6b362f7aab",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "balance",
+          "item": "(1)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "balance",
+          "item": "(2)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "0.3/2*64 = 9.6，期望 9.6"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.896,
+      "similarity_to_siblings": {
+        "qM07-v1-a1": 0.897,
+        "qM07-v2-a1": 0.908
+      },
+      "text": "用铜片、银片和\\mathrm{AgNO_3}溶液组成原电池。（1）写出铜与\\mathrm{AgNO_3}溶液反应的离子方程式；（2）该原电池的负极材料是什么？写出正极的电极反应式；（3）若电路中通过0.3\\,\\mathrm{mol}电子，求负极质量减少了多少克。"
+    }
+  ]
+}
