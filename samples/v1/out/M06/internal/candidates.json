@@ -1,0 +1,339 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "id": "hdr",
+      "text": "江南第二中学 2026—2027 学年第一学期 课后练习",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          90,
+          1150,
+          138
+        ]
+      },
+      "selection": {
+        "category": "HEADER_FOOTER",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "学校页眉，与题目内容无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "wm",
+      "text": "扫码关注 刷题宝 海量真题免费领",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "WATERMARK",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "半透明推广水印，覆盖正文但与题目无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "text": "高一物理 多过程直线运动",
+      "role": "title",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          138,
+          1150,
+          201
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "stem1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "15．一辆小车从静止开始做匀加速直线运动，加速度"
+        },
+        {
+          "type": "math",
+          "latex": "a_1=2\\,\\mathrm{m/s^2}"
+        },
+        {
+          "type": "text",
+          "text": "，经过"
+        },
+        {
+          "type": "math",
+          "latex": "4\\,\\mathrm{s}"
+        },
+        {
+          "type": "text",
+          "text": "后改做匀速直线运动，匀速运动〔6〕"
+        },
+        {
+          "type": "math",
+          "latex": "\\,\\mathrm{s}"
+        },
+        {
+          "type": "text",
+          "text": "后开始做匀减速直线运动，再经过"
+        },
+        {
+          "type": "math",
+          "latex": "2\\,\\mathrm{s}"
+        },
+        {
+          "type": "text",
+          "text": "恰好停止。"
+        }
+      ],
+      "role": "stem",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          310
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1",
+      "text": "（1）求小车运动过程中的最大速度；",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          310,
+          1150,
+          368
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2",
+      "text": "（2）求匀减速阶段加速度的大小；",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          368,
+          1150,
+          426
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3",
+      "text": "（3）求小车运动的总位移。",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          426,
+          1150,
+          484
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "【答案】（1）"
+        },
+        {
+          "type": "math",
+          "latex": "8\\,\\mathrm{m/s}"
+        },
+        {
+          "type": "text",
+          "text": "；（2）"
+        },
+        {
+          "type": "math",
+          "latex": "4\\,\\mathrm{m/s^2}"
+        },
+        {
+          "type": "text",
+          "text": "；（3）"
+        },
+        {
+          "type": "math",
+          "latex": "72\\,\\mathrm{m}"
+        },
+        {
+          "type": "text",
+          "text": "。"
+        }
+      ],
+      "role": "answer",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          484,
+          1150,
+          539
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "hw",
+      "text": "对了!",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "HANDWRITING",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "note",
+      "role": "other",
+      "text": "补写说明：第15题题干“匀速运动〔6〕s”中的数字下半部分被墨迹遮挡，依据残留的上部左弯弧形笔画推断为“6”。",
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "qM06",
+      "number": "15",
+      "module": "M06",
+      "question_type": "comprehensive",
+      "blocks": [
+        "stem1",
+        "ans1"
+      ],
+      "materials": [],
+      "subquestions": [
+        {
+          "subquestion_id": "qM06-1",
+          "number": "(1)",
+          "blocks": [
+            "s1"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM06-2",
+          "number": "(2)",
+          "blocks": [
+            "s2"
+          ],
+          "depends_on": [
+            "qM06-1"
+          ]
+        },
+        {
+          "subquestion_id": "qM06-3",
+          "number": "(3)",
+          "blocks": [
+            "s3"
+          ],
+          "depends_on": [
+            "qM06-1"
+          ]
+        }
+      ],
+      "source_spans": [
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            201,
+            1150,
+            310
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            310,
+            1150,
+            368
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            368,
+            1150,
+            426
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            426,
+            1150,
+            484
+          ]
+        }
+      ],
+      "review_status": "confirmed",
+      "completeness": {
+        "complete": true,
+        "missing": []
+      }
+    }
+  ],
+  "materials": []
+}

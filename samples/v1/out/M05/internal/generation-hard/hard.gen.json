@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "run_id": "hard",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M05",
+  "source": {
+    "file": "orig.reviewed.json",
+    "sha256": "26f6920b3800deae8a8ebde8c4cd734aabdfe894e9d4dd17fab670deae7a0f0d"
+  },
+  "difficulty": "harder",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM05",
+      "number": "19",
+      "module": "M05",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": [
+            0
+          ]
+        },
+        {
+          "number": "(3)",
+          "depends_on": []
+        }
+      ],
+      "has_materials": false,
+      "has_figures": false,
+      "source_text": "19．已知函数f(x)=x^2-2ax+3，a\\in\\mathbf{R}。（1）若f(1)=0，求a的值；（2）在（1）的条件下，求f(x)在区间[0,3]上的最大值和最小值；（3）若f(x)\\geq0对任意x\\in[1,2]恒成立，求实数a的取值范围。",
+      "target": 1,
+      "slots": {
+        "1": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM05-v1-a1",
+      "question_id": "qM05",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM05-v1-a1.json",
+      "sha256": "3323604110bd535033d97092bfec675cbc20f1e38d46759ec9bf94a5435b53e7",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "substitute",
+          "item": "(1)",
+          "ok": true,
+          "detail": "代入后左边 0，右边 0"
+        },
+        {
+          "kind": "roots",
+          "item": "(2)",
+          "ok": true,
+          "detail": "列出的根 [0.0, 4.0] 均满足且区间 [-10,10] 内无遗漏"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2**2-4*2+3 = -1，期望 -1"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "(sqrt(3)+3/sqrt(3))/2 = 1.73205，期望 1.73205"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.818,
+      "similarity_to_siblings": {},
+      "text": "已知函数f(x)=x^2-2ax+3，a\\in\\mathbf{R}。（1）若f(1)=0，求a的值；（2）在（1）的条件下，若f(x)在区间[0,m]上的最大值为3、最小值为-1，求实数m的取值范围；（3）若存在x\\in[1,2]，使得f(x)<0成立，求实数a的取值范围。"
+    }
+  ]
+}

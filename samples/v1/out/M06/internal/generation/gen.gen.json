@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M06",
+  "source": {
+    "file": "orig.final1-source.json",
+    "sha256": "223b9cc739656a68c394f428bd88fe5f1c65fb0de443e6fe6dc6d2b9ebf13f57"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM06",
+      "number": "15",
+      "module": "M06",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": [
+            0
+          ]
+        },
+        {
+          "number": "(3)",
+          "depends_on": [
+            0
+          ]
+        }
+      ],
+      "has_materials": false,
+      "has_figures": false,
+      "source_text": "15．一辆小车从静止开始做匀加速直线运动，加速度a_1=2\\,\\mathrm{m/s^2}，经过4\\,\\mathrm{s}后改做匀速直线运动，匀速运动〔6〕\\,\\mathrm{s}后开始做匀减速直线运动，再经过2\\,\\mathrm{s}恰好停止。（1）求小车运动过程中的最大速度；（2）求匀减速阶段加速度的大小；（3）求小车运动的总位移。",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM06-v1-a1",
+      "question_id": "qM06",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM06-v1-a1.json",
+      "sha256": "182b275a576e65371a2d6aad83c05b485fa9473d404e64ff5ca5a9d688c8760c",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(1)",
+          "ok": true,
+          "detail": "3*4 = 12，期望 12"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "12/3 = 4，期望 4"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "12/2*4+12*5+12/2*3 = 102，期望 102"
+        },
+        {
+          "kind": "units",
+          "item": "(1)",
+          "ok": true,
+          "detail": "量纲 (1, 0, -1, 0, 0, 0, 0)，期望 m/s (1, 0, -1, 0, 0, 0, 0)"
+        },
+        {
+          "kind": "units",
+          "item": "(3)",
+          "ok": true,
+          "detail": "量纲 (1, 0, 0, 0, 0, 0, 0)，期望 m (1, 0, 0, 0, 0, 0, 0)"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.854,
+      "similarity_to_siblings": {},
+      "text": "一辆小车从静止开始以a_1=3\\,\\mathrm{m/s^2}的加速度做匀加速直线运动，4\\,\\mathrm{s}后做匀速直线运动，匀速运动5\\,\\mathrm{s}后开始匀减速，再经3\\,\\mathrm{s}停止。（1）求小车运动过程中的最大速度；（2）求匀减速阶段加速度的大小；（3）求小车运动的总位移。"
+    },
+    {
+      "candidate_id": "qM06-v2-a1",
+      "question_id": "qM06",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM06-v2-a1.json",
+      "sha256": "d2394522ee739dc8e5763c52eb03c582953f1c3cc9a0edaff3f4a11270552433",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(1)",
+          "ok": true,
+          "detail": "2*20/4 = 10，期望 10"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "10/2.5 = 4，期望 4"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "20+10*6+10/2*2.5 = 92.5，期望 92.5"
+        },
+        {
+          "kind": "units",
+          "item": "(1)",
+          "ok": true,
+          "detail": "量纲 (1, 0, -1, 0, 0, 0, 0)，期望 m/s (1, 0, -1, 0, 0, 0, 0)"
+        },
+        {
+          "kind": "units",
+          "item": "(2)",
+          "ok": true,
+          "detail": "量纲 (1, 0, -2, 0, 0, 0, 0)，期望 m/s^2 (1, 0, -2, 0, 0, 0, 0)"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.743,
+      "similarity_to_siblings": {
+        "qM06-v1-a1": 0.753
+      },
+      "text": "一辆小车从静止开始做匀加速直线运动，在前4\\,\\mathrm{s}内通过的位移为20\\,\\mathrm{m}，随后匀速运动6\\,\\mathrm{s}，最后匀减速运动2.5\\,\\mathrm{s}停止。（1）求小车运动过程中的最大速度；（2）求匀减速阶段加速度的大小；（3）求小车运动的总位移。"
+    },
+    {
+      "candidate_id": "qM06-v3-a1",
+      "question_id": "qM06",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM06-v3-a1.json",
+      "sha256": "90d1239d2cc6aa1be55b5472bd5ed5a21000479c420da85abb005617a55004fd",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(1)",
+          "ok": true,
+          "detail": "1.5*6 = 9，期望 9"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "9**2/(2*13.5) = 3，期望 3"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "9/2*6+9*4+13.5 = 76.5，期望 76.5"
+        },
+        {
+          "kind": "units",
+          "item": "(2)",
+          "ok": true,
+          "detail": "量纲 (1, 0, -2, 0, 0, 0, 0)，期望 m/s^2 (1, 0, -2, 0, 0, 0, 0)"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.675,
+      "similarity_to_siblings": {
+        "qM06-v1-a1": 0.781,
+        "qM06-v2-a1": 0.755
+      },
+      "text": "一辆小车从静止开始以a_1=1.5\\,\\mathrm{m/s^2}的加速度匀加速运动6\\,\\mathrm{s}，接着匀速运动4\\,\\mathrm{s}，最后匀减速滑行13.5\\,\\mathrm{m}停止。（1）求小车运动过程中的最大速度；（2）求匀减速阶段加速度的大小；（3）求小车运动的总位移。"
+    }
+  ]
+}

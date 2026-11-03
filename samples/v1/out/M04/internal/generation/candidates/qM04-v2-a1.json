@@ -1,0 +1,181 @@
+{
+  "question_id": "qM04",
+  "slot": 2,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "mat",
+        "text": "On Saturday, Maria and her classmates visited a community garden near their school. They got there at half past seven. An old farmer, Mr. Zhou, gave each student a small spade. The students watered the vegetables and pulled out weeds between the rows. At ten they had a rest and drank fresh juice. Later, Mr. Zhou showed them how to plant tomato seeds in small pots. Maria said, \"I never knew that seeds need warm soil to grow.\" Before they left, they put a sign on the gate: \"Please don't step on the plants!\"",
+        "role": "material"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "1. When did they get to the garden?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s1o",
+        "text": "A. At seven.    B. At half past seven.    C. At ten.    D. At noon.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "2. What did Mr. Zhou show the students?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2o",
+        "text": "A. How to make juice.    B. How to plant tomato seeds.    C. How to build a gate.    D. How to draw plants.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "3. What is the best title for the passage?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3o",
+        "text": "A. Fresh Juice    B. A Morning at the Community Garden    C. An Old Spade    D. Warm Soil",
+        "role": "option"
+      }
+    ],
+    "stem": [],
+    "materials": [
+      "mat"
+    ],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1",
+          "s1o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2",
+          "s2o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3",
+          "s3o"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "细节理解",
+      "主旨大意"
+    ],
+    "method": "定位关键词→比对选项→归纳标题",
+    "question_type": "共享语篇阅读理解（三题）",
+    "difficulty": "same",
+    "difficulty_evidence": "语篇约90词、一般过去时、初二词汇，设问层级同原题",
+    "difference_from_source": "情境改为社区菜园劳动，时间干扰项更接近",
+    "difference_from_siblings": "干扰项含相近时间“seven/half past seven”"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "B"
+      },
+      {
+        "item": "(2)",
+        "answer": "B"
+      },
+      {
+        "item": "(3)",
+        "answer": "B"
+      }
+    ],
+    "solution": "(1)：B；(2)：B；(3)：B（依据见证据句与题意推断）",
+    "checks": [
+      {
+        "kind": "choice",
+        "item": "(1)",
+        "options": {
+          "A": "At seven.",
+          "B": "At half past seven.",
+          "C": "At ten.",
+          "D": "At noon."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "evidence",
+        "item": "(1)",
+        "quote": "They got there at half past seven."
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "B"
+      },
+      {
+        "kind": "choice",
+        "item": "(2)",
+        "options": {
+          "A": "How to make juice.",
+          "B": "How to plant tomato seeds.",
+          "C": "How to build a gate.",
+          "D": "How to draw plants."
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "evidence",
+        "item": "(2)",
+        "quote": "how to plant tomato seeds in small pots"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "B"
+      },
+      {
+        "kind": "choice",
+        "item": "(3)",
+        "options": {
+          "A": "Fresh Juice",
+          "B": "A Morning at the Community Garden",
+          "C": "An Old Spade",
+          "D": "Warm Soil"
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "B"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "target_language": true,
+      "length_vocabulary": true,
+      "unique_answer": true,
+      "evidence_located": true,
+      "task_executable": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

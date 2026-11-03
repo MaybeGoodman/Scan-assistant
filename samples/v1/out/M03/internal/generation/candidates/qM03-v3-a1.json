@@ -1,0 +1,184 @@
+{
+  "question_id": "qM03",
+  "slot": 3,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "某同学称取氯酸钾（"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{KClO_3}"
+          },
+          {
+            "type": "text",
+            "text": "）和二氧化锰（"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{MnO_2}"
+          },
+          {
+            "type": "text",
+            "text": "）的混合物"
+          },
+          {
+            "type": "math",
+            "latex": "40.0\\,\\mathrm{g}"
+          },
+          {
+            "type": "text",
+            "text": "，加热至不再产生气体，冷却后称得剩余固体"
+          },
+          {
+            "type": "math",
+            "latex": "25.6\\,\\mathrm{g}"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "（1）写出该反应的化学方程式；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "（2）求参加反应的氯酸钾的质量；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "（3）求剩余固体中二氧化锰的质量分数（结果精确到0.1%）。",
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(2)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "化学方程式书写",
+      "根据化学方程式计算",
+      "质量分数"
+    ],
+    "method": "写方程式→比例计算→质量守恒求剩余固体",
+    "question_type": "化学计算（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "与原题相同的三步链式计算",
+    "difference_from_source": "给出反应前后固体质量，需先由质量守恒求氧气质量",
+    "difference_from_siblings": "已知量为混合物和剩余固体质量"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "2KClO3=(MnO2,△)2KCl+3O2↑"
+      },
+      {
+        "item": "(2)",
+        "answer": "36.75 g"
+      },
+      {
+        "item": "(3)",
+        "answer": "12.7%"
+      }
+    ],
+    "solution": "2KClO3~3O2，245:96；m(KClO3)=14.4×245/96=36.75 g；m(MnO2)=3.25 g；剩余固体25.6 g；12.7%。",
+    "checks": [
+      {
+        "kind": "balance",
+        "item": "(1)",
+        "equation": "2KClO3 -> 2KCl + 3O2"
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "2*(39+35.5+48)",
+        "expect": "245"
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "14.4*245/96",
+        "expect": "36.75",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "(40.0-36.75)/(40.0-14.4)*100",
+        "expect": "12.7",
+        "tolerance": 0.05
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "2KClO3=(MnO2,△)2KCl+3O2↑"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "36.75 g"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "12.7%"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "principle_kept": true,
+      "formula_mass": true,
+      "conservation": true,
+      "conditions_apparatus": true,
+      "junior_scope": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

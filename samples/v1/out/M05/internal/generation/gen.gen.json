@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M05",
+  "source": {
+    "file": "orig.reviewed.json",
+    "sha256": "26f6920b3800deae8a8ebde8c4cd734aabdfe894e9d4dd17fab670deae7a0f0d"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM05",
+      "number": "19",
+      "module": "M05",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": [
+            0
+          ]
+        },
+        {
+          "number": "(3)",
+          "depends_on": []
+        }
+      ],
+      "has_materials": false,
+      "has_figures": false,
+      "source_text": "19．已知函数f(x)=x^2-2ax+3，a\\in\\mathbf{R}。（1）若f(1)=0，求a的值；（2）在（1）的条件下，求f(x)在区间[0,3]上的最大值和最小值；（3）若f(x)\\geq0对任意x\\in[1,2]恒成立，求实数a的取值范围。",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM05-v1-a1",
+      "question_id": "qM05",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM05-v1-a1.json",
+      "sha256": "40baeaa38ac1297ff5d942224f1f1537675e7dc060260c455a0b0d42cd83780f",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "substitute",
+          "item": "(1)",
+          "ok": true,
+          "detail": "代入后左边 0，右边 0"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "3**2-6*3+5 = -4，期望 -4"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "0**2-6*0+5 = 5，期望 5"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "(sqrt(5)+5/sqrt(5))/2 = 2.23607，期望 2.23607"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.964,
+      "similarity_to_siblings": {},
+      "text": "已知函数f(x)=x^2-2ax+5，a\\in\\mathbf{R}。（1）若f(1)=0，求a的值；（2）在（1）的条件下，求f(x)在区间[0,4]上的最大值和最小值；（3）若f(x)\\geq0对任意x\\in[1,3]恒成立，求实数a的取值范围。"
+    },
+    {
+      "candidate_id": "qM05-v2-a1",
+      "question_id": "qM05",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM05-v2-a1.json",
+      "sha256": "5145acf3ec31b1108a14c905d3ab9730e42f0ade1d60af588b8248e584411101",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "substitute",
+          "item": "(1)",
+          "ok": true,
+          "detail": "代入后左边 0，右边 0"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2*2**2-8*2+6 = -2，期望 -2"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2*4**2-8*4+6 = 6，期望 6"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "(2+3/2)/2 = 1.75，期望 1.75"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.608,
+      "similarity_to_siblings": {
+        "qM05-v1-a1": 0.632
+      },
+      "text": "设函数g(x)=2x^2-4ax+6，其中a为实数。（1）已知x=1是方程g(x)=0的一个根，求a；（2）当a取（1）中的值时，求g(x)在[0,4]上的最大值与最小值；（3）若对任意x\\in[2,3]，都有g(x)\\geq0，求a的取值范围。"
+    },
+    {
+      "candidate_id": "qM05-v3-a1",
+      "question_id": "qM05",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM05-v3-a1.json",
+      "sha256": "719195a7430c34cd0323b504388f169abb90bb4902c800bb6e77ca285d355544",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "substitute",
+          "item": "(1)",
+          "ok": true,
+          "detail": "代入后左边 0，右边 0"
+        },
+        {
+          "kind": "roots",
+          "item": "(1)",
+          "ok": true,
+          "detail": "列出的根 [3.0] 均满足且区间 [-50,50] 内无遗漏"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "3**2-6*3+8 = -1，期望 -1"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "5**2-6*5+8 = 3，期望 3"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "(sqrt(8)+8/sqrt(8))/2 = 2.82843，期望 2.82843"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.627,
+      "similarity_to_siblings": {
+        "qM05-v1-a1": 0.635,
+        "qM05-v2-a1": 0.603
+      },
+      "text": "二次函数f(x)=x^2-2ax+8的图像经过点(2,0)。（1）求a的值；（2）求f(x)在闭区间[1,5]上的最大值与最小值；（3）当x\\in[1,4]时，不等式f(x)\\geq0恒成立，求实数a的取值范围。"
+    }
+  ]
+}

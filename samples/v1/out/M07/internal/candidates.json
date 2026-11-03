@@ -1,0 +1,330 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "id": "hdr",
+      "text": "江南第二中学 2026—2027 学年第一学期 课后练习",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          90,
+          1150,
+          138
+        ]
+      },
+      "selection": {
+        "category": "HEADER_FOOTER",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "学校页眉，与题目内容无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "wm",
+      "text": "扫码关注 刷题宝 海量真题免费领",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "WATERMARK",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "半透明推广水印，覆盖正文但与题目无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "text": "高一化学 原电池原理",
+      "role": "title",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          138,
+          1150,
+          201
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "stem1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "17．用铜片、石墨棒和"
+        },
+        {
+          "type": "chemistry",
+          "latex": "\\mathrm{FeCl_3}"
+        },
+        {
+          "type": "text",
+          "text": "溶液可以组成原电池。"
+        }
+      ],
+      "role": "stem",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          264
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "（1）写出铜与"
+        },
+        {
+          "type": "chemistry",
+          "latex": "\\mathrm{FeCl_3}"
+        },
+        {
+          "type": "text",
+          "text": "溶液反应的离子方程式；"
+        }
+      ],
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          264,
+          1150,
+          327
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2",
+      "text": "（2）该原电池的负极材料是什么？写出正极的电极反应式；",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          327,
+          1150,
+          385
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3",
+      "runs": [
+        {
+          "type": "text",
+          "text": "（3）若电路中通过"
+        },
+        {
+          "type": "math",
+          "latex": "0.2\\,\\mathrm{mol}"
+        },
+        {
+          "type": "text",
+          "text": "电子，求负极质量减少了多少克。"
+        }
+      ],
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          385,
+          1150,
+          443
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans1",
+      "runs": [
+        {
+          "type": "text",
+          "text": "【答案】（1）"
+        },
+        {
+          "type": "chemistry",
+          "latex": "\\mathrm{Cu}+2\\mathrm{Fe^{3+}}=\\mathrm{Cu^{2+}}+2\\mathrm{Fe^{2+}}"
+        },
+        {
+          "type": "text",
+          "text": "；（2）铜，"
+        },
+        {
+          "type": "chemistry",
+          "latex": "\\mathrm{Fe^{3+}}+\\mathrm{e^-}=\\mathrm{Fe^{2+}}"
+        },
+        {
+          "type": "text",
+          "text": "；（3）"
+        },
+        {
+          "type": "math",
+          "latex": "6.4\\,\\mathrm{g}"
+        },
+        {
+          "type": "text",
+          "text": "。"
+        }
+      ],
+      "role": "answer",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          443,
+          1150,
+          499
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "hw",
+      "text": "对了!",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "HANDWRITING",
+        "relation": "main",
+        "certainty": "high"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "qM07",
+      "number": "17",
+      "module": "M07",
+      "question_type": "comprehensive",
+      "blocks": [
+        "stem1",
+        "ans1"
+      ],
+      "materials": [],
+      "subquestions": [
+        {
+          "subquestion_id": "qM07-1",
+          "number": "(1)",
+          "blocks": [
+            "s1"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM07-2",
+          "number": "(2)",
+          "blocks": [
+            "s2"
+          ],
+          "depends_on": [
+            "qM07-1"
+          ]
+        },
+        {
+          "subquestion_id": "qM07-3",
+          "number": "(3)",
+          "blocks": [
+            "s3"
+          ],
+          "depends_on": [
+            "qM07-2"
+          ]
+        }
+      ],
+      "source_spans": [
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            201,
+            1150,
+            264
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            264,
+            1150,
+            327
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            327,
+            1150,
+            385
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            385,
+            1150,
+            443
+          ]
+        }
+      ],
+      "review_status": "confirmed",
+      "completeness": {
+        "complete": true,
+        "missing": []
+      }
+    }
+  ],
+  "materials": []
+}

@@ -1,0 +1,178 @@
+{
+  "question_id": "qM07",
+  "slot": 3,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "用铜片、银片和"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{AgNO_3}"
+          },
+          {
+            "type": "text",
+            "text": "溶液组成原电池。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）写出铜与"
+          },
+          {
+            "type": "chemistry",
+            "latex": "\\mathrm{AgNO_3}"
+          },
+          {
+            "type": "text",
+            "text": "溶液反应的离子方程式；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "（2）该原电池的负极材料是什么？写出正极的电极反应式；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）若电路中通过"
+          },
+          {
+            "type": "math",
+            "latex": "0.3\\,\\mathrm{mol}"
+          },
+          {
+            "type": "text",
+            "text": "电子，求负极质量减少了多少克。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(2)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "离子方程式",
+      "原电池正负极判断",
+      "电子转移计算"
+    ],
+    "method": "写总反应→拆分电极反应→电子守恒计算",
+    "question_type": "电化学综合（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "三小问链式依赖，与原题相同",
+    "difference_from_source": "电解质改为AgNO3，正负极材料均为金属",
+    "difference_from_siblings": "正极为银，析出银"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "Cu+2Ag+=Cu2++2Ag"
+      },
+      {
+        "item": "(2)",
+        "answer": "铜；Ag++e-=Ag"
+      },
+      {
+        "item": "(3)",
+        "answer": "9.6 g"
+      }
+    ],
+    "solution": "负极Cu−2e⁻=Cu²⁺，0.3 mol e⁻对应0.15 mol Cu，质量9.6 g。",
+    "checks": [
+      {
+        "kind": "balance",
+        "item": "(1)",
+        "equation": "Cu + 2Ag^+ = Cu^2+ + 2Ag"
+      },
+      {
+        "kind": "balance",
+        "item": "(2)",
+        "equation": "Ag^+ + e- = Ag"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "0.3/2*64",
+        "expect": "9.6",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "Cu+2Ag+=Cu2++2Ag"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "铜；Ag++e-=Ag"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "9.6 g"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "system_kept": true,
+      "conservation": true,
+      "equilibrium_electrochem": true,
+      "reagents_apparatus": true,
+      "inference_chain": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

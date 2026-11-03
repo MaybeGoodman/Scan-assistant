@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M02",
+  "source": {
+    "file": "orig.figures-reviewed.json",
+    "sha256": "e7d409454400fb9263780d31e2f632f523cb3819a9eb3d90ef9407c5e5274673"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM02",
+      "number": "21",
+      "module": "M02",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": []
+        },
+        {
+          "number": "(3)",
+          "depends_on": [
+            0
+          ]
+        }
+      ],
+      "has_materials": false,
+      "has_figures": true,
+      "source_text": "21．如图所示电路，电源电压保持不变，定值电阻R_1=10\\,\\Omega。闭合开关S，电流表示数为0.3\\,\\mathrm{A}，电压表示数为3\\,\\mathrm{V}。（1）求电源电压U；（2）求电阻R_2的阻值；（3）若将R_2换成阻值为20\\,\\Omega的电阻R_3，求此时电流表的示数。",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM02-v1-a1",
+      "question_id": "qM02",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM02-v1-a1.json",
+      "sha256": "d76b05c318103714e455040f475f8bc30a4616b1082638a45368fde18969296c",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(1)",
+          "ok": true,
+          "detail": "0.2*20+2 = 6，期望 6"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2/0.2 = 10，期望 10"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "6/(20+40) = 0.1，期望 0.1"
+        },
+        {
+          "kind": "units",
+          "item": "(1)",
+          "ok": true,
+          "detail": "量纲 (2, 1, -3, -1, 0, 0, 0)，期望 V (2, 1, -3, -1, 0, 0, 0)"
+        },
+        {
+          "kind": "units",
+          "item": "(3)",
+          "ok": true,
+          "detail": "量纲 (0, 0, 0, 1, 0, 0, 0)，期望 A (0, 0, 0, 1, 0, 0, 0)"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.889,
+      "similarity_to_siblings": {},
+      "text": "如图所示电路，电源电压不变，R_1=20\\,\\Omega。闭合开关S后，电流表示数为0.2\\,\\mathrm{A}，电压表示数为2\\,\\mathrm{V}。（1）求电源电压U；（2）求电阻R_2的阻值；（3）若用阻值为40\\,\\Omega的电阻R_3替换R_2，求电流表的示数。"
+    },
+    {
+      "candidate_id": "qM02-v2-a1",
+      "question_id": "qM02",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM02-v2-a1.json",
+      "sha256": "ff1169266fbfee90667661f3a94a032158c5d1d8e3bcef1e293fa3b33bf44351",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(1)",
+          "ok": true,
+          "detail": "0.4*5+4 = 6，期望 6"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "4/0.4 = 10，期望 10"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "6/(5+25) = 0.2，期望 0.2"
+        },
+        {
+          "kind": "units",
+          "item": "(1)",
+          "ok": true,
+          "detail": "量纲 (2, 1, -3, -1, 0, 0, 0)，期望 V (2, 1, -3, -1, 0, 0, 0)"
+        },
+        {
+          "kind": "units",
+          "item": "(3)",
+          "ok": true,
+          "detail": "量纲 (0, 0, 0, 1, 0, 0, 0)，期望 A (0, 0, 0, 1, 0, 0, 0)"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.687,
+      "similarity_to_siblings": {
+        "qM02-v1-a1": 0.732
+      },
+      "text": "在图示电路中，电源电压保持不变。已知R_1=5\\,\\Omega，闭合开关S，电压表测得R_2两端电压为4\\,\\mathrm{V}，电流表读数为0.4\\,\\mathrm{A}。（1）求电源电压U；（2）求电阻R_2的阻值；（3）若用阻值为25\\,\\Omega的电阻R_3替换R_2，求电流表的示数。"
+    },
+    {
+      "candidate_id": "qM02-v3-a1",
+      "question_id": "qM02",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM02-v3-a1.json",
+      "sha256": "659c0c99d3a9db4ee8027c2cdf53face1c69e4323c88a7dfa62f06d50f17f5bb",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(1)",
+          "ok": true,
+          "detail": "0.25*12+6 = 9，期望 9"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "6/0.25 = 24，期望 24"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "9/(12+6) = 0.5，期望 0.5"
+        },
+        {
+          "kind": "units",
+          "item": "(1)",
+          "ok": true,
+          "detail": "量纲 (2, 1, -3, -1, 0, 0, 0)，期望 V (2, 1, -3, -1, 0, 0, 0)"
+        },
+        {
+          "kind": "units",
+          "item": "(3)",
+          "ok": true,
+          "detail": "量纲 (0, 0, 0, 1, 0, 0, 0)，期望 A (0, 0, 0, 1, 0, 0, 0)"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.712,
+      "similarity_to_siblings": {
+        "qM02-v1-a1": 0.741,
+        "qM02-v2-a1": 0.578
+      },
+      "text": "小明用如图所示的电路做实验，电源电压恒定，定值电阻R_1的阻值为12\\,\\Omega。他闭合开关S后记下：电流表读数0.25\\,\\mathrm{A}，电压表读数6\\,\\mathrm{V}。（1）求电源电压U；（2）求电阻R_2的阻值；（3）小明随后断开开关，把一个6\\,\\Omega的电阻R_3接在原来R_2的位置，再闭合开关，电流表读数变为多少？"
+    }
+  ]
+}

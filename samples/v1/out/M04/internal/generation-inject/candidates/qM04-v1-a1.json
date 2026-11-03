@@ -1,0 +1,184 @@
+{
+  "question_id": "qM04",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "mat",
+        "text": "Last Sunday, Kangkang and his friends helped at the school library. They arrived at nine o'clock. Ms. Chen, the librarian, asked them to put returned books back on the shelves. Some books were very old, so the students fixed the broken covers with tape. After lunch, they made a list of new books for the reading corner. Kangkang said, \"I never knew that every book has its own number.\" Before going home, they wrote a note on the door: \"Please return books on time!\"",
+        "role": "material"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "1. When did they arrive at the library?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s1o",
+        "text": "A. At eight.    B. At nine.    C. After lunch.    D. In the evening.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "2. What did Kangkang learn at the library?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2o",
+        "text": "A. Every book has its own number.    B. How to cook lunch.    C. How to draw a map.    D. How to buy new books.",
+        "role": "option"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "3. What is the best title for the passage?",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3o",
+        "text": "A. A New Librarian    B. Helping at the School Library    C. Broken Covers    D. Lunch at School",
+        "role": "option"
+      }
+    ],
+    "stem": [],
+    "materials": [
+      "mat"
+    ],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1",
+          "s1o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2",
+          "s2o"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3",
+          "s3o"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "细节理解",
+      "主旨大意"
+    ],
+    "method": "定位关键词→比对选项→归纳标题",
+    "question_type": "共享语篇阅读理解（三题）",
+    "difficulty": "same",
+    "difficulty_evidence": "语篇约90词、一般过去时、初二词汇，设问层级同原题",
+    "difference_from_source": "情境由公园清洁改为图书馆志愿服务",
+    "difference_from_siblings": "细节题考时间，学习内容为图书编号"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "B"
+      },
+      {
+        "item": "(2)",
+        "answer": "A"
+      },
+      {
+        "item": "(3)",
+        "answer": "B"
+      }
+    ],
+    "solution": "(1)：B；(2)：A；(3)：B（依据见证据句与题意推断）",
+    "checks": [
+      {
+        "kind": "choice",
+        "item": "(1)",
+        "options": {
+          "A": "At eight.",
+          "B": "At nine.",
+          "C": "After lunch.",
+          "D": "In the evening."
+        },
+        "answer": [
+          "B",
+          "C"
+        ]
+      },
+      {
+        "kind": "evidence",
+        "item": "(1)",
+        "quote": "They arrived at nine o'clock."
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "B"
+      },
+      {
+        "kind": "choice",
+        "item": "(2)",
+        "options": {
+          "A": "Every book has its own number.",
+          "B": "How to cook lunch.",
+          "C": "How to draw a map.",
+          "D": "How to buy new books."
+        },
+        "answer": "A"
+      },
+      {
+        "kind": "evidence",
+        "item": "(2)",
+        "quote": "every book has its own number"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "A"
+      },
+      {
+        "kind": "choice",
+        "item": "(3)",
+        "options": {
+          "A": "A New Librarian",
+          "B": "Helping at the School Library",
+          "C": "Broken Covers",
+          "D": "Lunch at School"
+        },
+        "answer": "B"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "B"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "target_language": true,
+      "length_vocabulary": true,
+      "unique_answer": true,
+      "evidence_located": true,
+      "task_executable": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

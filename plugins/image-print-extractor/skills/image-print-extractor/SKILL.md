@@ -1,6 +1,6 @@
 ---
 name: image-print-extractor
-description: 提取图片或 PDF 的主体印刷内容，过滤无关广告、水印和宣传二维码，保留表格及印刷答案；支持可选教学插图识别与黑白重绘，技术图优先结构化绘制并对照校验。化学用 LaTeX 源码，确认 Word 后数学转可编辑公式；不用于解题或单独全文手写转录。
+description: 提取图片或 PDF 的主体印刷内容，过滤无关广告、水印和宣传二维码，保留表格及印刷答案；可导出原题版或去答案的学生版，含待复核内容时交付带标记草稿；支持可选教学插图识别与黑白重绘，技术图优先结构化绘制并对照校验。聊天中化学用 LaTeX 源码，确认 Word 后数学转可编辑公式、化学直接显示；提取后可接同类题生成；本技能自身不解题，也不单独全文转录手写。
 ---
 
 # 图片印刷体提取
@@ -24,6 +24,17 @@ description: 提取图片或 PDF 的主体印刷内容，过滤无关广告、�
 
 沉默不视为确认。无人值守（如定时任务）时按“直接输出提取内容＋不要图片”执行，并在结果开头用一句话说明采用的默认方式及如何改为 Word 或重绘。只有用户确认需要 Word 才生成实际 `.docx` 文件，不以 HTML 改后缀或整页截图冒充可编辑文档。
 
+## 输出模式、交付状态与同类题邀请（V1.0）
+
+- 默认原题还原：印刷答案和解析按原位置保留。用户要学生版、去答案或练习用时，按 [题目结构与输出模式](references/questions.md) 给块标注 `role`，再传 `--output-mode student`。角色由看图判断，不按关键词删除；判不清的标 `uncertain`，进入复核。
+- 用户要学生版或要生成同类题时，同时建立 `questions` 索引，以完整大题为单位，记录小问顺序、依赖、共享材料和来源页。跨页、跨批的大题保持同一个题目身份；指定页切断大题时，提示缺失的边界。
+- 交付状态见流水线输出的 `delivery`：`final` 才是正式成品；`draft` 的文件带“待复核草稿”标记，交付时必须说明是草稿。逐项回看原图复核后，用 `pipeline.py finalize` 生成正式成品。
+- 同类题邀请：提取完成、交付结果时，若用户没有说明是否需要同类题，在结果后询问一次：“需要按完整原题生成同类练习吗？默认每道题 3 道、同难度，可说明题号、难度或学生情况。”这是除补写说明外唯一允许附在结果后的一句话。
+  - 以整份当前任务为单位只问一次，与 Word、插图的确认相互独立，不合并到开始前的确认。
+  - 用户明确说只提取、明确拒绝，或无人值守时不问，保持原题交付。
+  - 用户的回答可用 `confirmation.py parse --ask generate --response "<原话>"` 解析，退出码 2 表示需要追问。
+  - 用户要生成时，读取并执行同一插件中的 `similar-question-generator` 技能。
+
 ## 提取前的主体筛选
 
 所有提取先读取并执行 [主体内容筛选](references/main-content.md)，这是范围、语义分类、用户覆盖和干扰处理的唯一规则来源。默认保留主体及相关支持内容的印刷体；仅过滤明确无关的附加元素，UNKNOWN 保留。不按答案、解析、注释类型删减，不将筛选实现为摘要。保持既有识别和导出接口；文件导出按该参考中的筛选接口生成 reviewed.json 后再导出。
@@ -38,6 +49,8 @@ description: 提取图片或 PDF 的主体印刷内容，过滤无关广告、�
 
 ## 化学内容 LaTeX 规范化（所有输出模式）
 
+聊天、Markdown、HTML 和 JSON 中，化学一律用规范 LaTeX 源码作中间表示。Word 中默认把同一份源码直接显示为正确的上下标、电荷、箭头和反应条件，可直接编辑和打印（V1.0）。只有用户明确要“Word 里保留 LaTeX 源码”时，才传 `--chemistry-format source`，沿用 0.8.1 的源码文本行为。
+
 凡识别为化学符号、化学式、离子/粒子表达式、电子式、化学或离子方程式及反应条件的内容，均按 [表达式规则](references/formulas.md) 输出标准 LaTeX；图片直接回复也必须执行，不以选择 PDF 或 Word 为前提。适用于正文、选项、表格及转录出的图注/标签。重绘图内部的结构性标注按 [图片重绘](references/figure-redraw.md) 保留正确视觉上下标，不把图内标签重复转录到正文。
 
 - 禁止用 Unicode 上下标或普通数字模拟结构：不得输出 N₂、N2、SO₄²⁻ 或 SO42-；应为 `\mathrm{N_2}`、`\mathrm{SO_4^{2-}}`。元素符号保持原图大小写并用正体，系数、组成下标、电荷、质量数、原子序数和氧化数分别恢复位置。
@@ -51,15 +64,15 @@ PDF 需处理的页超过 5 页，或用户只要求部分页时，先按 [PDF �
 
 1. 查看原图，先按主体筛选参考分析结构、类别及关联，再转录保留元素。单栏从上到下；双栏先完整左栏、再完整右栏，不水平交替。跨栏标题先读，下方各栏依次读；复杂版面保持局部连续，避免跨区域拼接。
 2. 按上述约束转录，保留段落、换行、题号、选项和列表关系。中文自然语言规范为全角标点；数学、坐标、英文内部、代码和技术符号不做全角替换。逗号按语义而非字形判定：中文句中分隔两个独立完整表达式的逗号输出为中文逗号“，”，并把原来的一个公式拆成两个；同一表达式内部（坐标、区间、集合、多元参数、列举、分段函数等环境）用英文逗号；规则与边界见表达式参考。逗号规范化不加 `〔〕`、不进补写说明、不另行提示。
-3. 遇到数学或化学表达式，读取 [表达式识别与导出](references/formulas.md)。先依二维版面恢复结构、区分行内与独立表达式，数学用 Word 兼容 LaTeX 作中间表示，Word 中转为原生专业格式 OMML；化学用规范 LaTeX 源码文本保留，不转 OMML、不依赖 `mhchem`/`\ce{}`。两类均不用图片代替，不自动求解、化简、配平或纠错；不为题号、年份等普通数字强加数学格式。非 Word 数学输出继续使用 `$...$`、`$$...$$`。
+3. 遇到数学或化学表达式，读取 [表达式识别与导出](references/formulas.md)。先依二维版面恢复结构、区分行内与独立表达式，数学用 Word 兼容 LaTeX 作中间表示，Word 中转为原生专业格式 OMML；化学用规范 LaTeX 源码作中间表示，Word 中直接显示：简单式为带上下标的普通文字，带反应条件、核素或化合价的用专用 OMML。不依赖 `mhchem`/`\ce{}`；无法直接显示的式子保留源码，并标记为待复核。两类均不用图片代替，不自动求解、化简、配平或纠错；不为题号、年份等普通数字强加数学格式。非 Word 数学输出继续使用 `$...$`、`$$...$$`。
 4. 遇到表格或图形，读取 [富内容输出](references/rich-output.md)，生成真实表格并记录图形区域和正文关联。先完成并输出文字、公式和表格；此时不自动裁剪交付原图或重绘。图题、图注仍在正文原位置。
    文件导出（HTML／Word）优先使用流水线，一条命令完成筛选、图片处理和导出：
 
    ```text
-   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --source <原始附件> --run-id r1 --scope <范围> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> [--image-fallback original] --format <html|docx> [--word-confirmed] --output <输出目录或 .docx>
+   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --source <原始附件> --run-id r1 --scope <范围> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> [--image-fallback original] --format <html|docx> [--word-confirmed] [--output-mode <original|student>] [--chemistry-format <native|source>] --output <输出目录或 .docx>
    ```
 
-   每次命令结束只看输出 JSON 的 `status` 和 `next_action`：`completed` 交付 output；`awaiting_review` 逐图查看 `view_files` 中的原图、PNG 和 SVG，在模板副本中如实填写 status 和全部 checks（不得照抄示例或一律填 true），另存后运行 `pipeline.py review --state <state> --reviews <文件>`；`needs_retry` 只为列出的插图各写一个只含 `{"drawing": ...}` 的新文件，运行 `pipeline.py retry --state <state> --drawing <figure_id>=<文件>`（旧用法 `--source <整份源文件>` 仍可用）；`error` 按信息修复。`--source` 为本次处理的原始 PDF 或图片：超过 5 页的 PDF 必须先用 `pdf_batches.py` 分批并 merge，否则流水线拒绝运行。`--scope`／`--preserve`／`--include-handwriting` 必须如实反映当前聊天中用户的范围要求，`--image-mode`、`--image-fallback`（仅选项 D 时传 `original`）和 `--word-confirmed` 必须来自用户的实际选择。候选不含插图任务时可省略 `--image-mode`。单独调用 select_content.py、figure_workflow.py、export_*.py 的方式继续可用，仅在流水线无法使用时采用。
+   每次命令结束只看输出 JSON 的 `status`、`delivery` 和 `next_action`：`completed` 交付 output，`delivery` 为 `draft` 时说明是待复核草稿，复核后用 `finalize`；`awaiting_review` 逐图查看 `view_files` 中的原图、PNG 和 SVG，在模板副本中如实填写 status 和全部 checks（不得照抄示例或一律填 true），另存后运行 `pipeline.py review --state <state> --reviews <文件>`；`needs_retry` 只为列出的插图各写一个只含 `{"drawing": ...}` 的新文件，运行 `pipeline.py retry --state <state> --drawing <figure_id>=<文件>`（旧用法 `--source <整份源文件>` 仍可用）；`error` 按信息修复。`--source` 为本次处理的原始 PDF 或图片：超过 5 页的 PDF 必须先用 `pdf_batches.py` 分批并 merge，否则流水线拒绝运行。`--scope`／`--preserve`／`--include-handwriting` 必须如实反映当前聊天中用户的范围要求，`--image-mode`、`--image-fallback`（仅选项 D 时传 `original`）和 `--word-confirmed` 必须来自用户的实际选择。候选不含插图任务时可省略 `--image-mode`。单独调用 select_content.py、figure_workflow.py、export_*.py 的方式继续可用，仅在流水线无法使用时采用。
 
    长任务控制上下文：每批 `commit` 后只依据 `status` 输出继续，不重新打开已提交的批次文件；确认重绘后，每张图的理解与绘图写入单独的 `figure_file`（见图片重绘参考），生成和复核时每次只看当前这张图；电路图和常见实验装置优先用组件库绘制，可先用 `figure_components.py preview` 预览。上下文被压缩、会话恢复或不确定进度时，先运行 `pipeline.py resume <工作目录>`，按其中的 `next_action` 或 `next_batch` 继续，不重做已完成的批次或复核，也不凭记忆重建状态。
 
@@ -67,7 +80,7 @@ PDF 需处理的页超过 5 页，或用户只要求部分页时，先按 [PDF �
 
 6. 按开始前确定的 image_mode，依 [图片识别与黑白重绘](references/figure-redraw.md) 处理有效教学插图；已提前要求图片也提取／重绘则直接执行。只有预扫描未发现、正式处理中才发现有效插图时，才在输出文字后按原问法补问一次“是否需要识别并重新绘制其中的图片？是 / 否”；预扫描发现但正式处理认为均无效时，忽略图片选择，不再询问。拒绝默认 ignore，明确保留原图才 preserve。技术图生成 SVG/PNG，普通示意插画可用宿主图像生成；逐图查看原图和真实产物进行校验，最多修正一次。失败不得影响已完成文字。完成图片流程后，按独立的格式选择输出 Markdown／HTML 或 Word，不以图片授权代替 Word 授权。
 
-未选择 Word 时，普通文本直接以 Markdown 输出，不套整段代码块。选择 Word 时按 PDF 流程交付可编辑文档。不额外添加标题标记、粗体、斜体、引用、分隔线或编号。原图标题文字保留，不因它是标题就添加 `#`。不要加“识别结果如下”、置信度、操作建议、解释或总结；补写清单、图片流程所需的一次确认及实际缺项提示按专项规则执行。Word 模式仅附简短下载链接，必要时说明具体未完成项。
+未选择 Word 时，普通文本直接以 Markdown 输出，不套整段代码块。选择 Word 时按 PDF 流程交付可编辑文档。不额外添加标题标记、粗体、斜体、引用、分隔线或编号。原图标题文字保留，不因它是标题就添加 `#`。不要加“识别结果如下”、置信度、操作建议、解释或总结；补写清单、图片流程所需的一次确认、同类题邀请、草稿说明及实际缺项提示按专项规则执行。Word 模式仅附简短下载链接，必要时说明具体未完成项。
 
 输出必须诚实：没有源附件时请求图片或 PDF；工具无法生成必需的 Word、表格或 PNG 时，只简短说明具体缺项，交付可完成部分，不编造附件、链接或假装成功。此异常不使用 `XXX` 冒充已完成的提取。
 

@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M04",
+  "source": {
+    "file": "orig.reviewed.json",
+    "sha256": "26071d7e0fa1b06818b12b1f7e9a0f1e83b1af5d497b0c091ddf9c122d54ad02"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM04",
+      "number": "31-33",
+      "module": "M04",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": []
+        },
+        {
+          "number": "(3)",
+          "depends_on": []
+        }
+      ],
+      "has_materials": true,
+      "has_figures": false,
+      "source_text": "ALiMing'sclassplannedaclean-updayatthecitypark.OnSaturdaymorning,twentystudentsmetattheparkgateateighto'clock.Mr.Wang,theirteacher,gaveeveryoneapairofglovesandabag.Thestudentspickedupbottles,paperandplasticbagsalongthelake.Atnoontheyhadapicnicunderthebigtrees.Intheafternoon,someparkworkersshowedthemhowtosorttherubbishintofourkinds.LiMingsaid,\"Ineverknewthatoldbatteriesneedaspecialbox.\"Beforetheyleft,thestudentsputupasign:\"Keepourparkclean!\"31.Whendidthestudentsmeetattheparkgate?A.Atseven.B.Ateight.C.Atnoon.D.Intheafternoon.32.WhatdidLiMinglearnfromtheparkworkers?A.Howtoplanttrees.B.Howtocookapicnic.C.Howtosortrubbish.D.Howtomakeasign.33.Whatisthebesttitleforthepassage?A.ABusyTeacherB.ADaytoCleantheParkC.OldBatteriesD.PicnicbytheLake",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM04-v1-a1",
+      "question_id": "qM04",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM04-v1-a1.json",
+      "sha256": "33d022c18bcd2cb6cf3a8f58763316fc4c978ee8dd22bbc6fb818fe3c7328e26",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "choice",
+          "item": "(1)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(1)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(2)",
+          "ok": true,
+          "detail": "答案 A 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(2)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(3)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.107,
+      "similarity_to_siblings": {},
+      "text": "LastSunday,Kangkangandhisfriendshelpedattheschoollibrary.Theyarrivedatnineo'clock.Ms.Chen,thelibrarian,askedthemtoputreturnedbooksbackontheshelves.Somebookswereveryold,sothestudentsfixedthebrokencoverswithtape.Afterlunch,theymadealistofnewbooksforthereadingcorner.Kangkangsaid,\"Ineverknewthateverybookhasitsownnumber.\"Beforegoinghome,theywroteanoteonthedoor:\"Pleasereturnbooksontime!\"1.Whendidtheyarriveatthelibrary?A.Ateight.B.Atnine.C.Afterlunch.D.Intheevening.2.WhatdidKangkanglearnatthelibrary?A.Everybookhasitsownnumber.B.Howtocooklunch.C.Howtodrawamap.D.Howtobuynewbooks.3.Whatisthebesttitleforthepassage?A.ANewLibrarianB.HelpingattheSchoolLibraryC.BrokenCoversD.LunchatSchool"
+    },
+    {
+      "candidate_id": "qM04-v2-a1",
+      "question_id": "qM04",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM04-v2-a1.json",
+      "sha256": "1b7e0bbcc6e6d4043cce641372205dfe2ff0b71c1e2ae818e923f2f6ff96ffae",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "choice",
+          "item": "(1)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(1)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(2)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(2)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(3)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.147,
+      "similarity_to_siblings": {
+        "qM04-v1-a1": 0.117
+      },
+      "text": "OnSaturday,Mariaandherclassmatesvisitedacommunitygardenneartheirschool.Theygotthereathalfpastseven.Anoldfarmer,Mr.Zhou,gaveeachstudentasmallspade.Thestudentswateredthevegetablesandpulledoutweedsbetweentherows.Attentheyhadarestanddrankfreshjuice.Later,Mr.Zhoushowedthemhowtoplanttomatoseedsinsmallpots.Mariasaid,\"Ineverknewthatseedsneedwarmsoiltogrow.\"Beforetheyleft,theyputasignonthegate:\"Pleasedon'tstepontheplants!\"1.Whendidtheygettothegarden?A.Atseven.B.Athalfpastseven.C.Atten.D.Atnoon.2.WhatdidMr.Zhoushowthestudents?A.Howtomakejuice.B.Howtoplanttomatoseeds.C.Howtobuildagate.D.Howtodrawplants.3.Whatisthebesttitleforthepassage?A.FreshJuiceB.AMorningattheCommunityGardenC.AnOldSpadeD.WarmSoil"
+    },
+    {
+      "candidate_id": "qM04-v3-a1",
+      "question_id": "qM04",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM04-v3-a1.json",
+      "sha256": "3174d9012599f1d8e0f17aef30f11a19166cdc38aa72317ba699785d292b4734",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "choice",
+          "item": "(1)",
+          "ok": true,
+          "detail": "答案 A 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(1)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(2)",
+          "ok": true,
+          "detail": "答案 B 合法，选项互不重复"
+        },
+        {
+          "kind": "evidence",
+          "item": "(2)",
+          "ok": true,
+          "detail": "证据句已在语篇中定位"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "choice",
+          "item": "(3)",
+          "ok": true,
+          "detail": "答案 A 合法，选项互不重复"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.064,
+      "similarity_to_siblings": {
+        "qM04-v1-a1": 0.089,
+        "qM04-v2-a1": 0.046
+      },
+      "text": "Lastmonth,Jane'sclassspentadayatthesciencemuseumasyoungguides.Theymetthemuseumkeeperathalfpasteight.Shegaveeachstudentabadgeandamap.Inthemorning,thestudentslearnedabouttheoldclocksonthesecondfloor.Afterlunch,theytookturnstoexplaintheclockstoyoungervisitors.Janesaid,\"Ineverknewthatthefirstclocksusedwater.\"Attheendoftheday,thekeeperthankedthemwithasmallgift.1.Whatdidthemuseumkeepergiveeachstudent?A.Abadgeandamap.B.Asmallclock.C.Aticket.D.Somewater.2.WhatdidJanelearnatthemuseum?A.Clocksarecheap.B.Thefirstclocksusedwater.C.Guidesneedmaps.D.Museumsopenlate.3.Whatisthebesttitleforthepassage?A.YoungGuidesattheScienceMuseumB.OldMapsC.ASmallGiftD.TheSecondFloor"
+    }
+  ]
+}

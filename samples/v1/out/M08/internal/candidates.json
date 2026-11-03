@@ -1,0 +1,340 @@
+{
+  "blocks": [
+    {
+      "type": "text",
+      "id": "hdr",
+      "text": "江南第二中学 2026—2027 学年第一学期 课后练习",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          90,
+          1150,
+          138
+        ]
+      },
+      "selection": {
+        "category": "HEADER_FOOTER",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "学校页眉，与题目内容无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "wm",
+      "text": "扫码关注 刷题宝 海量真题免费领",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "WATERMARK",
+        "relation": "unrelated",
+        "certainty": "high",
+        "reason": "半透明推广水印，覆盖正文但与题目无关"
+      }
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "text": "高一英语 推断型阅读",
+      "role": "title",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          138,
+          1150,
+          201
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "mat-label",
+      "text": "B",
+      "role": "material",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "mat",
+      "text": "When Maya first joined the robotics club, she rarely spoke. She sat at the back, sketching gears in her notebook while others argued loudly about motors and code. Three weeks before the regional contest, the team's robot kept tipping over on the ramp. Everyone blamed the software. Maya quietly placed her notebook on the table. Her drawing showed the robot's battery mounted too high, shifting its weight backward on slopes. The team moved the battery lower that evening, and the robot climbed the ramp on its first try. At the contest, the captain insisted that Maya present the design. \"Good ideas,\" he told the judges, \"don't always come from the loudest voice.\"",
+      "role": "material",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          259,
+          1150,
+          647
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1",
+      "text": "24. Why did the robot keep tipping over on the ramp?",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          647,
+          1150,
+          705
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s1o",
+      "text": "A. The code had a serious error.    B. The motors were too weak.    C. Its weight was placed too high at the back.    D. The ramp was badly built.",
+      "role": "option",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          705,
+          1150,
+          798
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2",
+      "text": "25. What can we infer about Maya from the passage?",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          798,
+          1150,
+          856
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s2o",
+      "text": "A. She preferred observing to arguing.    B. She disliked working in a team.    C. She was the best programmer.    D. She wanted to become captain.",
+      "role": "option",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          856,
+          1150,
+          949
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3",
+      "text": "26. What is the captain's main point in the last sentence?",
+      "role": "subquestion",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          949,
+          1150,
+          1007
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "s3o",
+      "text": "A. Loud people are rude.    B. Quiet members may offer valuable ideas.    C. Judges should listen carefully.    D. Presentations need strong voices.",
+      "role": "option",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          1007,
+          1150,
+          1099
+        ]
+      },
+      "selection": {
+        "category": "MAIN_CONTENT",
+        "relation": "main",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "ans1",
+      "text": "【答案】24. C  25. A  26. B",
+      "role": "answer",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          1099,
+          1150,
+          1153
+        ]
+      },
+      "selection": {
+        "category": "SUPPORTING_CONTENT",
+        "relation": "supporting",
+        "certainty": "high"
+      }
+    },
+    {
+      "type": "text",
+      "id": "hw",
+      "text": "对了!",
+      "source": {
+        "page": 1
+      },
+      "selection": {
+        "category": "HANDWRITING",
+        "relation": "main",
+        "certainty": "high"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "qM08",
+      "number": "24-26",
+      "module": "M08",
+      "question_type": "comprehensive",
+      "blocks": [
+        "ans1"
+      ],
+      "materials": [
+        "m1"
+      ],
+      "subquestions": [
+        {
+          "subquestion_id": "qM08-1",
+          "number": "(1)",
+          "blocks": [
+            "s1",
+            "s1o"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM08-2",
+          "number": "(2)",
+          "blocks": [
+            "s2",
+            "s2o"
+          ],
+          "depends_on": []
+        },
+        {
+          "subquestion_id": "qM08-3",
+          "number": "(3)",
+          "blocks": [
+            "s3",
+            "s3o"
+          ],
+          "depends_on": []
+        }
+      ],
+      "source_spans": [
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            647,
+            1150,
+            705
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            798,
+            1150,
+            856
+          ]
+        },
+        {
+          "attachment": "source-page.png",
+          "page": 1,
+          "bbox": [
+            90,
+            949,
+            1150,
+            1007
+          ]
+        }
+      ],
+      "review_status": "confirmed",
+      "completeness": {
+        "complete": true,
+        "missing": []
+      }
+    }
+  ],
+  "materials": [
+    {
+      "material_id": "m1",
+      "blocks": [
+        "mat-label",
+        "mat"
+      ]
+    }
+  ]
+}

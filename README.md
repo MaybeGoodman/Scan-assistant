@@ -2,7 +2,14 @@
 
 <img src="plugins/image-print-extractor/assets/logo.png" width="160" alt="插件图标">
 
-面向教材、试题、讲义、扫描图片和 PDF 的插件，同时支持 Codex 与 Claude。按语义保留主体印刷内容，忽略手写及明确无关的广告、水印、品牌和宣传二维码，输出 Markdown、LaTeX、表格及插图；PDF 经用户确认后整理为可编辑 Word 文档。
+面向初高中课外辅导的插件，同时支持 Codex 与 Claude（ChatGPT 端的分发方式由验收侧在候选环境中验证后定稿）。
+
+- 处理教材、试题、讲义、扫描图片和 PDF：按语义保留主体印刷内容，忽略手写及明确无关的广告、水印、品牌和宣传二维码。
+- 输出 Markdown、LaTeX、表格及插图；PDF 经用户确认后整理为可编辑 Word 文档。
+- 提供原题版和去答案的学生版。
+- 可按完整原题，为初高中数学、物理、化学、英语生成三道经逐题验证的同类练习。
+
+插件包含两个技能：`image-print-extractor`（原题提取）和 `similar-question-generator`（同类题生成）。两者共用同一组脚本。
 
 ## 安装
 
@@ -45,15 +52,27 @@ Codex 中上传图片后输入：
 
 也可直接请求“提取图片中的印刷体”；宿主支持自动技能选择时会匹配本技能。
 
-上传 PDF 后，可直接说“提取印刷体、去掉无关水印，整理成 Word，图片也重绘”。如果只说“整理这份 PDF”，插件会在开始前用一条消息同时确认是否生成 Word、是否重绘插图（没有插图时只问 Word），可一次回答如“Word，重绘”；已明确的项不会重复询问。只处理部分页可说“只提取第 3–5 页”。
+上传 PDF 后，可直接说“提取印刷体、去掉无关水印，整理成 Word，图片也重绘”。
+
+需要练习时，可以说“提取后把第 18 题出 3 道同类题，给学生版 Word”。如果提取时没说明是否需要同类题，提取完成后会询问一次；只想提取原题时，说“只提取”即可。
+
+- 要去掉答案，说“导出学生版”。
+- 要调整难度，说“降低难度”或“提高难度”。
+- 可以补充本次学生的情况，例如“初二，计算容易出错”。这些信息只用于本次任务。如果只说“整理这份 PDF”，插件会在开始前用一条消息同时确认是否生成 Word、是否重绘插图（没有插图时只问 Word），可一次回答如“Word，重绘”；已明确的项不会重复询问。只处理部分页可说“只提取第 3–5 页”。
 
 ## 更新
 
-Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前功能版本为 `0.8.1`，见 [更新记录](CHANGELOG.md)。
+Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前候选功能版本为 `1.0.0`（待独立验收），0.8.1 与 1.0.0 的行为差异见 [更新记录](CHANGELOG.md)。
 
 Claude：添加市场时开启“自动同步”即可随仓库更新；Claude Code 用户运行 `claude plugin marketplace update scan-assistant` 后重新安装或更新插件。
 
 ## 化学输出
+
+1.0.0 起，Word 中的化学默认直接显示：
+- 简单式为带上下标的普通文字。
+- 带反应条件、核素、化合价的式子为可编辑公式。
+
+需要 0.8.1 的源码文本时，加 `--chemistry-format source`。聊天和中间 JSON 仍按下述规则使用 LaTeX 源码。
 
 图片直接回复、PDF、正文、选项和表格中的化学表达统一为标准 LaTeX 源码。例如 N₂ 输出为 `\mathrm{N_2}`，SO₄²⁻ 输出为 `\mathrm{SO_4^{2-}}`；禁止 Unicode 上下标或 N2 等普通文本替代。默认用行内代码保护化学源码，中文正文正常输出。保留原图的等号、箭头、系数和反应条件，不自动配平或纠错。
 
@@ -68,7 +87,9 @@ Claude：添加市场时开启“自动同步”即可随仓库更新；Claude C
 - 技术图优先按理解结构生成白底黑色 SVG 和高分辨率 PNG，电路图和常见实验装置可用组件库（灯泡、电表、开关、电池、表盘、烧杯、温度计、坐标轴等）描述并自动适配画布，普通教学示意插画可接入宿主图像生成能力。每张图必须与原图进行结构／标注校验，最多修正一次，失败原位提示且保留已完成文字；可选择失败或照片时保留原图裁剪；图片与 Word 确认独立。
 - PDF 逐页处理，支持只处理指定页（原页码）；默认 200 DPI，小字可局部高清重渲染。超过 5 页时分批处理并登记进度，全部页完成才输出，中断后可按进度续做。确认需要 Word 后生成实际 `.docx`，正文和表格可编辑，PNG 插图嵌入。
 - 文件导出优先使用 `pipeline.py` 一条命令完成筛选、图片处理和导出，只在需要看图复核时停下；复核模板预填哈希、判断项留空，原有安全检查不放宽。超过 5 页的 PDF 必须先分批合并才能进入流水线；插图数据可逐张存文件，重试只提交需修改的图，中断后用 `pipeline.py resume` 查看进度续做。
-- Word 中数学公式经兼容 LaTeX 转为原生专业格式 OMML，支持段落及表格内混排；化学表达式单独保留可编辑 LaTeX 源码，不转 OMML、不依赖 `mhchem`/`\ce{}`。
+- Word 中数学公式经兼容 LaTeX 转为原生专业格式 OMML，支持段落及表格内混排；化学表达式默认直接显示（1.0.0），不依赖 `mhchem`/`\ce{}`，0.8.1 的源码文本可显式选用。
+- 原题版保留印刷答案和解析；学生版按语义角色移除答案，并自动审计 Word 包的全部泄漏面。含推断补写、`XXX`、失败插图等待复核内容时，只交付标明“待复核草稿”的文件，复核后用 `pipeline.py finalize` 生成正式成品。规则见 [题目结构与输出模式](plugins/image-print-extractor/skills/image-print-extractor/references/questions.md)。
+- 同类题生成：以完整大题为单位，保留全部小问、顺序和依赖，默认每题 3 道。每道题内部独立求解，并经确定性校验（代入、求根、量纲、配平、选项唯一、证据定位）和八个模块的复核清单，失败的重新生成。数量不足时如实报告。学生版没有答案，答案只在内部材料中。规则见 [同类题生成](plugins/image-print-extractor/skills/similar-question-generator/SKILL.md)。
 - 恢复公式二维结构、行内/独立位置、函数名和单位字体；不自动化简、配平或纠错。无法判定或转换失败的表达式标记 `XXX`，内部复核记录保留原图位置和失败原因。
 - 去掉确定无关的水印、推广字样等，恢复可靠的断行和跨页续句；不为通顺而改写事实，相关脚注、图注、来源说明仍保留。
 
@@ -102,8 +123,14 @@ plugins/image-print-extractor/
     SKILL.md
     agents/openai.yaml
     references/
-    scripts/
+    scripts/          # 两个技能共用
     assets/
+  skills/similar-question-generator/
+    SKILL.md
+    agents/openai.yaml
+    references/
+    assets/
+samples/v1/           # 八模块原创样本、构建脚本与实际成品
 tests/
 scripts/validate.py
 ```
@@ -117,6 +144,15 @@ python -m pip install -r requirements-dev.txt
 python scripts/validate.py
 python -m unittest discover -s tests -v
 ```
+
+重建 V1.0 样本，需要 LibreOffice（含 `libreoffice-math`）用于页面渲染：
+
+```sh
+python -X utf8 samples/v1/build_samples.py stage1
+python -X utf8 samples/v1/build_samples.py stage2
+```
+
+`stage1` 会在插图复核处停下，复核结论来自 `samples/v1/reviews/`，内容是开发侧看图后填写的。
 
 测试共 204 项，还覆盖组件展开与画布自适配、原图回退、强制分批与续做、PDF 页范围与分批合并、流水线编排、合并确认解析、主体筛选、范围覆盖、UNKNOWN 保留、重叠保护、手写单元格清空及筛选到 HTML/DOCX 的完整流程；18 个语义场景使用已标注候选，不能替代模型看图分类测试。测试覆盖 HTML 转义、合并单元格、空白、图文顺序、PNG、路径限制、不覆盖已有输出，以及 OMML 二维结构、字体、混排、化学源码和转换失败。识别行为及 Word 应用验收见 [验收清单](docs/acceptance.md)，自动化测试不代表 OCR 准确率或所有 Word 版本的排版保证。
 

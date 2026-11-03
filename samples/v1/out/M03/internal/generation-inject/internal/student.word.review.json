@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M03/inject.student.json",
+  "expressions": [
+    {
+      "location": "blocks[2].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{KClO_3}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[3]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{MnO_2}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "4.8\\,\\mathrm{g}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "16.0\\,\\mathrm{g}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[1]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{KClO_3}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[3]",
+      "source": null,
+      "type": "chemistry",
+      "latex": "\\mathrm{MnO_2}",
+      "display": false,
+      "repairs": [],
+      "rendering": "rich_text",
+      "status": "converted"
+    },
+    {
+      "location": "blocks[7].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "4.8\\,\\mathrm{g}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[10].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "20.0\\,\\mathrm{g}",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": []
+}

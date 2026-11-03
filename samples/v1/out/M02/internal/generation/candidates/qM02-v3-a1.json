@@ -1,0 +1,270 @@
+{
+  "question_id": "qM02",
+  "slot": 3,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "小明用如图所示的电路做实验，电源电压恒定，定值电阻"
+          },
+          {
+            "type": "math",
+            "latex": "R_1"
+          },
+          {
+            "type": "text",
+            "text": "的阻值为"
+          },
+          {
+            "type": "math",
+            "latex": "12\\,\\Omega"
+          },
+          {
+            "type": "text",
+            "text": "。他闭合开关"
+          },
+          {
+            "type": "math",
+            "latex": "S"
+          },
+          {
+            "type": "text",
+            "text": "后记下：电流表读数"
+          },
+          {
+            "type": "math",
+            "latex": "0.25\\,\\mathrm{A}"
+          },
+          {
+            "type": "text",
+            "text": "，电压表读数"
+          },
+          {
+            "type": "math",
+            "latex": "6\\,\\mathrm{V}"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "image",
+        "id": "fig",
+        "path": "variant-figs/v3.png",
+        "role": "figure",
+        "alt": ""
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）求电源电压"
+          },
+          {
+            "type": "math",
+            "latex": "U"
+          },
+          {
+            "type": "text",
+            "text": "；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（2）求电阻"
+          },
+          {
+            "type": "math",
+            "latex": "R_2"
+          },
+          {
+            "type": "text",
+            "text": "的阻值；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）小明随后断开开关，把一个"
+          },
+          {
+            "type": "math",
+            "latex": "6\\,\\Omega"
+          },
+          {
+            "type": "text",
+            "text": "的电阻"
+          },
+          {
+            "type": "math",
+            "latex": "R_3"
+          },
+          {
+            "type": "text",
+            "text": "接在原来"
+          },
+          {
+            "type": "math",
+            "latex": "R_2"
+          },
+          {
+            "type": "text",
+            "text": "的位置，再闭合开关，电流表读数变为多少？"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1",
+      "fig"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "串联电路电压规律",
+      "欧姆定律"
+    ],
+    "method": "串联分压→欧姆定律→替换后重算电流",
+    "question_type": "电学计算（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "三步计算，第（3）问依赖第（1）问，与原题一致",
+    "difference_from_source": "实验叙事情境；第（3）问换接更小电阻，电流增大",
+    "difference_from_siblings": "换接后电流变大，与其他两道相反"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "U=9 V"
+      },
+      {
+        "item": "(2)",
+        "answer": "R2=24 Ω"
+      },
+      {
+        "item": "(3)",
+        "answer": "I=0.5 A"
+      }
+    ],
+    "solution": "U=IR1+U2=0.25×12+6=9 V；R2=U2/I=24 Ω；I′=U/(R1+R3)=0.5 A。",
+    "checks": [
+      {
+        "kind": "arith",
+        "item": "(1)",
+        "expr": "0.25*12+6",
+        "expect": "9",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "6/0.25",
+        "expect": "24",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "9/(12+6)",
+        "expect": "0.5",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "units",
+        "item": "(1)",
+        "expr": "I*R1+U2",
+        "units": {
+          "I": "A",
+          "R1": "Ohm",
+          "U2": "V"
+        },
+        "expect": "V"
+      },
+      {
+        "kind": "units",
+        "item": "(3)",
+        "expr": "U/(R1+R3)",
+        "units": {
+          "U": "V",
+          "R1": "Ohm",
+          "R3": "Ohm"
+        },
+        "expect": "A"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "U=9 V"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "R2=24 Ω"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "I=0.5 A"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "model_kept": true,
+      "units_checked": true,
+      "direction_range": true,
+      "figure_consistent": true,
+      "junior_method": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

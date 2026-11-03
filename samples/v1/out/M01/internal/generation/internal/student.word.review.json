@@ -1,0 +1,311 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M01/gen.student.json",
+  "expressions": [
+    {
+      "location": "blocks[2].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "\\triangle ABC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "AB=AC=13",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "BC=10",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[7]",
+      "source": null,
+      "type": "math",
+      "latex": "D",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[9]",
+      "source": null,
+      "type": "math",
+      "latex": "BC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[11]",
+      "source": null,
+      "type": "math",
+      "latex": "DE\\perp AB",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[2].runs[13]",
+      "source": null,
+      "type": "math",
+      "latex": "E",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "AD\\perp BC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "AD",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[6].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "DE",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "\\triangle ABC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "36",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "BC=16",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[7]",
+      "source": null,
+      "type": "math",
+      "latex": "AB=AC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[9]",
+      "source": null,
+      "type": "math",
+      "latex": "D",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[11]",
+      "source": null,
+      "type": "math",
+      "latex": "BC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[13]",
+      "source": null,
+      "type": "math",
+      "latex": "D",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[15]",
+      "source": null,
+      "type": "math",
+      "latex": "DE\\perp AB",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[8].runs[17]",
+      "source": null,
+      "type": "math",
+      "latex": "E",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[10].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "\\angle BAD=\\angle CAD",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[11].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "AB",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[11].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "AD",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[12].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "DE",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[14].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "\\triangle ABC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[14].runs[3]",
+      "source": null,
+      "type": "math",
+      "latex": "AB=AC=17",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[14].runs[5]",
+      "source": null,
+      "type": "math",
+      "latex": "D",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[14].runs[7]",
+      "source": null,
+      "type": "math",
+      "latex": "BC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[14].runs[9]",
+      "source": null,
+      "type": "math",
+      "latex": "AD=15",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[14].runs[11]",
+      "source": null,
+      "type": "math",
+      "latex": "DE\\perp AB",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[14].runs[13]",
+      "source": null,
+      "type": "math",
+      "latex": "E",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[16].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "\\angle BAD=\\angle CAD",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[17].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "BC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[18].runs[1]",
+      "source": null,
+      "type": "math",
+      "latex": "DE",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": []
+}

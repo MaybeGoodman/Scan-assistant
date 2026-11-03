@@ -1,6 +1,6 @@
 {
   "name": "scan-assistant",
-  "description": "图片与 PDF 印刷体提取",
+  "description": "图片与 PDF 印刷体提取及同类题生成",
   "owner": {
     "name": "MaybeGoodman"
   },
@@ -8,7 +8,7 @@
     {
       "name": "image-print-extractor",
       "source": "./plugins/image-print-extractor",
-      "description": "提取图片与 PDF 主体印刷内容，支持可选教学插图黑白重绘；数学转 Word 原生公式，化学保留 LaTeX。",
+      "description": "提取图片与 PDF 主体印刷内容，可导出原题版或去答案学生版，支持教学插图黑白重绘；Word 中数学为原生公式、化学直接显示；按完整原题生成三道经验证的同类题。",
       "category": "productivity"
     }
   ]

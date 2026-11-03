@@ -1,0 +1,240 @@
+{
+  "question_id": "qM01",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "如图，在"
+          },
+          {
+            "type": "math",
+            "latex": "\\triangle ABC"
+          },
+          {
+            "type": "text",
+            "text": "中，"
+          },
+          {
+            "type": "math",
+            "latex": "AB=AC=13"
+          },
+          {
+            "type": "text",
+            "text": "，"
+          },
+          {
+            "type": "math",
+            "latex": "BC=10"
+          },
+          {
+            "type": "text",
+            "text": "，"
+          },
+          {
+            "type": "math",
+            "latex": "D"
+          },
+          {
+            "type": "text",
+            "text": "为"
+          },
+          {
+            "type": "math",
+            "latex": "BC"
+          },
+          {
+            "type": "text",
+            "text": "的中点，"
+          },
+          {
+            "type": "math",
+            "latex": "DE\\perp AB"
+          },
+          {
+            "type": "text",
+            "text": "，垂足为"
+          },
+          {
+            "type": "math",
+            "latex": "E"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "image",
+        "id": "fig",
+        "path": "variant-figs/v1.png",
+        "role": "figure",
+        "alt": ""
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）求证："
+          },
+          {
+            "type": "math",
+            "latex": "AD\\perp BC"
+          },
+          {
+            "type": "text",
+            "text": "；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（2）求"
+          },
+          {
+            "type": "math",
+            "latex": "AD"
+          },
+          {
+            "type": "text",
+            "text": "的长；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）求"
+          },
+          {
+            "type": "math",
+            "latex": "DE"
+          },
+          {
+            "type": "text",
+            "text": "的长。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1",
+      "fig"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(2)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "等腰三角形三线合一",
+      "勾股定理",
+      "面积法求高"
+    ],
+    "method": "全等证明→勾股定理→等积法",
+    "question_type": "几何综合（证明＋计算）",
+    "difficulty": "same",
+    "difficulty_evidence": "三小问，证明一步全等，计算两步，与原题相同",
+    "difference_from_source": "证明目标由“角平分”改为“垂直”，数据改为5-12-13组合",
+    "difference_from_siblings": "直接给腰和底"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "由SSS证△ABD≌△ACD，得∠ADB=∠ADC=90°，故AD⊥BC"
+      },
+      {
+        "item": "(2)",
+        "answer": "AD=12"
+      },
+      {
+        "item": "(3)",
+        "answer": "DE=60/13"
+      }
+    ],
+    "solution": "BD=5，AD=√(13²−5²)=12；面积法 13·DE=5·12，DE=60/13。",
+    "checks": [
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "sqrt(13**2-5**2)",
+        "expect": "12"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "5*12/13",
+        "expect": "60/13"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "由SSS证△ABD≌△ACD，得∠ADB=∠ADC=90°，故AD⊥BC"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "AD=12"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "DE=60/13"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "solution_exists": true,
+      "domain_parameters": true,
+      "geometry_conditions": true,
+      "steps_controlled": true,
+      "junior_scope": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

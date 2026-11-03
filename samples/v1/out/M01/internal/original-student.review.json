@@ -1,0 +1,284 @@
+{
+  "schema_version": 2,
+  "source_file": "/home/claude/scan-assistant/samples/v1/work/M01/orig.figures-reviewed.json",
+  "expressions": [
+    {
+      "location": "blocks[1].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "type": "math",
+      "latex": "\\triangle ABC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[3]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "type": "math",
+      "latex": "AB=AC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[5]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "type": "math",
+      "latex": "D",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[7]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "type": "math",
+      "latex": "BC",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[9]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "type": "math",
+      "latex": "AD",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[11]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "type": "math",
+      "latex": "DE\\perp AB",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[1].runs[13]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          201,
+          1150,
+          259
+        ]
+      },
+      "type": "math",
+      "latex": "E",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[3].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          504,
+          1150,
+          562
+        ]
+      },
+      "type": "math",
+      "latex": "\\angle BAD=\\angle CAD",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          562,
+          1150,
+          619
+        ]
+      },
+      "type": "math",
+      "latex": "AB=10",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[3]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          562,
+          1150,
+          619
+        ]
+      },
+      "type": "math",
+      "latex": "BC=12",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[4].runs[5]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          562,
+          1150,
+          619
+        ]
+      },
+      "type": "math",
+      "latex": "AD",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    },
+    {
+      "location": "blocks[5].runs[1]",
+      "source": {
+        "page": 1,
+        "bbox": [
+          90,
+          619,
+          1150,
+          677
+        ]
+      },
+      "type": "math",
+      "latex": "DE",
+      "display": false,
+      "repairs": [],
+      "status": "converted"
+    }
+  ],
+  "needs_review": 0,
+  "figures": [
+    {
+      "figure": {
+        "figure_id": "f1",
+        "source_page": 1,
+        "source_bbox": [
+          430,
+          259,
+          810,
+          484
+        ],
+        "parent_block_id": "stem1",
+        "figure_type": "geometry",
+        "figure_group_id": null
+      },
+      "validation": {
+        "source_sha256": "f36253dab055145c6b64a8615cb2f42921aba6860bca2a2b48c25f97a3e8a8f8",
+        "png_sha256": "757d8ca856f7b0ffc8a33b1c8a4e48ce513045f142fdf6b4c1b6354d072c996e",
+        "drawing_method": "structured",
+        "review": {
+          "figure_id": "f1",
+          "attempt": 1,
+          "source_sha256": "f36253dab055145c6b64a8615cb2f42921aba6860bca2a2b48c25f97a3e8a8f8",
+          "png_sha256": "757d8ca856f7b0ffc8a33b1c8a4e48ce513045f142fdf6b4c1b6354d072c996e",
+          "svg_sha256": "8ab32568065c971ae6d06a895b44886b2a504215be3f31f16f795bb5162987d1",
+          "reviewed_by": "host_vision",
+          "status": "pass",
+          "notes": [
+            "逐项对照原图裁片：△ABC 三顶点、中线 AD、DE⊥AB 的直角标记位置一致；A–E 五个标注对象正确；比例 AB:BC=10:12 与原图一致；水印已去除",
+            "说明：合成样本的原图由同一结构场景渲染后加噪，属开发自测，真实扫描图需验收侧复测"
+          ],
+          "checks": {
+            "subject_count": true,
+            "connections": true,
+            "labels": true,
+            "arrow_directions": true,
+            "relative_positions": true,
+            "geometry": true,
+            "coordinates": true,
+            "black_white": true,
+            "completeness": true,
+            "no_unrelated_elements": true,
+            "scientific_meaning": true
+          },
+          "view_files": {
+            "source": "source-fig.png",
+            "png": "orig-images/figure-f1-a1.png",
+            "svg": "orig-images/figure-f1-a1.svg"
+          }
+        },
+        "svg_sha256": "8ab32568065c971ae6d06a895b44886b2a504215be3f31f16f795bb5162987d1"
+      }
+    }
+  ],
+  "output_mode": "student",
+  "chemistry_format": "native",
+  "delivery": "final",
+  "review_items": [],
+  "open_review_items": 0,
+  "removed": [
+    {
+      "location": "blocks[2].alt",
+      "role": "alt_text"
+    },
+    {
+      "location": "blocks[6]",
+      "role": "answer"
+    },
+    {
+      "location": "blocks[7]",
+      "role": "analysis"
+    }
+  ]
+}

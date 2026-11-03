@@ -33,6 +33,9 @@ for entry in catalog['plugins']:
         for key in ('icon_small', 'icon_large'):
             assert (skill / ui[key]).is_file()
         assert '$' + skill.name in ui['default_prompt']
+        # A skill that reuses a sibling skill's scripts must ship inside the same plugin.
+        for sibling in set(__import__('re').findall(r'<skill-dir>/\.\./([a-z0-9-]+)/scripts', text)):
+            assert (plugin / 'skills' / sibling / 'scripts').is_dir(), skill.name + ' -> ' + sibling
 claude_catalog = json.loads((root / '.claude-plugin/marketplace.json').read_text(encoding='utf-8'))
 assert claude_catalog['name'] == catalog['name']
 assert claude_catalog['owner']['name']

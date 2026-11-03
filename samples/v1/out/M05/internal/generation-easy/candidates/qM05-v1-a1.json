@@ -1,0 +1,239 @@
+{
+  "question_id": "qM05",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "已知函数"
+          },
+          {
+            "type": "math",
+            "latex": "f(x)=x^2-2ax"
+          },
+          {
+            "type": "text",
+            "text": "，"
+          },
+          {
+            "type": "math",
+            "latex": "a\\in\\mathbf{R}"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）若"
+          },
+          {
+            "type": "math",
+            "latex": "f(2)=0"
+          },
+          {
+            "type": "text",
+            "text": "，求"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "的值；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（2）在（1）的条件下，求"
+          },
+          {
+            "type": "math",
+            "latex": "f(x)"
+          },
+          {
+            "type": "text",
+            "text": "在区间"
+          },
+          {
+            "type": "math",
+            "latex": "[0,3]"
+          },
+          {
+            "type": "text",
+            "text": "上的最大值和最小值；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）若"
+          },
+          {
+            "type": "math",
+            "latex": "f(x)\\geq 0"
+          },
+          {
+            "type": "text",
+            "text": "对任意"
+          },
+          {
+            "type": "math",
+            "latex": "x\\in[2,3]"
+          },
+          {
+            "type": "text",
+            "text": "恒成立，求实数"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "的取值范围。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "二次函数解析式",
+      "闭区间最值",
+      "恒成立与分离参数"
+    ],
+    "method": "代入求参→配方讨论对称轴→分离参数结合基本不等式或单调性",
+    "question_type": "函数综合（三小问）",
+    "difficulty": "easier",
+    "difficulty_evidence": "第（3）问由“对勾函数最值”降为“一次函数最值”，计算量减少",
+    "difference_from_source": "去掉常数项，第（3）问分离参数后为一次函数，不需基本不等式",
+    "difference_from_siblings": "单题"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "a=1"
+      },
+      {
+        "item": "(2)",
+        "answer": "最大值3，最小值-1"
+      },
+      {
+        "item": "(3)",
+        "answer": "a≤1"
+      }
+    ],
+    "solution": "f(2)=4−4a=0，a=1；f=x²−2x，顶点1，最小−1，最大f(3)=3；x²≥2ax ⇔ a≤x/2，x∈[2,3]时最小为1，a≤1。",
+    "checks": [
+      {
+        "kind": "substitute",
+        "item": "(1)",
+        "equation": "x**2-2*a*x = 0",
+        "vars": {
+          "x": "2",
+          "a": "1"
+        }
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "1-2",
+        "expect": "-1"
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "9-6",
+        "expect": "3"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "2/2",
+        "expect": "1"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "a=1"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "最大值3，最小值-1"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "a≤1"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "core_idea": true,
+      "domain_parameters": true,
+      "boundary_cases": true,
+      "solution_set": true,
+      "geometry_proof": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

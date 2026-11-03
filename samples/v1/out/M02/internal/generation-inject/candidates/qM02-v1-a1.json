@@ -1,0 +1,262 @@
+{
+  "question_id": "qM02",
+  "slot": 1,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "如图所示电路，电源电压不变，"
+          },
+          {
+            "type": "math",
+            "latex": "R_1=20\\,\\Omega"
+          },
+          {
+            "type": "text",
+            "text": "。闭合开关"
+          },
+          {
+            "type": "math",
+            "latex": "S"
+          },
+          {
+            "type": "text",
+            "text": "后，电流表示数为"
+          },
+          {
+            "type": "math",
+            "latex": "0.2\\,\\mathrm{A}"
+          },
+          {
+            "type": "text",
+            "text": "，电压表示数为"
+          },
+          {
+            "type": "math",
+            "latex": "2\\,\\mathrm{V}"
+          },
+          {
+            "type": "text",
+            "text": "。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "image",
+        "id": "fig",
+        "path": "variant-figs/v1.png",
+        "role": "figure",
+        "alt": ""
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）求电源电压"
+          },
+          {
+            "type": "math",
+            "latex": "U"
+          },
+          {
+            "type": "text",
+            "text": "；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（2）求电阻"
+          },
+          {
+            "type": "math",
+            "latex": "R_2"
+          },
+          {
+            "type": "text",
+            "text": "的阻值；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）若用阻值为"
+          },
+          {
+            "type": "math",
+            "latex": "40\\,\\Omega"
+          },
+          {
+            "type": "text",
+            "text": "的电阻"
+          },
+          {
+            "type": "math",
+            "latex": "R_3"
+          },
+          {
+            "type": "text",
+            "text": "替换"
+          },
+          {
+            "type": "math",
+            "latex": "R_2"
+          },
+          {
+            "type": "text",
+            "text": "，求电流表的示数。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1",
+      "fig"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "串联电路电压规律",
+      "欧姆定律"
+    ],
+    "method": "串联分压→欧姆定律→替换后重算电流",
+    "question_type": "电学计算（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "三步计算，第（3）问依赖第（1）问，与原题一致",
+    "difference_from_source": "电阻与电流数据组合改变，替换电阻更大",
+    "difference_from_siblings": "电流较小、替换后电流减半"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "U=6 V"
+      },
+      {
+        "item": "(2)",
+        "answer": "R2=10 Ω"
+      },
+      {
+        "item": "(3)",
+        "answer": "I=0.1 A"
+      }
+    ],
+    "solution": "U=IR1+U2=0.2×20+2=6 V；R2=U2/I=10 Ω；I′=U/(R1+R3)=0.1 A。",
+    "checks": [
+      {
+        "kind": "arith",
+        "item": "(1)",
+        "expr": "0.2*20+2",
+        "expect": "6",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "2/0.2",
+        "expect": "10",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "6/(20+40)",
+        "expect": "0.1",
+        "tolerance": 1e-09
+      },
+      {
+        "kind": "units",
+        "item": "(1)",
+        "expr": "I*R1+U2",
+        "units": {
+          "I": "A",
+          "R1": "Ohm",
+          "U2": "V"
+        },
+        "expect": "A"
+      },
+      {
+        "kind": "units",
+        "item": "(3)",
+        "expr": "U/(R1+R3)",
+        "units": {
+          "U": "V",
+          "R1": "Ohm",
+          "R3": "Ohm"
+        },
+        "expect": "A"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "U=6 V"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "R2=10 Ω"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "I=0.1 A"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "model_kept": true,
+      "units_checked": true,
+      "direction_range": true,
+      "figure_consistent": true,
+      "junior_method": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

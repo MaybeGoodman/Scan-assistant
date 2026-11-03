@@ -1,0 +1,196 @@
+{
+  "question_id": "qM06",
+  "slot": 2,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "一辆小车从静止开始做匀加速直线运动，在前"
+          },
+          {
+            "type": "math",
+            "latex": "4\\,\\mathrm{s}"
+          },
+          {
+            "type": "text",
+            "text": "内通过的位移为"
+          },
+          {
+            "type": "math",
+            "latex": "20\\,\\mathrm{m}"
+          },
+          {
+            "type": "text",
+            "text": "，随后匀速运动"
+          },
+          {
+            "type": "math",
+            "latex": "6\\,\\mathrm{s}"
+          },
+          {
+            "type": "text",
+            "text": "，最后匀减速运动"
+          },
+          {
+            "type": "math",
+            "latex": "2.5\\,\\mathrm{s}"
+          },
+          {
+            "type": "text",
+            "text": "停止。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "text": "（1）求小车运动过程中的最大速度；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "text": "（2）求匀减速阶段加速度的大小；",
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "text": "（3）求小车运动的总位移。",
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "匀变速直线运动规律",
+      "多过程运动"
+    ],
+    "method": "分段列式，速度在阶段间传递",
+    "question_type": "多阶段运动计算（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "三段运动、三小问，第（2）（3）问依赖第（1）问",
+    "difference_from_source": "加速阶段条件由加速度改为位移，需用平均速度求最大速度",
+    "difference_from_siblings": "条件呈现转换"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "10 m/s"
+      },
+      {
+        "item": "(2)",
+        "answer": "4 m/s²"
+      },
+      {
+        "item": "(3)",
+        "answer": "92.5 m"
+      }
+    ],
+    "solution": "x1=v t1/2，v=2×20/4=10 m/s；a3=10/2.5=4 m/s²；x=20+60+12.5=92.5 m。",
+    "checks": [
+      {
+        "kind": "arith",
+        "item": "(1)",
+        "expr": "2*20/4",
+        "expect": "10"
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "10/2.5",
+        "expect": "4"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "20+10*6+10/2*2.5",
+        "expect": "92.5"
+      },
+      {
+        "kind": "units",
+        "item": "(1)",
+        "expr": "x/t",
+        "units": {
+          "x": "m",
+          "t": "s"
+        },
+        "expect": "m/s"
+      },
+      {
+        "kind": "units",
+        "item": "(2)",
+        "expr": "v/t",
+        "units": {
+          "v": "m/s",
+          "t": "s"
+        },
+        "expect": "m/s^2"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "10 m/s"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "4 m/s²"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "92.5 m"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "model_kept": true,
+      "units_signs": true,
+      "initial_boundary": true,
+      "chained_quantities": true,
+      "figure_consistent": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

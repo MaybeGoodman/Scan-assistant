@@ -67,7 +67,7 @@ block id 使用 `p<页码>-<序号>`，如 `p3-1`，合并时 id 冲突会报错
 python <skill-dir>/scripts/export_docx.py reviewed.json --output result.docx --report work/result.review.json --word-confirmed
 ```
 
-`--word-confirmed` 只用于记录已得到的用户选择，不得替代真实确认。导出器需要 `python-docx`、Pillow、`lxml`；数学转换另需 `latex2mathml`。保留可编辑文字、原生 Word 表格及嵌入图片，不用整页扫描图代替正文。数学公式经 LaTeX 转换为原生可编辑 OMML，化学表达式保留 LaTeX 源码文本。二者均不能用图片替代。
+`--word-confirmed` 只用于记录已得到的用户选择，不得替代真实确认。导出器需要 `python-docx`、Pillow、`lxml`；数学转换另需 `latex2mathml`。保留可编辑文字、原生 Word 表格及嵌入图片，不用整页扫描图代替正文。数学公式经 LaTeX 转换为原生可编辑 OMML；化学表达式默认直接显示，规则见表达式规则中的化学一节；用户明确要求时可传 `--chemistry-format source` 保留源码。二者均不能用图片替代。原题版与学生版用 `--output-mode original|student` 区分，交付状态（正式或草稿）见 [题目结构与输出模式](questions.md)。
 
 导出后读取复核 JSON；语法/转换失败、识别不确定或有补充记录的项目必须回看原图。转换失败位置为 `XXX`，原始源码只留在内部记录。依赖缺失或输入结构错误会阻止导出，应解决具体问题，不能声称已完成。`--report` 未指定时报告与 Word 同名，扩展名为 `.review.json`；两个文件均禁止覆盖已有文件。
 
@@ -75,4 +75,4 @@ python <skill-dir>/scripts/export_docx.py reviewed.json --output result.docx --r
 
 打开生成文件核对段落顺序、表格合并、空白格、公式、插图及页覆盖。用宿主可用的 DOCX 渲染器逐页检查，修复溢出、遮挡、缺字和不合理断页后交付。若缺少渲染器，至少重新读取 DOCX 内容和结构，明确说明未完成视觉验证，不宣称排版已验证。清理规则针对输出文档，不修改原 PDF。
 
-交付最终 `.docx` 下载链接，不附整份 JSON、OCR 日志或页面 PNG，除非用户要求。没有文件生成能力时说明限制，不改成交付 HTML 冒充 Word。
+交付最终 `.docx` 下载链接，不附整份 JSON、OCR 日志或页面 PNG，除非用户要求。交付状态为 `draft` 时，链接旁用一句话说明这是待复核草稿及待复核的位置。没有文件生成能力时说明限制，不改成交付 HTML 冒充 Word。

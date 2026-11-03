@@ -1,0 +1,10 @@
+{
+  "resolutions": [
+    {
+      "key": "inference:blocks[1].runs[4]:43aa434c582e",
+      "resolution": "confirmed",
+      "by": "host",
+      "note": "回看原图：数字上半部分残笔为“6”的圆弧，与题意（匀速阶段时长）一致"
+    }
+  ]
+}

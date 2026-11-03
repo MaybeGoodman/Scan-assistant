@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M01",
+  "source": {
+    "file": "orig.figures-reviewed.json",
+    "sha256": "edca3a620acebfe28a9761cf933985a4a0d4f082404ec0011f430cf5e19fd804"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM01",
+      "number": "18",
+      "module": "M01",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": []
+        },
+        {
+          "number": "(3)",
+          "depends_on": [
+            1
+          ]
+        }
+      ],
+      "has_materials": false,
+      "has_figures": true,
+      "source_text": "18．如图，在\\triangleABC中，AB=AC，D是BC的中点，连接AD，DE\\perpAB于点E。（1）求证：\\angleBAD=\\angleCAD；（2）若AB=10，BC=12，求AD的长；（3）在（2）的条件下，求DE的长。",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM01-v1-a1",
+      "question_id": "qM01",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM01-v1-a1.json",
+      "sha256": "a110b1d809160e5591ea8e41b662da6684a36d3ee2989125408cce7530182b5d",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "sqrt(13**2-5**2) = 12，期望 12"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "5*12/13 = 4.61538，期望 4.61538"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.689,
+      "similarity_to_siblings": {},
+      "text": "如图，在\\triangleABC中，AB=AC=13，BC=10，D为BC的中点，DE\\perpAB，垂足为E。（1）求证：AD\\perpBC；（2）求AD的长；（3）求DE的长。"
+    },
+    {
+      "candidate_id": "qM01-v2-a1",
+      "question_id": "qM01",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM01-v2-a1.json",
+      "sha256": "5a9086455888ffd36619b702e294aa01174a3089a75877bf3009cfc256d98534",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "(36-16)/2 = 10，期望 10"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "sqrt(10**2-8**2) = 6，期望 6"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "8*6/10 = 4.8，期望 4.8"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.765,
+      "similarity_to_siblings": {
+        "qM01-v1-a1": 0.697
+      },
+      "text": "如图，等腰\\triangleABC的周长为36，底边BC=16，AB=AC，点D是BC的中点，过D作DE\\perpAB于E。（1）求证：\\angleBAD=\\angleCAD；（2）求腰长AB及AD的长；（3）求DE的长。"
+    },
+    {
+      "candidate_id": "qM01-v3-a1",
+      "question_id": "qM01",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM01-v3-a1.json",
+      "sha256": "c5e1cfaea86b5f7feac6e6be33cc87b3243a328dc8df912ad03913e8e6ba423e",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2*sqrt(17**2-15**2) = 16，期望 16"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "8*15/17 = 7.05882，期望 7.05882"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.839,
+      "similarity_to_siblings": {
+        "qM01-v1-a1": 0.766,
+        "qM01-v2-a1": 0.823
+      },
+      "text": "如图，在\\triangleABC中，AB=AC=17，D是BC的中点，AD=15，DE\\perpAB于点E。（1）求证：\\angleBAD=\\angleCAD；（2）求BC的长；（3）求DE的长。"
+    }
+  ]
+}

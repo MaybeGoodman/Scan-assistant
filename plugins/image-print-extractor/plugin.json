@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "image-print-extractor",
-  "version": "0.8.1",
-  "description": "提取图片与 PDF 主体印刷内容，支持可选教学插图黑白重绘；数学转 Word 原生公式，化学保留 LaTeX。",
+  "version": "1.0.0",
+  "description": "提取图片与 PDF 主体印刷内容，可导出原题版或去答案学生版，支持教学插图黑白重绘；Word 中数学为原生公式、化学直接显示；按完整原题生成三道经验证的同类题。",
   "author": {
     "name": "MaybeGoodman"
   },
@@ -12,14 +12,15 @@
     "printed-text",
     "latex",
     "education",
-    "chinese"
+    "chinese",
+    "practice"
   ],
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "图片印刷体提取",
-        "shortDescription": "主体印刷内容提取与可选教学插图黑白重绘",
-        "longDescription": "按语义保留主体、表格和印刷答案，过滤无关广告、水印及宣传二维码，不确定时保留。可选识别并重绘教学插图（开始前与输出格式一并确认）：技术图优先 SVG/PNG，结构和标注对照校验，失败保留文字。Word 确认独立，数学转可编辑 OMML，化学保留 LaTeX 源码；看不清处可推断补写并标注，不解题。",
+        "shortDescription": "主体印刷内容提取、教学插图黑白重绘与同类题生成",
+        "longDescription": "按语义保留主体、表格和印刷答案，过滤无关广告、水印及宣传二维码，不确定时保留。可选识别并重绘教学插图（开始前与输出格式一并确认）：技术图优先 SVG/PNG，结构和标注对照校验。Word 确认独立，数学转可编辑 OMML，化学直接显示可编辑；原题版保留印刷答案，学生版去除答案；看不清处推断补写并标注，含待复核内容只交付带标记草稿。提取后可按完整原题（含全部小问）为初高中数学、物理、化学、英语生成三道同类题，逐题内部求解验证，学生版无答案，可出 Word。",
         "developerName": "MaybeGoodman",
         "category": "Productivity",
         "capabilities": [
@@ -29,7 +30,8 @@
         "defaultPrompt": [
           "提取主体印刷内容，保留公式和表格；开始前一次确认输出格式和是否重绘有效教学插图。",
           "把 PDF 的印刷内容整理成 Word，去除无关水印和杂文字。",
-          "提取文字，并把有效教学插图重绘成白底黑色规范图，校验结构和标注。"
+          "提取文字，并把有效教学插图重绘成白底黑色规范图，校验结构和标注。",
+          "把第 18 题按原题生成 3 道同类题，出学生版 Word。"
         ],
         "brandColor": "#F4B875",
         "composerIcon": "./assets/icon.png",

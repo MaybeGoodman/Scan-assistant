@@ -1,0 +1,255 @@
+{
+  "question_id": "qM05",
+  "slot": 2,
+  "variant": {
+    "blocks": [
+      {
+        "type": "text",
+        "id": "stem1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "设函数"
+          },
+          {
+            "type": "math",
+            "latex": "g(x)=2x^2-4ax+6"
+          },
+          {
+            "type": "text",
+            "text": "，其中"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "为实数。"
+          }
+        ],
+        "role": "stem"
+      },
+      {
+        "type": "text",
+        "id": "s1",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（1）已知"
+          },
+          {
+            "type": "math",
+            "latex": "x=1"
+          },
+          {
+            "type": "text",
+            "text": "是方程"
+          },
+          {
+            "type": "math",
+            "latex": "g(x)=0"
+          },
+          {
+            "type": "text",
+            "text": "的一个根，求"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s2",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（2）当"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "取（1）中的值时，求"
+          },
+          {
+            "type": "math",
+            "latex": "g(x)"
+          },
+          {
+            "type": "text",
+            "text": "在"
+          },
+          {
+            "type": "math",
+            "latex": "[0,4]"
+          },
+          {
+            "type": "text",
+            "text": "上的最大值与最小值；"
+          }
+        ],
+        "role": "subquestion"
+      },
+      {
+        "type": "text",
+        "id": "s3",
+        "runs": [
+          {
+            "type": "text",
+            "text": "（3）若对任意"
+          },
+          {
+            "type": "math",
+            "latex": "x\\in[2,3]"
+          },
+          {
+            "type": "text",
+            "text": "，都有"
+          },
+          {
+            "type": "math",
+            "latex": "g(x)\\geq 0"
+          },
+          {
+            "type": "text",
+            "text": "，求"
+          },
+          {
+            "type": "math",
+            "latex": "a"
+          },
+          {
+            "type": "text",
+            "text": "的取值范围。"
+          }
+        ],
+        "role": "subquestion"
+      }
+    ],
+    "stem": [
+      "stem1"
+    ],
+    "materials": [],
+    "subquestions": [
+      {
+        "number": "(1)",
+        "blocks": [
+          "s1"
+        ],
+        "depends_on": []
+      },
+      {
+        "number": "(2)",
+        "blocks": [
+          "s2"
+        ],
+        "depends_on": [
+          "(1)"
+        ]
+      },
+      {
+        "number": "(3)",
+        "blocks": [
+          "s3"
+        ],
+        "depends_on": []
+      }
+    ]
+  },
+  "design": {
+    "knowledge_points": [
+      "二次函数解析式",
+      "闭区间最值",
+      "恒成立与分离参数"
+    ],
+    "method": "代入求参→配方讨论对称轴→分离参数结合基本不等式或单调性",
+    "question_type": "函数综合（三小问）",
+    "difficulty": "same",
+    "difficulty_evidence": "第（2）问依赖第（1）问，第（3）问独立，与原题同梯度",
+    "difference_from_source": "二次项系数改为2；第（3）问极值点√3不在[2,3]内，需讨论单调性",
+    "difference_from_siblings": "边界情形：最小值在区间端点取得"
+  },
+  "internal": {
+    "answers": [
+      {
+        "item": "(1)",
+        "answer": "a=2"
+      },
+      {
+        "item": "(2)",
+        "answer": "最大值6，最小值-2"
+      },
+      {
+        "item": "(3)",
+        "answer": "a≤7/4"
+      }
+    ],
+    "solution": "a=2，g=2x²−8x+6，顶点x=2，最小−2，g(0)=g(4)=6；a≤(x²+3)/(2x)，h(x)=(x+3/x)/2在[2,3]递增，最小h(2)=7/4。",
+    "checks": [
+      {
+        "kind": "substitute",
+        "item": "(1)",
+        "equation": "2*x**2-4*a*x+6 = 0",
+        "vars": {
+          "x": "1",
+          "a": "2"
+        }
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "2*2**2-8*2+6",
+        "expect": "-2"
+      },
+      {
+        "kind": "arith",
+        "item": "(2)",
+        "expr": "2*4**2-8*4+6",
+        "expect": "6"
+      },
+      {
+        "kind": "arith",
+        "item": "(3)",
+        "expr": "(2+3/2)/2",
+        "expect": "7/4"
+      },
+      {
+        "kind": "semantic",
+        "item": "(1)",
+        "independent_answer": "a=2"
+      },
+      {
+        "kind": "semantic",
+        "item": "(2)",
+        "independent_answer": "最大值6，最小值-2"
+      },
+      {
+        "kind": "semantic",
+        "item": "(3)",
+        "independent_answer": "a≤7/4"
+      }
+    ]
+  },
+  "review": {
+    "checklist": {
+      "core_idea": true,
+      "domain_parameters": true,
+      "boundary_cases": true,
+      "solution_set": true,
+      "geometry_proof": true
+    },
+    "notes": [
+      "独立复核：重新求解全部小问并逐项核对 checklist"
+    ]
+  }
+}

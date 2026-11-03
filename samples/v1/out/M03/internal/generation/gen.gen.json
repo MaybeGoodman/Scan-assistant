@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "run_id": "gen",
+  "base": "/home/claude/scan-assistant/samples/v1/work/M03",
+  "source": {
+    "file": "orig.reviewed.json",
+    "sha256": "4179a3b16e945348ad6cc7097e100e3213a08f39c1bf5cd886f80ad2cb0b502e"
+  },
+  "difficulty": "same",
+  "max_attempts": 3,
+  "task_context": {
+    "learner": null,
+    "scope_override": null,
+    "note": "仅作用于本次任务，不保存为长期档案"
+  },
+  "targets": [
+    {
+      "question_id": "qM03",
+      "number": "16",
+      "module": "M03",
+      "subquestions": [
+        {
+          "number": "(1)",
+          "depends_on": []
+        },
+        {
+          "number": "(2)",
+          "depends_on": [
+            0
+          ]
+        },
+        {
+          "number": "(3)",
+          "depends_on": [
+            1
+          ]
+        }
+      ],
+      "has_materials": false,
+      "has_figures": false,
+      "source_text": "16．实验室用氯酸钾（\\mathrm{KClO_3}）和二氧化锰（\\mathrm{MnO_2}）的混合物加热制取氧气。（1）写出该反应的化学方程式；（2）若完全反应后生成氧气9.6\\,\\mathrm{g}，求参加反应的氯酸钾的质量；（3）若原混合物共30.0\\,\\mathrm{g}，求反应后剩余固体中二氧化锰的质量分数（结果精确到0.1%）。",
+      "target": 3,
+      "slots": {
+        "1": [],
+        "2": [],
+        "3": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "qM03-v1-a1",
+      "question_id": "qM03",
+      "slot": 1,
+      "attempt": 1,
+      "file": "candidates/qM03-v1-a1.json",
+      "sha256": "a5d66b2d1c168bb74d111d6c50fc8d79176aa03684addba46ea1e19872f3b531",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "balance",
+          "item": "(1)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2*(39+35.5+48) = 245，期望 245"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "4.8*245/96 = 12.25，期望 12.25"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "(16.0-12.25)/(16.0-4.8)*100 = 33.4821，期望 33.5"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.78,
+      "similarity_to_siblings": {},
+      "text": "加热氯酸钾（\\mathrm{KClO_3}）与二氧化锰（\\mathrm{MnO_2}）的混合物制取氧气，完全反应后共收集到氧气4.8\\,\\mathrm{g}。（1）写出该反应的化学方程式；（2）求参加反应的氯酸钾的质量；（3）若原混合物的质量为16.0\\,\\mathrm{g}，求反应后剩余固体中二氧化锰的质量分数（结果精确到0.1%）。"
+    },
+    {
+      "candidate_id": "qM03-v2-a1",
+      "question_id": "qM03",
+      "slot": 2,
+      "attempt": 1,
+      "file": "candidates/qM03-v2-a1.json",
+      "sha256": "bad7134afc3626450a903d9a1f1e429d454b562b63f575e367c3cb9c8deab9a5",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "balance",
+          "item": "(1)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2*(39+35.5+48) = 245，期望 245"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "4.8*245/96 = 12.25，期望 12.25"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "(20.0-12.25)/(20.0-4.8)*100 = 50.9868，期望 51"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.751,
+      "similarity_to_siblings": {
+        "qM03-v1-a1": 0.902
+      },
+      "text": "加热一定质量的氯酸钾（\\mathrm{KClO_3}）和二氧化锰（\\mathrm{MnO_2}）的混合物，完全反应后称得固体质量比反应前减少了4.8\\,\\mathrm{g}。（1）写出该反应的化学方程式；（2）求参加反应的氯酸钾的质量；（3）若原混合物的质量为20.0\\,\\mathrm{g}，求反应后剩余固体中二氧化锰的质量分数（结果精确到0.1%）。"
+    },
+    {
+      "candidate_id": "qM03-v3-a1",
+      "question_id": "qM03",
+      "slot": 3,
+      "attempt": 1,
+      "file": "candidates/qM03-v3-a1.json",
+      "sha256": "0082ee15a59325baf3dc0645325e398ab6f1d0fc398deef27184e64fb7340e0c",
+      "status": "passed",
+      "checks": [
+        {
+          "kind": "balance",
+          "item": "(1)",
+          "ok": true,
+          "detail": "元素与电荷守恒"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "2*(39+35.5+48) = 245，期望 245"
+        },
+        {
+          "kind": "arith",
+          "item": "(2)",
+          "ok": true,
+          "detail": "14.4*245/96 = 36.75，期望 36.75"
+        },
+        {
+          "kind": "arith",
+          "item": "(3)",
+          "ok": true,
+          "detail": "(40.0-36.75)/(40.0-14.4)*100 = 12.6953，期望 12.7"
+        },
+        {
+          "kind": "semantic",
+          "item": "(1)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(2)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        },
+        {
+          "kind": "semantic",
+          "item": "(3)",
+          "ok": true,
+          "detail": "独立求解与答案一致"
+        }
+      ],
+      "failures": [],
+      "similarity_to_source": 0.655,
+      "similarity_to_siblings": {
+        "qM03-v1-a1": 0.721,
+        "qM03-v2-a1": 0.739
+      },
+      "text": "某同学称取氯酸钾（\\mathrm{KClO_3}）和二氧化锰（\\mathrm{MnO_2}）的混合物40.0\\,\\mathrm{g}，加热至不再产生气体，冷却后称得剩余固体25.6\\,\\mathrm{g}。（1）写出该反应的化学方程式；（2）求参加反应的氯酸钾的质量；（3）求剩余固体中二氧化锰的质量分数（结果精确到0.1%）。"
+    }
+  ]
+}
