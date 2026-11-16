@@ -289,6 +289,10 @@ def review_template(ledger):
         row = {'figure_id':record['figure_id'],'attempt':entry['attempt']}
         row.update({k:entry[k] for k in ('source_sha256','png_sha256','svg_sha256') if k in entry})
         row.update(reviewed_by='host_vision',status=None,notes=[],checks={check:None for check in CHECKS})
+        if entry.get('font_fallback'):
+            # REQUIREMENTS 25.1: serif label fonts were unavailable; the review may be minor_issue at best.
+            row['font_fallback'] = True
+            row['notes'].append('font_fallback: 标注未使用衬线字体，状态最高为 minor_issue')
         # view_files only points at what must be looked at; review_candidate never reads it.
         row['view_files'] = {'source':sources[record['figure_id']],'png':entry['png_path']}
         if entry.get('svg_path'): row['view_files']['svg'] = entry['svg_path']
@@ -315,6 +319,8 @@ def review_candidate(entry, review, base):
         raise ValueError('Review must come from host comparison of original and candidate')
     if status in {'pass','minor_issue'} and not all(checks.values()):
         raise ValueError('Critical visual failures cannot pass as minor issues')
+    if entry.get('font_fallback') and status=='pass':
+        raise ValueError('标注字体已降级（font_fallback），复核状态最高为 minor_issue')
     check_black_white(local_path(base,entry['png_path']))
     return status
 
@@ -403,6 +409,7 @@ def complete(ledger, reviews, base):
             block['svg_path'] = entry['svg_path']
             block['redraw'] = {k:deepcopy(entry[k]) for k in ('source_sha256','png_sha256','drawing_method','review')}
             if 'svg_sha256' in entry: block['redraw']['svg_sha256']=entry['svg_sha256']
+            if entry.get('font_fallback'): block['redraw']['font_fallback']=True
             block['figure'] = {k:deepcopy(record[k]) for k in ('figure_id','source_page','source_bbox','parent_block_id','figure_type','figure_group_id')}
             blocks.append(block)
         else:
