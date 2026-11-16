@@ -7,9 +7,14 @@ unchanged validate_scene/validate_structure/render. It never infers scientific c
 
 Standard sizes (scene units, size=1, orientation "h"; the local origin is the component centre,
 except axes, whose origin is the axis origin):
-  lamp r=12; resistor 36x14; rheostat 44x14 with slider 13 above; battery 12 per cell + 8 leads;
-  switch contacts 32 apart, open blade rises 13; switch_spdt 32 wide, contacts +-12;
-  ammeter/voltmeter/motor r=13; meter_dial arc radius 60 over 210-330 degrees;
+  Circuit symbols follow the textbook style of docs/style-reference/circuit-sample.png
+  (REQUIREMENTS 19.1), all drawn with CIRCUIT_STROKE:
+  lamp r=12 with an x reaching the circle; resistor 36x12; rheostat 48x12 with a 24-high slider
+  ending in a solid arrowhead touching the body; battery: per cell a short thick line then a long
+  thin line, 6 apart, no link wires, 8 leads; switch: hollow pivot circle at -16, lead ends at +16,
+  open blade rises ~28 degrees; switch_spdt pivot at -16, contacts at +16/-12 and +16/+12;
+  ammeter/voltmeter/motor r=15.5 with an upright serif letter; junction default r=2;
+  meter_dial arc radius 60 over 210-330 degrees;
   beaker 60x72; test_tube 16x78; flask bulb r=28, neck 14 wide; alcohol_lamp 52 wide;
   iron_stand base 90x10, rod 132 high; thermometer tube 8 wide, 105 long, bulb r=7;
   asbestos_net 70x6; axes 160x110 by default.
@@ -26,6 +31,8 @@ EXTENDED = {'component', 'wire', 'junction'}
 ROUTES = {'direct', 'hv', 'vh', 'manual'}
 WIRE_KEYS = {'id', 'kind', 'from', 'to', 'route', 'via', 'connection', 'stroke_width', 'dash', 'arrow'}
 COMPONENT_KEYS = {'id', 'kind', 'type', 'object_id', 'at', 'orientation', 'size', 'params'}
+CIRCUIT_STROKE = 1.0       # wires and circuit symbols share one width; only the battery's short line is thicker
+CIRCUIT_TYPES = {'lamp', 'resistor', 'rheostat', 'battery', 'switch', 'switch_spdt', 'ammeter', 'voltmeter', 'motor'}
 JUNCTION_KEYS = {'id', 'kind', 'at', 'object_id', 'radius'}
 
 
@@ -72,30 +79,34 @@ class Parts:
             fields['fill'] = fill
         self.add(name, 'circle', **fields)
 
-    def text(self, name, at, value, size=15, anchor='middle', centre=True):
+    def text(self, name, at, value, size=15, anchor='middle', centre=True, style=None):
         """Fixed component text. With centre=True, at is the visual centre and the baseline is placed
-        below it after rotation, so letters stay centred and upright in rotated components."""
-        self.add(name, 'label', at=list(at), size=size, anchor=anchor, symbol=True,
-                 baseline=size * .35 if centre else 0, **runs_of(value, name))
+        below it after rotation, so letters stay centred and upright in rotated components.
+        style: 'upright' / 'italic', or None for the automatic convention (letters italic, digits upright)."""
+        fields = dict(at=list(at), size=size, anchor=anchor, symbol=True, baseline=size * .35 if centre else 0)
+        if style:
+            fields['style'] = style
+        self.add(name, 'label', **fields, **runs_of(value, name))
 
 
-def letter_meter(parts, letter, subscript, size=15):
-    parts.circle('circle', (0, 0), 13)
+def letter_meter(parts, letter, subscript, size=20):
+    """Meter: circle r=15.5 (about 1.3 lamp diameters) with an upright serif letter (19.1, 25.1)."""
+    parts.circle('circle', (0, 0), 15.5, width=CIRCUIT_STROKE)
     value = letter if not subscript else [{'text': letter}, {'text': str(subscript), 'script': 'sub'}]
-    parts.text('letter', (0, 0), value, size)
-    parts.terminals.update(a=(-13, 0), b=(13, 0))
+    parts.text('letter', (0, 0), value, size, style='upright')
+    parts.terminals.update(a=(-15.5, 0), b=(15.5, 0))
 
 
 def c_lamp(p, _):
     d = 12 * math.sqrt(.5)
-    p.circle('circle', (0, 0), 12)
-    p.line('x1', (-d, -d), (d, d))
-    p.line('x2', (-d, d), (d, -d))
+    p.circle('circle', (0, 0), 12, width=CIRCUIT_STROKE)
+    p.line('x1', (-d, -d), (d, d), width=CIRCUIT_STROKE)
+    p.line('x2', (-d, d), (d, -d), width=CIRCUIT_STROKE)
     p.terminals.update(a=(-12, 0), b=(12, 0))
 
 
 def c_resistor(p, _):
-    p.add('body', 'rect', at=[-18, -7], width=36, height=14, stroke_width=1.5)
+    p.add('body', 'rect', at=[-18, -6], width=36, height=12, stroke_width=CIRCUIT_STROKE)
     p.terminals.update(a=(-18, 0), b=(18, 0))
 
 
@@ -103,10 +114,12 @@ def c_rheostat(p, q):
     slider = num(q.get('slider', .5), 'rheostat.slider')
     if not 0 <= slider <= 1:
         raise ValueError('rheostat.slider 应在 0–1 之间')
-    x = -22 + 44 * slider
-    p.add('body', 'rect', at=[-22, -7], width=44, height=14, stroke_width=1.5)
-    p.line('slider', (x, -20), (x, -7), arrow='end')
-    p.terminals.update(a=(-22, 0), b=(22, 0), p=(x, -20))
+    x = -24 + 48 * slider
+    p.add('body', 'rect', at=[-24, -6], width=48, height=12, stroke_width=CIRCUIT_STROKE)
+    # Slider: a vertical line one lamp-diameter high ending in a slim solid arrowhead whose tip touches the body.
+    p.line('slider', (x, -30), (x, -15), width=CIRCUIT_STROKE)
+    p.add('slider_head', 'polygon', points=[[x, -6], [x - 3, -16], [x + 3, -16]], fill='black', stroke_width=.5)
+    p.terminals.update(a=(-24, 0), b=(24, 0), p=(x, -30))
 
 
 def c_battery(p, q):
@@ -116,47 +129,66 @@ def c_battery(p, q):
     positive = q.get('positive', 'a')
     if positive not in {'a', 'b'}:
         raise ValueError('battery.positive 只能为 a 或 b')
+    # Textbook cell (19.1): long thin line = positive, short thick line = negative, 6 apart; cells sit
+    # side by side at the same pitch with no link wires; leads touch the outermost lines.
     inner = 12 * cells - 6
     half = inner / 2 + 8
     left = -half + 8
     for k in range(cells):
         x0, x1 = left + 12 * k, left + 12 * k + 6
         long_x, short_x = (x0, x1) if positive == 'a' else (x1, x0)
-        p.line(f'long{k + 1}', (long_x, -11), (long_x, 11))
-        p.line(f'short{k + 1}', (short_x, -6), (short_x, 6), width=3)
-        if k:
-            p.line(f'link{k}', (x0 - 6, 0), (x0, 0))
-    p.line('lead_a', (-half, 0), (left, 0))
-    p.line('lead_b', (left + inner, 0), (half, 0))
+        p.line(f'long{k + 1}', (long_x, -10.5), (long_x, 10.5), width=CIRCUIT_STROKE)
+        p.line(f'short{k + 1}', (short_x, -5.5), (short_x, 5.5), width=3 * CIRCUIT_STROKE)
+    p.line('lead_a', (-half, 0), (left, 0), width=CIRCUIT_STROKE)
+    p.line('lead_b', (left + inner, 0), (half, 0), width=CIRCUIT_STROKE)
     if q.get('mark_positive'):
-        p.text('plus', ((-half + 4) if positive == 'a' else (half - 4), -16), '+', 12)
+        p.text('plus', ((-half + 4) if positive == 'a' else (half - 4), -16), '+', 12, style='upright')
     p.terminals.update(a=(-half, 0), b=(half, 0))
+
+
+PIVOT_R = 3          # hollow pivot circle of a switch (19.1)
+BLADE_ANGLE = 28     # degrees above the lead line when open
+BLADE_LENGTH = 32    # about the pivot-to-lead gap, as in the reference figure
 
 
 def contact(p, name, at):
     p.circle(name, at, 2.2, fill='black', width=1)
 
 
+def pivot(p, at=(-16, 0)):
+    p.circle('pivot', at, PIVOT_R, fill='white', width=CIRCUIT_STROKE)
+
+
+def blade(p, angle, length=BLADE_LENGTH, start=(-16, 0)):
+    """Blade from the pivot circle's edge; angle in degrees, negative y is up."""
+    t = math.radians(angle)
+    x0, y0 = start[0] + PIVOT_R * math.cos(t), start[1] + PIVOT_R * math.sin(t)
+    p.line('blade', (round(x0, 4), round(y0, 4)),
+           (round(x0 + length * math.cos(t), 4), round(y0 + length * math.sin(t), 4)), width=CIRCUIT_STROKE)
+
+
 def c_switch(p, q):
     state, side = q.get('state', 'open'), q.get('blade_side', 'up')
     if state not in {'open', 'closed'} or side not in {'up', 'down'}:
         raise ValueError('switch.state 只能为 open/closed，blade_side 只能为 up/down')
-    contact(p, 'contact_a', (-16, 0))
-    contact(p, 'contact_b', (16, 0))
-    lift = -13 if side == 'up' else 13
-    p.line('blade', (-16, 0), (16, 0) if state == 'closed' else (11, lift))
-    p.terminals.update(a=(-16, 0), b=(16, 0))
+    pivot(p)
+    if state == 'closed':
+        blade(p, 0, 16 + 16 - PIVOT_R)
+    else:
+        blade(p, -BLADE_ANGLE if side == 'up' else BLADE_ANGLE)
+    p.terminals.update(a=(-16 - PIVOT_R, 0), b=(16, 0))
 
 
 def c_switch_spdt(p, q):
     to = q.get('to', 'b')
     if to not in {'b', 'c'}:
         raise ValueError('switch_spdt.to 只能为 b 或 c')
-    contact(p, 'contact_a', (-16, 0))
+    pivot(p)
     contact(p, 'contact_b', (16, -12))
     contact(p, 'contact_c', (16, 12))
-    p.line('blade', (-16, 0), (14, -11) if to == 'b' else (14, 11))
-    p.terminals.update(a=(-16, 0), b=(16, -12), c=(16, 12))
+    angle = math.degrees(math.atan2(-12 if to == 'b' else 12, 32))
+    blade(p, angle, math.hypot(32, 12) - PIVOT_R - 2.2)
+    p.terminals.update(a=(-16 - PIVOT_R, 0), b=(16, -12), c=(16, 12))
 
 
 def c_ammeter(p, q):
@@ -544,7 +576,7 @@ def expand_scene(scene, *, understanding=None, font_path=None):
         eid = element.get('id') if isinstance(element, dict) else None
         if isinstance(eid, str) and '/' in eid:
             raise ValueError(f'元素 id 不能包含 "/"（保留给组件展开）：{eid}')
-    terminals, owners, junctions = {}, {}, {}
+    terminals, owners, junctions, circuit_ids = {}, {}, {}, set()
     elements = []
     for element in scene['elements']:
         if not isinstance(element, dict):
@@ -555,16 +587,19 @@ def expand_scene(scene, *, understanding=None, font_path=None):
             elements.extend(parts)
             terminals[element['id']] = points
             owners[element['id']] = element['object_id']
+            if element.get('type') in CIRCUIT_TYPES:
+                circuit_ids.add(element['id'])
         elif element.get('kind') == 'junction':
             unknown = set(element) - JUNCTION_KEYS
             if unknown:
                 raise ValueError(f'节点 {element.get("id")} 含不支持的字段 {sorted(unknown)}')
             at = pt(element.get('at'), f'节点 {element.get("id")} 的 at')
             dot = {'id': element['id'], 'kind': 'circle', 'center': at,
-                   'radius': num(element.get('radius', 2.5), '节点半径'), 'fill': 'black', 'stroke_width': 1}
+                   'radius': num(element.get('radius', 2 * CIRCUIT_STROKE), '节点半径'), 'fill': 'black', 'stroke_width': 1}
             if element.get('object_id'):
                 dot['object_id'] = element['object_id']
             junctions[element['id']] = (at, element.get('object_id'))
+            circuit_ids.add(element['id'])
             elements.append(dot)
         else:
             elements.append(element)
@@ -608,8 +643,11 @@ def expand_scene(scene, *, understanding=None, font_path=None):
             if a == b:
                 raise ValueError(f'导线 {wid} 两端属于同一对象 {a}，请写明 connection 或检查端点')
             connection = [a, b]
+        # Circuit wires share the symbol stroke (19.1); apparatus connections keep the general 1.5.
+        ends = [str(element.get(k)).partition('.')[0] for k in ('from', 'to')]
+        default_width = CIRCUIT_STROKE if all(e in circuit_ids for e in ends) else 1.5
         out = {'id': wid, 'kind': 'line' if len(points) == 2 else 'polyline', 'points': points,
-               'connection': connection, 'stroke_width': element.get('stroke_width', 1.5)}
+               'connection': connection, 'stroke_width': element.get('stroke_width', default_width)}
         for key in ('dash', 'arrow'):
             if key in element:
                 out[key] = element[key]
@@ -621,20 +659,12 @@ def expand_scene(scene, *, understanding=None, font_path=None):
 
 
 def label_box(element, font_path):
-    from figure_drawing import get_font, label_runs
+    from figure_drawing import layout_label
     from PIL import Image, ImageDraw
     draw = ImageDraw.Draw(Image.new('L', (1, 1)))
-    x, y = element['at']
-    size = element.get('size', 18)
-    runs = label_runs(element)
-    fonts = [get_font(max(1, round(size * (1 if r['script'] == 'normal' else .7))), r['text'], font_path) for r in runs]
-    widths = [font.getlength(r['text']) for font, r in zip(fonts, runs)]
-    cursor = x - sum(widths) * {'start': 0, 'middle': .5, 'end': 1}[element.get('anchor', 'start')]
-    boxes = []
-    for font, run, width in zip(fonts, runs, widths):
-        shift = 0 if run['script'] == 'normal' else size * (.22 if run['script'] == 'sub' else -.4)
-        boxes.append(draw.textbbox((cursor, y + shift), run['text'], font=font, anchor='ls'))
-        cursor += width
+    laid = layout_label(element, font_path)
+    boxes = [draw.textbbox((run['dx'], laid['y'] + run['dy']), run['text'], font=run['font'], anchor='ls')
+             for run in laid['runs']]
     return [min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes)]
 
 

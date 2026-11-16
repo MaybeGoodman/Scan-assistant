@@ -62,7 +62,7 @@ Codex 中上传图片后输入：
 
 ## 更新
 
-Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前候选功能版本为 `1.0.1`（修复 1.0.0 独立验收问题 F01–F07，待复验），0.8.1、1.0.0 与 1.0.1 的行为差异见 [更新记录](CHANGELOG.md)。
+Codex：已从此 GitHub 来源安装的用户先运行 `codex plugin marketplace upgrade scan-assistant` 刷新来源，再在插件目录更新或重新安装“图片印刷体提取”，并开启新任务。当前候选功能版本为 `1.1.0`（电路元件教材画法与衬线标注字体；1.0.1 的 F01–F07 修复仍待复验），各版本行为差异见 [更新记录](CHANGELOG.md)。
 
 Claude：添加市场时开启“自动同步”即可随仓库更新；Claude Code 用户运行 `claude plugin marketplace update scan-assistant` 后重新安装或更新插件。
 
@@ -107,7 +107,7 @@ HTML 是完整图文表结果；Markdown 在表格原位链接 HTML 表格。聊
 
 当前有效需求见 [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md)，开发规则见 [AGENTS.md](AGENTS.md)。运行时按 [图片重绘流程](plugins/image-print-extractor/skills/image-print-extractor/references/figure-redraw.md) 使用 `figure_workflow.py plan / generate / complete`；结构化绘制由 `figure_drawing.py` 执行，复用 Pillow，不新增独立 OCR、绘图库或外部服务依赖。
 
-新图片任务通过 `figure_task` 接入原有 blocks，检测、分类及源结构由宿主看图提供，导出前必须完成图片模式和视觉复核。旧版已复核 JSON 仍支持原 PNG 导出；这只是接口兼容，不覆盖新任务的 ignore／preserve／redraw 规则。自动结构检查和复核哈希仅验证已声明结构及具体产物，不能独立证明视觉理解或所有科学关系正确。中文标注需可用中文字体；复杂照片不属于首阶段核心范围。Word 嵌入兼容 PNG，独立 SVG 可编辑，不宣称 PNG 为 Word 原生绘图对象。
+新图片任务通过 `figure_task` 接入原有 blocks，检测、分类及源结构由宿主看图提供，导出前必须完成图片模式和视觉复核。旧版已复核 JSON 仍支持原 PNG 导出；这只是接口兼容，不覆盖新任务的 ignore／preserve／redraw 规则。自动结构检查和复核哈希仅验证已声明结构及具体产物，不能独立证明视觉理解或所有科学关系正确。拉丁标注默认使用随包的 STIX Two Text 衬线字体（OFL，斜体符号／正体数字，见需求 25.1），缺失时回退并标记 `font_fallback`；中文标注需可用中文字体；复杂照片不属于首阶段核心范围。Word 嵌入兼容 PNG，独立 SVG 可编辑，不宣称 PNG 为 Word 原生绘图对象。
 
 ## 仓库结构
 
@@ -154,10 +154,10 @@ python -X utf8 samples/v1/build_samples.py stage2
 
 `stage1` 会在插图复核处停下，复核结论来自 `samples/v1/reviews/`，内容是开发侧看图后填写的。
 
-测试共 204 项，还覆盖组件展开与画布自适配、原图回退、强制分批与续做、PDF 页范围与分批合并、流水线编排、合并确认解析、主体筛选、范围覆盖、UNKNOWN 保留、重叠保护、手写单元格清空及筛选到 HTML/DOCX 的完整流程；18 个语义场景使用已标注候选，不能替代模型看图分类测试。测试覆盖 HTML 转义、合并单元格、空白、图文顺序、PNG、路径限制、不覆盖已有输出，以及 OMML 二维结构、字体、混排、化学源码和转换失败。识别行为及 Word 应用验收见 [验收清单](docs/acceptance.md)，自动化测试不代表 OCR 准确率或所有 Word 版本的排版保证。
+测试共 281 项，还覆盖电路元件教材画法与标注字体定体／降级、组件展开与画布自适配、原图回退、强制分批与续做、PDF 页范围与分批合并、流水线编排、合并确认解析、主体筛选、范围覆盖、UNKNOWN 保留、重叠保护、手写单元格清空及筛选到 HTML/DOCX 的完整流程；18 个语义场景使用已标注候选，不能替代模型看图分类测试。测试覆盖 HTML 转义、合并单元格、空白、图文顺序、PNG、路径限制、不覆盖已有输出，以及 OMML 二维结构、字体、混排、化学源码和转换失败。识别行为及 Word 应用验收见 [验收清单](docs/acceptance.md)，自动化测试不代表 OCR 准确率或所有 Word 版本的排版保证。
 
 本次规则冲突处理与验证边界见 [0.4.0 更新核对](docs/main-content-update.md) 和 [测试报告](docs/main-content-test-report.md)。
 
-0.5.0 差异分析、兼容性和验证边界见 [图片重绘开发记录](docs/figure-redraw-development.md)。受控绘图样例可用 `python tests/generate_figure_cases.py --output <目录>` 生成，不能替代真实扫描和宿主新会话验收。
+0.5.0 差异分析、兼容性和验证边界见 [图片重绘开发记录](docs/figure-redraw-development.md)。 1.1.0 电路元件画法与标注字体的差异分析和验证结果见 [开发记录](docs/circuit-style-development.md)。受控绘图样例可用 `python tests/generate_figure_cases.py --output <目录>` 生成，不能替代真实扫描和宿主新会话验收。
 
 图标与 Logo 由仓库所有者提供，原文件直接复制。未替所有者指定开源许可证。

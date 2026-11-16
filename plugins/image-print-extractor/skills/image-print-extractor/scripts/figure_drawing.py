@@ -12,6 +12,29 @@ KINDS = {'line', 'polyline', 'polygon', 'circle', 'ellipse', 'rect', 'arc', 'cur
 CHECKS = ('subject_count','connections','labels','arrow_directions','relative_positions',
           'geometry','coordinates','black_white','completeness','no_unrelated_elements','scientific_meaning')
 MIN_PNG = (200, 150)  # Smallest accepted figure PNG (width, height) in pixels.
+STYLES = {'italic', 'upright'}
+# Label typography (REQUIREMENTS 25.1): bundled OFL serif first, then system serif fonts, then the
+# former sans-serif list as a flagged fallback. CJK runs keep the system CJK fonts.
+FONT_DIR = Path(__file__).resolve().parent.parent / 'assets' / 'fonts'
+SERIF_FONTS = {
+    'upright': [FONT_DIR / 'STIXTwoText-Regular.ttf', 'C:/Windows/Fonts/times.ttf',
+                '/usr/share/texmf/fonts/opentype/public/lm/lmroman10-regular.otf',
+                '/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf',
+                '/usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf'],
+    'italic': [FONT_DIR / 'STIXTwoText-Italic.ttf', 'C:/Windows/Fonts/timesi.ttf',
+               '/usr/share/texmf/fonts/opentype/public/lm/lmroman10-italic.otf',
+               '/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf',
+               '/usr/share/fonts/truetype/liberation2/LiberationSerif-Italic.ttf'],
+}
+SANS_FONTS = ['C:/Windows/Fonts/arial.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+              '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf', 'DejaVuSans.ttf']
+CJK_FONTS = ['C:/Windows/Fonts/msyh.ttc', 'C:/Windows/Fonts/simsun.ttc',
+             '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc', '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc']
+SVG_FONT_FAMILY = 'STIX Two Text,Times New Roman,Latin Modern Roman,Liberation Serif,Noto Sans CJK SC,Microsoft YaHei,serif'
+# Multi-letter tokens that are set upright even though they are all letters (units, function names).
+UPRIGHT_WORDS = {'cm', 'mm', 'km', 'kg', 'mL', 'ml', 'min', 'Pa', 'kPa', 'Hz', 'kW', 'kN', 'sin', 'cos', 'tan',
+                 'lg', 'ln', 'log', 'max', 'const'}
+SUB_SCALE, SUB_SHIFT, SUP_SHIFT = .7, .25, -.4
 
 
 def sha256(path):
@@ -40,9 +63,46 @@ def label_runs(element):
         if (not isinstance(run, dict) or not isinstance(run.get('text'), str)
                 or not run['text'] or '\n' in run['text']
                 or run.get('script', 'normal') not in {'normal', 'sub', 'sup'}
-                or set(run) - {'text', 'script'}):
+                or run.get('style', 'upright') not in STYLES
+                or set(run) - {'text', 'script', 'style'}):
             raise ValueError('Invalid label run')
+    if element.get('style', 'upright') not in STYLES:
+        raise ValueError('Label style must be italic or upright')
+    # Content only: style is typography and never part of the source-label comparison.
     return [{'text': run['text'], 'script': run.get('script', 'normal')} for run in runs]
+
+
+def auto_style(text):
+    """Textbook convention: letter symbols italic; digits, units, punctuation and CJK upright."""
+    stripped = text.strip()
+    if not stripped or stripped in UPRIGHT_WORDS:
+        return 'upright'
+    if all(('A' <= c <= 'Z') or ('a' <= c <= 'z') or ('α' <= c <= 'ω') for c in stripped):
+        return 'italic'
+    return 'upright'
+
+
+def looks_chemical(runs):
+    """Element symbols stay upright. Recognised: a capital followed by a lowercase letter (Na, Cl),
+    two or more capitals right before a subscript (CO₂), or letters after a sub/superscript (H₂O).
+    Single-letter formulas such as O₂ are not recognised and need style: "upright"."""
+    for index, run in enumerate(runs):
+        text, script = run['text'], run.get('script', 'normal')
+        if any('A' <= a <= 'Z' and 'a' <= b <= 'z' for a, b in zip(text, text[1:])):
+            return True
+        following = runs[index + 1].get('script', 'normal') if index + 1 < len(runs) else 'normal'
+        if script == 'normal' and following == 'sub' and sum('A' <= c <= 'Z' for c in text) >= 2:
+            return True
+        if script != 'normal' and index + 1 < len(runs) and any(c.isalpha() for c in runs[index + 1]['text']):
+            return True
+    return False
+
+
+def label_styles(element):
+    """Per-run style: run.style, else element.style, else the automatic convention."""
+    runs = element.get('runs', [{'text': element.get('text')}])
+    default = element.get('style') or ('upright' if looks_chemical(runs) else None)
+    return [run.get('style') or default or auto_style(run['text']) for run in runs]
 
 
 def samples(element):
@@ -93,7 +153,7 @@ def validate_scene(scene, understanding=None):
     ids = set()
     allowed = {'id','kind','object_id','points','center','radius','rx','ry','at','width',
                'height','start','end','fill','stroke_width','dash','arrow','text','runs',
-               'size','anchor','label_id','connection','symbol'}
+               'size','anchor','label_id','connection','symbol','style'}
     for element in elements:
         if not isinstance(element, dict) or set(element) - allowed:
             extra = sorted(set(element) - allowed) if isinstance(element, dict) else []
@@ -239,16 +299,7 @@ def validate_structure(scene, expected):
             raise ValueError('Curve trend differs from source')
 
 
-def get_font(size, text, font_path=None):
-    cjk = any('\u2e80' <= char <= '\uffff' for char in text)
-    candidates = [font_path] if font_path else ([
-        'C:/Windows/Fonts/msyh.ttc', 'C:/Windows/Fonts/simsun.ttc',
-        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-        '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
-    ] if cjk else []) + [
-        'C:/Windows/Fonts/arial.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-        '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf', 'DejaVuSans.ttf',
-    ]
+def _load(candidates, size, text):
     for candidate in candidates:
         if not candidate:
             continue
@@ -260,7 +311,58 @@ def get_font(size, text, font_path=None):
             return font
         except OSError:
             continue
-    raise ValueError('No font supports the labels; provide --font (CJK labels need a CJK font)')
+    return None
+
+
+def pick_font(size, text, font_path=None, style='upright'):
+    """Return (font, fallback). An explicit font_path is final and never falls back. Otherwise CJK
+    text uses the system CJK fonts; other text uses the bundled/system serif of the wanted style and
+    only then the sans-serif list, which is reported as fallback=True (REQUIREMENTS 25.1)."""
+    if font_path:
+        font = _load([font_path], size, text)
+        if font is None:
+            raise ValueError('No font supports the labels; provide --font (CJK labels need a CJK font)')
+        return font, False
+    cjk = any('⺀' <= char <= '￿' for char in text)
+    if cjk:
+        font = _load(CJK_FONTS, size, text)
+        if font is None:
+            raise ValueError('No font supports the labels; provide --font (CJK labels need a CJK font)')
+        return font, False
+    if style not in STYLES:
+        raise ValueError('Label style must be italic or upright')
+    font = _load(SERIF_FONTS[style], size, text)
+    if font is not None:
+        return font, False
+    font = _load(SANS_FONTS, size, text)
+    if font is None:
+        raise ValueError('No font supports the labels; provide --font (CJK labels need a CJK font)')
+    return font, True
+
+
+def get_font(size, text, font_path=None, style='upright'):
+    return pick_font(size, text, font_path, style)[0]
+
+
+def layout_label(element, font_path=None, scale=1):
+    """Shared by render and canvas fitting: fonts, per-run x offsets, baseline shifts (in scaled pixels).
+    Returns {'x', 'y', 'runs': [{'text','script','style','font','dx','dy','width'}], 'fallback'}."""
+    x, y = point(element['at'])
+    size = element.get('size', 18)
+    runs, styles = label_runs(element), label_styles(element)
+    laid, fallback, widths = [], False, []
+    for run, style in zip(runs, styles):
+        run_size = max(1, round(size * scale * (1 if run['script'] == 'normal' else SUB_SCALE)))
+        font, fell = pick_font(run_size, run['text'], font_path, style)
+        fallback = fallback or fell
+        widths.append(font.getlength(run['text']))
+        laid.append({**run, 'style': style, 'font': font, 'width': widths[-1],
+                     'dy': 0 if run['script'] == 'normal' else size * scale * (SUB_SHIFT if run['script'] == 'sub' else SUP_SHIFT)})
+    cursor = x * scale - sum(widths) * {'start': 0, 'middle': .5, 'end': 1}[element.get('anchor', 'start')]
+    for run in laid:
+        run['dx'] = cursor
+        cursor += run['width']
+    return {'x': x, 'y': y, 'size': size, 'runs': laid, 'fallback': fallback}
 
 
 def dashed_segments(points, dash):
@@ -304,30 +406,29 @@ def render(scene, svg_path, png_path, *, understanding=None, scale=3, font_path=
     draw = ImageDraw.Draw(image)
     def scaled(pts):
         return [(round(x*scale),round(y*scale)) for x,y in pts]
+    font_fallback = False
     for element in scene['elements']:
         kind,pts = element['kind'],samples(element)
         stroke = element.get('stroke_width',1.5)
         if kind == 'label':
-            x,y = pts[0]
-            size = element.get('size',18)
-            runs = label_runs(element)
-            fonts = [get_font(round(size*scale*(1 if r['script']=='normal' else .7)),r['text'],font_path) for r in runs]
-            widths = [font.getlength(r['text']) for font,r in zip(fonts,runs)]
-            anchor = element.get('anchor','start')
-            cursor = x*scale - sum(widths)*({'start':0,'middle':.5,'end':1}[anchor])
+            laid = layout_label(element, font_path, scale)
+            font_fallback = font_fallback or laid['fallback']
+            x,y,size = laid['x'],laid['y'],laid['size']
             text = ET.SubElement(root,'{'+SVG+'}text',{'x':str(x),'y':str(y),'fill':'black','font-size':str(size),
-                'font-family':'Noto Sans CJK SC,Microsoft YaHei,DejaVu Sans,sans-serif','text-anchor':anchor})
-            for font,run,width in zip(fonts,runs,widths):
-                shift = 0 if run['script']=='normal' else size*scale*(.22 if run['script']=='sub' else -.4)
-                box = draw.textbbox((cursor,y*scale+shift),run['text'],font=font,anchor='ls')
+                'font-family':SVG_FONT_FAMILY,'text-anchor':element.get('anchor','start')})
+            for run in laid['runs']:
+                origin = (run['dx'], y*scale+run['dy'])
+                box = draw.textbbox(origin,run['text'],font=run['font'],anchor='ls')
                 if box[0]<0 or box[1]<0 or box[2]>image.width or box[3]>image.height:
                     raise ValueError(f'Label would be clipped; enlarge canvas or move the label：元素 {element["id"]}，'
                                      f'外框 {[round(v / scale, 1) for v in box]}，画布 {w:g}×{h:g}')
-                draw.text((cursor,y*scale+shift),run['text'],font=font,fill='black',anchor='ls')
-                span = ET.SubElement(text,'{'+SVG+'}tspan',{'baseline-shift':{'normal':'baseline','sub':'sub','sup':'super'}[run['script']],
-                    'font-size':str(size*(1 if run['script']=='normal' else .7))})
+                draw.text(origin,run['text'],font=run['font'],fill='black',anchor='ls')
+                attrs = {'baseline-shift':{'normal':'baseline','sub':'sub','sup':'super'}[run['script']],
+                         'font-size':str(size*(1 if run['script']=='normal' else SUB_SCALE))}
+                if run['style'] == 'italic':
+                    attrs['font-style'] = 'italic'
+                span = ET.SubElement(text,'{'+SVG+'}tspan',attrs)
                 span.text = run['text']
-                cursor += width
             continue
         if kind in {'polygon','rect','circle','ellipse'} and element.get('fill','none') != 'none':
             draw.polygon(scaled(pts),fill=element['fill'])
@@ -371,7 +472,10 @@ def render(scene, svg_path, png_path, *, understanding=None, scale=3, font_path=
     except Exception:
         for path in created: path.unlink(missing_ok=True)
         raise
-    return {'png_sha256':sha256(png_path),'svg_sha256':sha256(svg_path),'size':list(image.size)}
+    result = {'png_sha256':sha256(png_path),'svg_sha256':sha256(svg_path),'size':list(image.size)}
+    if font_fallback:
+        result['font_fallback'] = True  # serif fonts unavailable; review may not pass as 'pass'
+    return result
 
 
 def check_black_white(path):
@@ -412,7 +516,7 @@ def safe_svg(path):
     tags={'svg','rect','polygon','polyline','path','circle','ellipse','text','tspan'}
     attrs={'width','height','viewBox','fill','stroke','stroke-width','stroke-linejoin','stroke-linecap',
            'stroke-dasharray','id','points','d','cx','cy','r','rx','ry','x','y','font-size','font-family',
-           'text-anchor','baseline-shift'}
+           'text-anchor','baseline-shift','font-style'}
     if root.tag!='{'+SVG+'}svg': raise ValueError('Expected SVG root')
     for element in root.iter():
         if element.tag not in {'{'+SVG+'}'+tag for tag in tags} or set(element.attrib)-attrs:

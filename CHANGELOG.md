@@ -1,5 +1,15 @@
 # 更新记录
 
+## 1.1.0（候选）
+
+实现需求第 19.1、25.1 节（样式基准 `docs/style-reference/`），开发记录见 `docs/circuit-style-development.md`。
+
+- **电路元件教材画法（`figure_components.py`）**：电池每节为短粗负极线＋长细正极线、等距排列、不画节间连线；滑动变阻器电阻体 48×12，滑片竖线高 24 并以实心三角箭头触及电阻体；电表与电动机圆半径 15.5（约灯泡直径 1.3 倍）、字母正体；开关改为空心转轴圆＋从圆边出发的刀片（断开约 28°，闭合水平），右端不再画实心触点；定值电阻高度改为 12。电路元件、两端均为电路元件或节点的导线统一线宽 1.0，节点默认半径 2；实验器材及其连接线保持 1.5。
+  - **行为变更**：开关 `a` 端子移到空心圆外侧（-19），滑动变阻器 `p` 端子由 -20 移到 -30，手写 via 坐标的旧场景可能出现斜线或越界，需调整 via；旧已复核 JSON 不受影响。
+- **标注字体（`figure_drawing.py`）**：随包 STIX Two Text Regular／Italic（OFL，`assets/fonts/`）；按教材惯例自动定体（字母符号斜体，数字、单位、化学式正体），图元或 run 可用 `style` 显式指定；下标下沉由 0.22 调为 0.25；SVG `font-family` 改为衬线链并给斜体 run 加 `font-style`。随包字体缺失时依次查找 Times New Roman、Latin Modern、Liberation Serif，再回退无衬线字体并在 attempt、复核模板和 block.redraw 中标记 `font_fallback`；带该标记的复核不能填 pass。`--font` 行为不变。
+- 画布自适配的标签外框改用与渲染相同的排版函数，避免两处计算不一致。
+- 新增 `tests/test_circuit_style.py`（11 项）；三份插件清单升至 1.1.0；技能参考、README、验收清单同步。
+
 ## 1.0.1（候选，待复验）
 
 修复 1.0.0 独立验收（2026-11-03，提交 `722ccbd`）复现的 F01–F07。验收原始失败输入均保留为回归测试（`tests/test_acceptance_fixes.py`，36 项）。

@@ -190,7 +190,8 @@ class ComponentTests(unittest.TestCase):
                  'orientation': orientation}]}
             letter = next(e for e in expand_scene(value, understanding=source)['elements'] if e['id'] == 'A/letter')
             self.assertEqual(letter['at'][0], 60, orientation)
-            self.assertAlmostEqual(letter['at'][1], 60 + 15 * .35, delta=.01)
+            self.assertAlmostEqual(letter['at'][1], 60 + letter['size'] * .35, delta=.01)
+            self.assertEqual(letter['style'], 'upright')  # 25.1: meter letters are upright
 
     def test_every_component_renders_in_each_allowed_orientation(self):
         examples = {'rheostat': {'slider': .2}, 'battery': {'cells': 3, 'positive': 'b', 'mark_positive': True},

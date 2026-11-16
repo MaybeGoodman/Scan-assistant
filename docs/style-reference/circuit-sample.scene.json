@@ -1,0 +1,327 @@
+{
+ "fit": {
+  "margin": 16
+ },
+ "structure": {
+  "objects": [
+   {
+    "id": "B",
+    "kind": "battery",
+    "params": {
+     "cells": 2
+    }
+   },
+   {
+    "id": "R",
+    "kind": "rheostat"
+   },
+   {
+    "id": "L",
+    "kind": "lamp"
+   },
+   {
+    "id": "V",
+    "kind": "voltmeter"
+   },
+   {
+    "id": "A",
+    "kind": "ammeter"
+   },
+   {
+    "id": "S",
+    "kind": "switch",
+    "params": {
+     "state": "open"
+    }
+   },
+   {
+    "id": "j1",
+    "kind": "node"
+   }
+  ],
+  "labels": [
+   {
+    "id": "lR",
+    "target": "R",
+    "text": "R"
+   },
+   {
+    "id": "lP",
+    "target": "R",
+    "text": "P"
+   },
+   {
+    "id": "lL",
+    "target": "L",
+    "text": "L"
+   },
+   {
+    "id": "lS",
+    "target": "S",
+    "text": "S"
+   }
+  ],
+  "arrows": [],
+  "connections": [
+   [
+    "B",
+    "R"
+   ],
+   [
+    "R",
+    "j1"
+   ],
+   [
+    "j1",
+    "L"
+   ],
+   [
+    "L",
+    "A"
+   ],
+   [
+    "A",
+    "S"
+   ],
+   [
+    "S",
+    "B"
+   ],
+   [
+    "V",
+    "B"
+   ],
+   [
+    "V",
+    "j1"
+   ]
+  ]
+ },
+ "elements": [
+  {
+   "id": "B",
+   "kind": "component",
+   "type": "battery",
+   "object_id": "B",
+   "at": [
+    100,
+    110
+   ],
+   "params": {
+    "cells": 2,
+    "positive": "b"
+   }
+  },
+  {
+   "id": "R",
+   "kind": "component",
+   "type": "rheostat",
+   "object_id": "R",
+   "at": [
+    200,
+    110
+   ],
+   "params": {
+    "slider": 0.5
+   }
+  },
+  {
+   "id": "j1",
+   "kind": "junction",
+   "at": [
+    300,
+    110
+   ],
+   "object_id": "j1"
+  },
+  {
+   "id": "L",
+   "kind": "component",
+   "type": "lamp",
+   "object_id": "L",
+   "at": [
+    300,
+    150
+   ],
+   "orientation": "v"
+  },
+  {
+   "id": "V",
+   "kind": "component",
+   "type": "voltmeter",
+   "object_id": "V",
+   "at": [
+    180,
+    30
+   ]
+  },
+  {
+   "id": "A",
+   "kind": "component",
+   "type": "ammeter",
+   "object_id": "A",
+   "at": [
+    220,
+    220
+   ]
+  },
+  {
+   "id": "S",
+   "kind": "component",
+   "type": "switch",
+   "object_id": "S",
+   "at": [
+    80,
+    220
+   ],
+   "params": {
+    "state": "open"
+   }
+  },
+  {
+   "id": "w1",
+   "kind": "wire",
+   "from": "B.b",
+   "to": "R.a"
+  },
+  {
+   "id": "w2",
+   "kind": "wire",
+   "from": "R.p",
+   "to": "j1",
+   "route": "manual",
+   "via": [
+    [
+     200,
+     70
+    ],
+    [
+     260,
+     70
+    ],
+    [
+     260,
+     110
+    ]
+   ]
+  },
+  {
+   "id": "w3",
+   "kind": "wire",
+   "from": "j1",
+   "to": "L.a"
+  },
+  {
+   "id": "w4",
+   "kind": "wire",
+   "from": "L.b",
+   "to": "A.b",
+   "route": "vh"
+  },
+  {
+   "id": "w5",
+   "kind": "wire",
+   "from": "A.a",
+   "to": "S.b"
+  },
+  {
+   "id": "w6",
+   "kind": "wire",
+   "from": "S.a",
+   "to": "B.a",
+   "route": "manual",
+   "via": [
+    [
+     30,
+     220
+    ],
+    [
+     30,
+     110
+    ]
+   ]
+  },
+  {
+   "id": "w7",
+   "kind": "wire",
+   "from": "V.a",
+   "to": "B.a",
+   "route": "manual",
+   "via": [
+    [
+     30,
+     30
+    ],
+    [
+     30,
+     110
+    ]
+   ]
+  },
+  {
+   "id": "w8",
+   "kind": "wire",
+   "from": "V.b",
+   "to": "j1",
+   "route": "manual",
+   "via": [
+    [
+     300,
+     30
+    ]
+   ]
+  },
+  {
+   "id": "lR",
+   "kind": "label",
+   "object_id": "R",
+   "label_id": "lR",
+   "at": [
+    200,
+    135
+   ],
+   "anchor": "middle",
+   "size": 14,
+   "text": "R"
+  },
+  {
+   "id": "lP",
+   "kind": "label",
+   "object_id": "R",
+   "label_id": "lP",
+   "at": [
+    194,
+    92
+   ],
+   "anchor": "end",
+   "size": 14,
+   "text": "P"
+  },
+  {
+   "id": "lL",
+   "kind": "label",
+   "object_id": "L",
+   "label_id": "lL",
+   "at": [
+    290,
+    180
+   ],
+   "anchor": "end",
+   "size": 14,
+   "text": "L"
+  },
+  {
+   "id": "lS",
+   "kind": "label",
+   "object_id": "S",
+   "label_id": "lS",
+   "at": [
+    70,
+    240
+   ],
+   "anchor": "middle",
+   "size": 14,
+   "text": "S"
+  }
+ ]
+}
