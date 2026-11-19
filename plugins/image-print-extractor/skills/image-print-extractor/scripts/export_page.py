@@ -1,10 +1,10 @@
 """Export already-transcribed blocks as offline HTML and Markdown."""
 import argparse
 import html
-import json
 import shutil
 import struct
 from pathlib import Path
+from _common import local_path, read_json, sha256
 from content_blocks import plain_source, reviewed_blocks
 from latex_validation import validate_latex
 from questions import DRAFT_NOTICE, MODES, delivery_status, project, review_items
@@ -42,35 +42,31 @@ def table_html(block, *, validate_chemistry=False):
 
 
 def image_source(base, relative):
-    path = Path(relative)
-    if path.is_absolute() or '..' in path.parts:
-        raise ValueError('Image path must stay inside input directory')
-    source = (base / path).resolve()
-    if not source.is_relative_to(base.resolve()) or source.suffix.lower() != '.png':
+    source = local_path(base, relative, error_message='Image path must stay inside input directory')
+    if source.suffix.lower() != '.png':
         raise ValueError('Only local PNG images are supported')
-    data = source.read_bytes()
-    if len(data) < 24 or data[:8] != b'\x89PNG\r\n\x1a\n' or data[12:16] != b'IHDR':
+    with source.open('rb') as stream:
+        header = stream.read(24)
+    if len(header) < 24 or header[:8] != b'\x89PNG\r\n\x1a\n' or header[12:16] != b'IHDR':
         raise ValueError('Invalid PNG header')
-    width, height = struct.unpack('>II', data[16:24])
+    width, height = struct.unpack('>II', header[16:24])
     if not width or not height:
         raise ValueError('Invalid PNG size')
     return source
 
 
 def figure_assets(base, block):
-    image=image_source(base,block['path'])
-    svg=None
+    image = image_source(base, block['path'])
+    svg = None
     if 'redraw' in block:
-        from figure_drawing import check_black_white, safe_svg, sha256, validate_redraw_metadata
+        from figure_drawing import check_black_white, safe_svg, validate_redraw_metadata
         validate_redraw_metadata(block)
-        if sha256(image)!=block['redraw']['png_sha256']:
+        if sha256(image) != block['redraw']['png_sha256']:
             raise ValueError('Redrawn PNG changed after visual validation')
         check_black_white(image)
         if block.get('svg_path'):
-            relative=Path(block['svg_path'])
-            svg=(base/relative).resolve()
-            if (relative.is_absolute() or '..' in relative.parts or not svg.is_relative_to(base.resolve())
-                    or svg.suffix.lower()!='.svg' or sha256(svg)!=block['redraw']['svg_sha256']):
+            svg = local_path(base, block['svg_path'], error_message='Invalid or changed reviewed SVG')
+            if svg.suffix.lower() != '.svg' or sha256(svg) != block['redraw']['svg_sha256']:
                 raise ValueError('Invalid or changed reviewed SVG')
             safe_svg(svg)
         if 'fallback' in block:
@@ -78,10 +74,9 @@ def figure_assets(base, block):
     elif block.get('svg_path'):
         raise ValueError('SVG companion needs validated redraw provenance')
     if 'fallback' in block:
-        from figure_drawing import sha256
-        if sha256(image)!=block['fallback']['source_sha256']:
+        if sha256(image) != block['fallback']['source_sha256']:
             raise ValueError('回退原图与记录的哈希不一致，原图可能已被修改')
-    return image,svg
+    return image, svg
 
 
 def export(source, output, *, output_mode='original', extra_review=()):
@@ -93,10 +88,10 @@ def export_result(source, output, *, output_mode='original', extra_review=()):
     if output_mode not in MODES:
         raise ValueError('output_mode must be original or student')
     source, output = Path(source).resolve(), Path(output).resolve()
-    loaded = json.loads(source.read_text(encoding='utf-8'))
+    loaded = read_json(source)
     reviewed_blocks(loaded)
     projected, removed = project(loaded, output_mode)
-    blocks = reviewed_blocks(projected)
+    blocks = projected['blocks'] if output_mode == 'original' else reviewed_blocks(projected)
     items = review_items(projected, mode=output_mode, extra=extra_review)
     delivery, open_items = delivery_status(items)
     fragments, markdown, copies = [], [], []

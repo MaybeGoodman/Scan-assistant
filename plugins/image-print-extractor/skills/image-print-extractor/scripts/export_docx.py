@@ -7,12 +7,11 @@ from docx import Document
 from docx.shared import Cm, Pt
 from docx.oxml.ns import qn
 from PIL import Image
+from _common import CHEMISTRY_FORMATS, read_json
 from export_page import figure_assets, table_html
 from content_blocks import parts, check_word_text, reviewed_blocks
 from formulas import FormulaError, to_omml, validate_latex, node
 from questions import DRAFT_NOTICE, MODES, delivery_status, project, review_items, student_leak_strings
-
-CHEMISTRY_FORMATS = ('native', 'source')
 
 
 def paragraph_layout(blocks, index):
@@ -132,7 +131,7 @@ def mark_draft(document, count):
 
 
 def export_docx(source, output, *, word_confirmed=False, report_path=None, output_mode='original',
-                chemistry_format='native', extra_review=(), forbidden=()):
+                chemistry_format='native', extra_review=(), forbidden=(), asset_base=None):
     if word_confirmed is not True:
         raise ValueError('Confirm Word output with the user first')
     if output_mode not in MODES:
@@ -140,6 +139,7 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None, outpu
     if chemistry_format not in CHEMISTRY_FORMATS:
         raise ValueError('chemistry_format must be native or source')
     source, output = Path(source).resolve(), Path(output).resolve()
+    base = Path(asset_base).resolve() if asset_base is not None else source.parent
     if output.suffix.lower() != '.docx':
         raise ValueError('Output must end in .docx')
     if output.exists():
@@ -149,10 +149,11 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None, outpu
         raise ValueError('Review report must be a separate JSON file')
     if report_path.exists():
         raise FileExistsError(report_path)
-    loaded = json.loads(source.read_text(encoding='utf-8'))
-    reviewed_blocks(loaded)
+    loaded = read_json(source)
+    blocks = reviewed_blocks(loaded)
     projected, removed = project(loaded, output_mode)
-    blocks = reviewed_blocks(projected)
+    if output_mode == 'student':
+        blocks = reviewed_blocks(projected)
     document = Document()
     section = document.sections[0]
     section.page_width, section.page_height = Cm(21), Cm(29.7)
@@ -195,10 +196,9 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None, outpu
                 add_content(cell.paragraphs[0], item, records, f'{location}.cells[{cell_index}]',
                             block.get('source'), chemistry_format=chemistry_format)
         elif kind == 'image':
-            image, _ = figure_assets(source.parent, block)
+            image, _ = figure_assets(base, block)
             with Image.open(image) as pixels:
-                pixels.verify()
-            with Image.open(image) as pixels:
+                pixels.load()
                 width, height = pixels.size
                 dpi = pixels.info.get('dpi', (96, 96))[0]
             # Honour the PNG's own resolution (300 dpi redraws would otherwise be
@@ -220,10 +220,11 @@ def export_docx(source, output, *, word_confirmed=False, report_path=None, outpu
             apply_layout(paragraph, settings)
     for name in ('author', 'last_modified_by', 'comments', 'title', 'subject', 'keywords', 'category'):
         setattr(document.core_properties, name, '')
-    known = {item['location'] for item in review_items(projected, mode=output_mode)}
+    base_items = review_items(projected, mode=output_mode)
+    known = {item['location'] for item in base_items}
     extra = [{'kind': 'expression', 'location': r['location'], 'detail': r.get('reason', '表达式待复核'),
               'content': r['latex']} for r in records if r['status'] == 'needs_review' and r['location'] not in known]
-    items = review_items(projected, mode=output_mode, extra=[*extra, *extra_review])
+    items = review_items(projected, mode=output_mode, extra=[*extra, *extra_review]) if (extra or extra_review) else base_items
     delivery, open_items = delivery_status(items)
     if delivery == 'draft':
         mark_draft(document, len(open_items))

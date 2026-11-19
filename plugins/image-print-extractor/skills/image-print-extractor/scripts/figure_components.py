@@ -644,8 +644,8 @@ def expand_scene(scene, *, understanding=None, font_path=None):
                 raise ValueError(f'导线 {wid} 两端属于同一对象 {a}，请写明 connection 或检查端点')
             connection = [a, b]
         # Circuit wires share the symbol stroke (19.1); apparatus connections keep the general 1.5.
-        ends = [str(element.get(k)).partition('.')[0] for k in ('from', 'to')]
-        default_width = CIRCUIT_STROKE if all(e in circuit_ids for e in ends) else 1.5
+        str_ends = [element[k].partition('.')[0] for k in ('from', 'to') if isinstance(element.get(k), str)]
+        default_width = CIRCUIT_STROKE if str_ends and all(e in circuit_ids for e in str_ends) else 1.5
         out = {'id': wid, 'kind': 'line' if len(points) == 2 else 'polyline', 'points': points,
                'connection': connection, 'stroke_width': element.get('stroke_width', default_width)}
         for key in ('dash', 'arrow'):
@@ -672,12 +672,13 @@ def element_box(element, font_path):
     from figure_drawing import arrow_triangle, samples
     if element['kind'] == 'label':
         return label_box(element, font_path)
-    points = samples(element)
+    base_pts = samples(element)
+    points = list(base_pts)
     arrow = element.get('arrow', 'none')
     if arrow in {'start', 'both'}:
-        points += arrow_triangle(samples(element), element.get('stroke_width', 1.5), True)
+        points += arrow_triangle(base_pts, element.get('stroke_width', 1.5), True)
     if arrow in {'end', 'both'}:
-        points += arrow_triangle(samples(element), element.get('stroke_width', 1.5))
+        points += arrow_triangle(base_pts, element.get('stroke_width', 1.5))
     half = element.get('stroke_width', 1.5) / 2
     xs, ys = [p[0] for p in points], [p[1] for p in points]
     return [min(xs) - half, min(ys) - half, max(xs) + half, max(ys) + half]

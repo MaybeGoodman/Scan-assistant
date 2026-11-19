@@ -5,33 +5,22 @@ It only calls the existing functions in order and manages file names. Every safe
 unfinished tasks) stays inside those functions. It stops wherever host vision is needed.
 """
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import re
 import sys
+from _common import CHEMISTRY_FORMATS, OUTPUT_MODES, RUN_ID, local_path, read_json, replace_atomic, sha256, write_new
 from select_content import CATEGORIES, SCOPES, select_file
 from figure_drawing import CHECKS
-from figure_workflow import FALLBACKS, complete, fallback_choice, generate, local_path, plan, review_template, text_document
-from pdf_batches import load as load_progress, replace_atomic, status as batch_status, write_new
+from figure_workflow import FALLBACKS, complete, fallback_choice, generate, plan, review_template, text_document
+from pdf_batches import load as load_progress, status as batch_status
 
-RUN_ID = re.compile(r'[A-Za-z0-9_-]{1,32}')
 FORMATS = ('html', 'docx')
 MODES = ('ignore', 'preserve', 'redraw')
-OUTPUT_MODES = ('original', 'student')
-CHEMISTRY_FORMATS = ('native', 'source')
 MAX_UNBATCHED_PAGES = 5
 IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.tif', '.tiff'}
 FIGURE_FILE_KEYS = {'understanding', 'redrawable', 'critical_uncertainty', 'simple_schematic',
                     'placeholder_label', 'drawing'}
-
-
-def sha256(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
-def read_json(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
 
 
 def rel(base, path):
@@ -209,6 +198,21 @@ def awaiting(state, run, ledger, attempt):
     return state
 
 
+def retry_needed(state, run, ledger, attempt, reviewed_ledger):
+    state['files']['reviewed_ledger'] = rel(run.base, reviewed_ledger)
+    state.update(status='needs_retry', attempt=attempt, needs_retry=ledger['needs_retry'])
+    render_errors = {r['figure_id']: r['reason'] for r in ledger['records']
+                     if r.get('state') == 'needs_retry' and r.get('reason')}
+    if render_errors:
+        state['render_errors'] = render_errors
+    else:
+        state.pop('render_errors', None)
+    state['next_action'] = (f'为插图 {ledger["needs_retry"]} 各写一个只含 {{"drawing": ...}} 的新文件（放在 candidates.json 目录内），'
+                            '不改 understanding、来源、关联和正文，然后运行 pipeline.py retry --drawing <figure_id>=<文件>'
+                            '（每张图一个 --drawing）')
+    return state
+
+
 def finish_figures(run, state, result, ledger, attempt):
     figures_output = run.at('figures-reviewed.json')
     write_new(figures_output, result)
@@ -219,6 +223,7 @@ def finish_figures(run, state, result, ledger, attempt):
         if processing.get(key):
             state[key] = processing[key]
     state.pop('view_files', None)
+    state.pop('render_errors', None)
     return export_result(run, state, figures_output)
 
 
@@ -296,7 +301,10 @@ def _run(run, state, candidates):
     if any(r['state'] == 'awaiting_validation' for r in ledger['records']):
         return awaiting(state, run, ledger, 1)
     result, ledger = complete(ledger, [], run.base)
-    write_new(run.inwork('reviewed1.json'), ledger)
+    reviewed_ledger = run.inwork('reviewed1.json')
+    write_new(reviewed_ledger, ledger)
+    if ledger['status'] == 'needs_retry':
+        return retry_needed(state, run, ledger, 1, reviewed_ledger)
     state['attempt'] = 1
     state['step'] = 'export'
     return finish_figures(run, state, result, ledger, 1)
@@ -341,13 +349,9 @@ def _review(run, state, reviews_path):
     state.pop('missing_reviews', None)
     reviewed_ledger = run.inwork(f'reviewed{attempt}.json')
     write_new(reviewed_ledger, ledger)
-    state['files']['reviewed_ledger'] = rel(run.base, reviewed_ledger)
     if ledger['status'] == 'needs_retry':
-        state.update(status='needs_retry', needs_retry=ledger['needs_retry'])
-        state['next_action'] = (f'为插图 {ledger["needs_retry"]} 各写一个只含 {{"drawing": ...}} 的新文件（放在 candidates.json 目录内），'
-                                '不改 understanding、来源、关联和正文，然后运行 pipeline.py retry --drawing <figure_id>=<文件>'
-                                '（每张图一个 --drawing）')
-        return state
+        return retry_needed(state, run, ledger, attempt, reviewed_ledger)
+    state['files']['reviewed_ledger'] = rel(run.base, reviewed_ledger)
     state['step'] = 'export'
     state.pop('needs_retry', None)
     return finish_figures(run, state, result, ledger, attempt)
@@ -361,7 +365,16 @@ def retry_command(state_path, source=None, drawings=None):
         raise ValueError('retry 需要 --source 或 --drawing 二选一')
     if source is not None:
         return guarded(run, state, lambda: _retry(run, state, Path(source).resolve()), resumable=True)
-    return guarded(run, state, lambda: _retry(run, state, patch_drawings(run, state, drawings)), resumable=True)
+
+    def retry_patched():
+        target = patch_drawings(run, state, drawings)
+        try:
+            return _retry(run, state, target)
+        except Exception:
+            target.unlink(missing_ok=True)
+            raise
+
+    return guarded(run, state, retry_patched, resumable=True)
 
 
 def parse_drawings(values):
@@ -400,17 +413,17 @@ def patch_drawings(run, state, drawings):
 
 
 def resume(directory):
-    """Read-only overview of runs and PDF batches below a work directory, for continuing after an interruption."""
+    """Read-only overview of runs, PDF batches and variant ledgers below a work directory."""
     directory = Path(directory).resolve()
     if not directory.is_dir():
         raise ValueError(f'不是目录：{directory}')
-    runs, batches = [], []
+    runs, batches, variant_runs = [], [], []
     for path in sorted({*directory.glob('*-work/*.state.json'), *directory.glob('*/*-work/*.state.json')}):
         try:
             state = read_json(path)
             row = {'run_id': state['run_id'], 'status': state['status'], 'next_action': state.get('next_action'),
                    'state': str(path)}
-            for key in ('needs_retry', 'missing_reviews', 'error'):
+            for key in ('needs_retry', 'missing_reviews', 'render_errors', 'error'):
                 if key in state:
                     row[key] = state[key]
             runs.append(row)
@@ -423,8 +436,18 @@ def resume(directory):
                             'complete': info['complete'], 'next_batch': info['next_batch']})
         except (OSError, ValueError, KeyError, TypeError) as exc:
             batches.append({'progress': str(path), 'error': f'无法读取：{exc}'})
+    gen_files = sorted({*directory.glob('*-gen/*.gen.json'), *directory.glob('*/*-gen/*.gen.json')})
+    if gen_files:
+        import variants as variants_mod
+        for path in gen_files:
+            try:
+                info = variants_mod.status(path)
+                variant_runs.append({'ledger': str(path), 'status': info['status'],
+                                     'questions': info['questions'], 'next_action': info['next_action']})
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                variant_runs.append({'ledger': str(path), 'error': f'无法读取：{exc}'})
     runs.sort(key=lambda row: row.get('status') == 'completed')
-    return {'runs': runs, 'batches': batches}
+    return {'runs': runs, 'batches': batches, 'variants': variant_runs}
 
 
 def _retry(run, state, source):
@@ -437,15 +460,26 @@ def _retry(run, state, source):
     ledger = generate(document, run.base, run.images(), mode=state['options']['image_mode'],
                       previous=previous, font_path=state['options']['font'],
                       image_fallback=state['options'].get('image_fallback'))
-    write_new(run.inwork(f'attempt{attempt}.json'), ledger)
-    state['files']['figure_source'] = rel(run.base, source)
-    state.pop('needs_retry', None)
-    if any(r['state'] == 'awaiting_validation' for r in ledger['records']):
-        return awaiting(state, run, ledger, attempt)
-    result, ledger = complete(ledger, [], run.base)
-    write_new(run.inwork(f'reviewed{attempt}.json'), ledger)
-    state['attempt'] = attempt
-    return finish_figures(run, state, result, ledger, attempt)
+    created = []
+    try:
+        attempt_file = run.inwork(f'attempt{attempt}.json')
+        write_new(attempt_file, ledger)
+        created.append(attempt_file)
+        state['files']['figure_source'] = rel(run.base, source)
+        state.pop('needs_retry', None)
+        state.pop('render_errors', None)
+        if any(r['state'] == 'awaiting_validation' for r in ledger['records']):
+            return awaiting(state, run, ledger, attempt)
+        result, ledger = complete(ledger, [], run.base)
+        reviewed_file = run.inwork(f'reviewed{attempt}.json')
+        write_new(reviewed_file, ledger)
+        created.append(reviewed_file)
+        state['attempt'] = attempt
+        return finish_figures(run, state, result, ledger, attempt)
+    except Exception:
+        for path in created:
+            path.unlink(missing_ok=True)
+        raise
 
 
 def finalize_command(state_path, resolutions_path, output):
@@ -472,13 +506,25 @@ def _finalize(run, state, resolutions_path, output):
             raise ValueError(f'复核结论 {row.get("key")} 与当前待复核项不一致（内容已变化或确认已过期），不能沿用')
     source = run.base / state['files']['export_source']
     document = read_json(source)
-    document['review_resolutions'] = rows
+    merged = {r['key']: r for r in document.get('review_resolutions', []) or []
+              if isinstance(r, dict) and 'key' in r}
+    for row in rows:
+        merged[row['key']] = row
+    document['review_resolutions'] = list(merged.values())
     attempt = sum(1 for p in run.work.iterdir() if re.fullmatch(re.escape(run.id) + r'\.final\d+\.json', p.name)) + 1
     final_source = run.at(f'final{attempt}-source.json')
-    write_new(final_source, document)
     record = run.inwork(f'final{attempt}.json')
-    write_new(record, {'resolutions': str(resolutions_path), 'resolutions_sha256': sha256(resolutions_path)})
-    state = export_result(run, state, final_source, output=output, report_name=f'final{attempt}.word.review.json')
+    created = []
+    try:
+        write_new(final_source, document)
+        created.append(final_source)
+        write_new(record, {'resolutions': str(resolutions_path), 'resolutions_sha256': sha256(resolutions_path)})
+        created.append(record)
+        state = export_result(run, state, final_source, output=output, report_name=f'final{attempt}.word.review.json')
+    except Exception:
+        for path in created:
+            path.unlink(missing_ok=True)
+        raise
     state['files']['finalize'] = rel(run.base, record)
     return state
 
@@ -501,7 +547,7 @@ def guarded(run, state, action, *, resumable=False):
 
 
 def summary(state):
-    keys = ('status', 'delivery', 'open_review_items', 'output_mode', 'run_id', 'next_action', 'output', 'view_files', 'needs_retry', 'missing_reviews',
+    keys = ('status', 'delivery', 'open_review_items', 'output_mode', 'run_id', 'next_action', 'output', 'view_files', 'needs_retry', 'render_errors', 'missing_reviews',
             'failed_figures', 'skipped_photos', 'fallback_figures', 'fallback_errors',
             'figures_removed_by_selection', 'uncertain_figures', 'selection_needs_review', 'error')
     result = {k: state[k] for k in keys if k in state}

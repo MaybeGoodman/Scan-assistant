@@ -1,8 +1,8 @@
 """Apply host-reviewed semantic selection; never classify text or modify pixels."""
 import argparse
 from copy import deepcopy
-import json
 from pathlib import Path
+from _common import read_json, write_new
 
 CATEGORIES = frozenset({
     'MAIN_CONTENT', 'SUPPORTING_CONTENT', 'ADVERTISEMENT', 'WATERMARK',
@@ -10,7 +10,7 @@ CATEGORIES = frozenset({
     'PAGE_NUMBER', 'HANDWRITING', 'UNKNOWN',
 })
 NOISE = CATEGORIES - {'MAIN_CONTENT', 'SUPPORTING_CONTENT', 'HANDWRITING', 'UNKNOWN'}
-SCOPES = frozenset({'main', 'body', 'all-printed', 'all-text'})
+SCOPES = frozenset({'main', 'all-printed', 'all-text'})
 
 
 def decision(item, *, scope='main', preserve=(), include_handwriting=False):
@@ -52,16 +52,32 @@ def select_document(document, *, scope='main', preserve=(), include_handwriting=
         raise ValueError('Invalid extraction scope or preserved category')
     records = []
 
+    def has_protected_descendant(node):
+        for key in ('runs', 'cells'):
+            children = node.get(key)
+            if children is None:
+                continue
+            if not isinstance(children, list):
+                raise ValueError(f'{key} must be a list')
+            for child in children:
+                if not isinstance(child, dict):
+                    raise ValueError('Content elements must be objects')
+                if 'selection' in child and decision(child, scope=scope, preserve=preserve,
+                                                     include_handwriting=include_handwriting)[0]:
+                    return True
+                if has_protected_descendant(child):
+                    return True
+        return False
+
     def visit(item, location, *, cell=False):
         if not isinstance(item, dict):
             raise ValueError('Content elements must be objects')
         keep, reason, review = decision(item, scope=scope, preserve=preserve,
                                         include_handwriting=include_handwriting)
-        # Do not let a noise-labelled container swallow protected descendants.
+        # Do not let a noise-labelled container swallow explicitly protected descendants,
+        # while allowing an unannotated ad container's children to be removed with it.
         if not keep and item.get('selection', {}).get('category') != 'HANDWRITING':
-            children = item.get('runs', []) + item.get('cells', [])
-            if any(decision(child, scope=scope, preserve=preserve,
-                            include_handwriting=include_handwriting)[0] for child in children):
+            if has_protected_descendant(item):
                 keep, reason, review = True, 'protect retained descendants', True
         records.append({'location': location, 'source': item.get('source'),
                         'selection': deepcopy(item.get('selection', {})),
@@ -81,6 +97,11 @@ def select_document(document, *, scope='main', preserve=(), include_handwriting=
                 raise ValueError('runs must be a list')
             result['runs'] = [filtered for i, run in enumerate(result['runs'])
                               if (filtered := visit(run, f'{location}.runs[{i}]')) is not None]
+            if not result['runs']:
+                if not cell:
+                    return None
+                result.pop('runs')
+                result['text'] = ''
         if result.get('type') == 'table':
             if not isinstance(result.get('cells'), list):
                 raise ValueError('Table must contain cells')
@@ -107,13 +128,9 @@ def select_file(source, output, report_path, **options):
         raise ValueError('Output and report must be JSON files')
     if output.exists() or report_path.exists():
         raise FileExistsError('Selection output or report already exists')
-    result, report = select_document(json.loads(source.read_text(encoding='utf-8')), **options)
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    # Exclusive creation also protects against a concurrent writer.
-    with report_path.open('x', encoding='utf-8') as handle:
-        json.dump(report, handle, ensure_ascii=False, indent=2)
-    with output.open('x', encoding='utf-8') as handle:
-        json.dump(result, handle, ensure_ascii=False, indent=2)
+    result, report = select_document(read_json(source), **options)
+    write_new(report_path, report)
+    write_new(output, result)
     return output
 
 

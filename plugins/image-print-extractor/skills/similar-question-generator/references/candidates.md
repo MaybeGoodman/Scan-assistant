@@ -68,8 +68,8 @@
 | arith | expr, expect, tolerance | 表达式求值等于期望值（默认精确分数比较） |
 | substitute | equation（恰好一个 `=`）, vars | 代入后左右两边相等 |
 | roots | expr, var, claimed, interval | 所列的根都满足方程。多项式用精确有理系数和 Sturm 序列判定闭区间内的全部不同实根（含偶重根和端点根），有遗漏即失败；非多项式（含除以变量、根号、三角函数等）无法证明没有漏根，结果为“不确定”，候选进入 `needs_review`。interval 端点需为有理数 |
-| units | expr, units, expect | 量纲分析结果等于期望单位（支持 kg、m/s^2、Ohm/Ω、V、A、J、W、Pa 等） |
-| balance | equation，如 `Cu + 2Ag^+ = Cu^2+ + 2Ag` | 元素守恒、电荷守恒（离子电荷写 `^`，电子写 `e-`） |
+| units | expr, units, expect | 量纲分析结果等于期望单位（支持括号与负指数，如 `J/(kg*K)`、`(m/s)^2`、`m/s^2`、`Ohm`/`Ω` 等） |
+| balance | equation，如 `Cu + 2Ag^+ = Cu^2+ + 2Ag`、`Fe^{3+}+3OH^-=Fe(OH)3↓` | 元素守恒、电荷守恒（支持紧凑写法及 `^{...}` 离子电荷，电子写 `e-`） |
 | choice | options, answer, multi | 答案在选项内；单选恰好一个答案；选项内容不重复 |
 | evidence | quote | 证据句确实出现在学生题面中 |
 | semantic | independent_answer, method, uncertain | 独立求解结果与内部答案一致；`uncertain: true` 时候选进入待复核 |

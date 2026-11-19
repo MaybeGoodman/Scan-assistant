@@ -31,7 +31,7 @@ python <skill-dir>/scripts/export_page.py page.json --output-dir result
 
 ## 图形
 
-先记录插图、几何图、示意图、坐标图、流程图的区域和正文关联，完成文字／表格后执行 [图片识别与黑白重绘](figure-redraw.md) 的任务级确认。默认不直接交付原图；ignore 不输出图片，preserve 仅用于明确保留原图，redraw 生成白底黑色规范图并校验。图内结构性标签不重复转录；图外图题和图注在其原位置保留。图片任务通过 figure_workflow.py 完成后再导出；结构化图的 SVG 配套保存，原导出接口仍以 PNG 插入 HTML／Word。
+先记录插图、几何图、示意图、坐标图、流程图的区域和正文关联，按开始前确定的 `image_mode`（见 SKILL.md 和 [图片识别与黑白重绘](figure-redraw.md)）处理有效图；仅在预扫描未发现而正式处理才发现有效图时补问一次。默认不直接交付原图；ignore 不输出图片，preserve 仅用于明确保留原图，redraw 生成白底黑色规范图并校验。图内结构性标签不重复转录；图外图题和图注在其原位置保留。图片任务通过 figure_workflow.py 完成后再导出；结构化图的 SVG 配套保存，原导出接口仍以 PNG 插入 HTML／Word。
 
 以下裁剪及原图清理规则仅用于私有理解依据或用户明确选择的 preserve，不等同重绘：从源图精确提取 PNG，保留原图背景，不默认透明化，提取后查看实际文件。
 

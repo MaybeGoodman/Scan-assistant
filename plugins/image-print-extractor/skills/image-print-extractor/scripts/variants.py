@@ -23,7 +23,6 @@ Usage:
 """
 import argparse
 import difflib
-import hashlib
 import json
 import re
 import shutil
@@ -31,13 +30,12 @@ import sys
 from copy import deepcopy
 from pathlib import Path
 
+from _common import RUN_ID, read_json, replace_atomic, sha256, write_new
 from content_blocks import reviewed_blocks
-from pdf_batches import replace_atomic, write_new
-from questions import ANSWER_ROLES, glyphs, question_blocks, review_items, delivery_status, validate_questions
+from questions import ANSWER_ROLES, forbidden_strings, glyphs, question_blocks, review_items, delivery_status, validate_questions
 from subjects import DIFFICULTIES, DIFFICULTY_LABELS, describe, module
 from variant_checks import DETERMINISTIC, run_check
 
-RUN_ID = re.compile(r'[A-Za-z0-9_-]{1,32}')
 DEFAULT_COUNT, DEFAULT_ATTEMPTS = 3, 3
 SOURCE_REPLICA, SIBLING_DUPLICATE = 0.98, 0.95
 MODULE_KINDS = {'M01': {'arith', 'substitute', 'roots'}, 'M05': {'arith', 'substitute', 'roots'},
@@ -46,14 +44,6 @@ MODULE_KINDS = {'M01': {'arith', 'substitute', 'roots'}, 'M05': {'arith', 'subst
                 'M04': {'choice', 'evidence'}, 'M08': {'choice', 'evidence'}}
 DESIGN_KEYS = ('knowledge_points', 'method', 'question_type', 'difficulty', 'difficulty_evidence',
                'difference_from_source', 'difference_from_siblings')
-
-
-def sha256(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
-def read_json(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
 
 
 def norm(text):
@@ -244,7 +234,7 @@ def verify(candidate, target, ledger, siblings):
         # unresolved expressions, unclear roles or figure placeholders mean it is not verified;
         # the same gate the source question passed through applies here (R09, R11).
         try:
-            open_items = review_items({'blocks': blocks})
+            open_items = review_items({'blocks': blocks}, mode='student')
         except ValueError as exc:
             open_items = [{'location': 'variant', 'detail': str(exc)}]
         for item in open_items:
@@ -341,11 +331,15 @@ def verify(candidate, target, ledger, siblings):
             failures.append(f'{item} 缺少内部答案')
     visible = glyphs(text)
     for item, answer in answers.items():
-        value = glyphs(str(answer))
-        if len(value) >= 3 and value in visible:
+        answer_text = str(answer)
+        pieces = forbidden_strings([], [answer_text])
+        if any(glyphs(piece) in visible for piece in pieces if glyphs(piece)):
             failures.append(f'{item} 的答案出现在学生题面中')
-    if not str(internal.get('solution', '')).strip():
+    solution_text = str(internal.get('solution', '')).strip()
+    if not solution_text:
         failures.append('internal.solution 未填写（内部求解过程）')
+    elif len(glyphs(solution_text)) >= 6 and glyphs(solution_text) in visible:
+        failures.append('internal.solution 完整内容出现在学生题面中')
     context = {'student_text': text, 'answers': answers}
     checks = internal.get('checks', []) or []
     for check in checks:
@@ -403,20 +397,21 @@ def submit(ledger_file, candidate_file):
     shutil.copyfile(candidate_file, stored)  # Frozen copy; delivery re-checks its hash.
     frozen_dir = path.parent / 'assets' / candidate_id
     base = Path(ledger['base'])
-    for asset in record.get('assets', []):
-        # Freeze the exact verified bytes; delivery uses these copies, never the editable originals.
-        for key, suffix in (('path', '.png'), ('svg_path', '.svg')):
-            if key not in asset:
-                continue
-            frozen = frozen_dir / f'{asset["id"]}{suffix}'
-            frozen.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(base / asset[key], frozen)
-            want = asset['sha256' if key == 'path' else 'svg_sha256']
-            if sha256(frozen) != want:
-                shutil.rmtree(frozen_dir, ignore_errors=True)
-                stored.unlink()
-                raise ValueError(f'插图 {asset["id"]} 在验证期间被修改，请重新提交')
-            asset['frozen' if key == 'path' else 'svg_frozen'] = frozen.relative_to(base).as_posix()
+    if status_value != 'failed':
+        for asset in record.get('assets', []):
+            # Freeze the exact verified bytes; delivery uses these copies, never the editable originals.
+            for key, suffix in (('path', '.png'), ('svg_path', '.svg')):
+                if key not in asset:
+                    continue
+                frozen = frozen_dir / f'{asset["id"]}{suffix}'
+                frozen.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(base / asset[key], frozen)
+                want = asset['sha256' if key == 'path' else 'svg_sha256']
+                if sha256(frozen) != want:
+                    shutil.rmtree(frozen_dir, ignore_errors=True)
+                    stored.unlink()
+                    raise ValueError(f'插图 {asset["id"]} 在验证期间被修改，请重新提交')
+                asset['frozen' if key == 'path' else 'svg_frozen'] = frozen.relative_to(base).as_posix()
     entry = {'candidate_id': candidate_id, 'question_id': target['question_id'], 'slot': slot, 'attempt': attempt,
              'file': stored.relative_to(path.parent).as_posix(), 'sha256': sha256(stored), 'status': status_value,
              'checks': results, 'failures': failures, **record,
@@ -499,7 +494,7 @@ def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
     base = Path(ledger['base'])
     if output_dir == base or output_dir.is_relative_to(path.parent):
         raise ValueError('学生成品目录不能是源目录或生成台账目录（内部记录不得混入学生包）')
-    blocks, key_lines, forbidden, shortfalls, delivered = [], [], [], [], {}
+    blocks, key_lines, candidate_records, shortfalls, delivered = [], [], [], [], {}
     for target in ledger['targets']:
         passed = sorted((c for c in ledger['candidates']
                          if c['question_id'] == target['question_id'] and c['status'] == 'passed'),
@@ -534,13 +529,21 @@ def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
                     block.setdefault('layout', {})['keep_with_next'] = True
                 blocks.append(block)
             key_lines.append(f'### 同类题 {index}（{entry["candidate_id"]}）')
+            answer_values = []
             for answer in candidate['internal']['answers']:
                 key_lines.append(f'- {answer["item"]}：{answer["answer"]}')
-                forbidden.append(str(answer['answer']))
+                answer_values.append(str(answer['answer']))
+            solution = candidate['internal']['solution']
             key_lines.append('')
-            key_lines.append('内部求解：' + candidate['internal']['solution'])
+            key_lines.append('内部求解：' + solution)
             key_lines.append('')
-            forbidden.append(candidate['internal']['solution'])
+            candidate_records.append({
+                'text': glyphs(student_text(variant_blocks)),
+                'answer_pieces': forbidden_strings([], answer_values),
+                'full_solution_raw': solution if len(glyphs(solution)) >= 6 else '',
+                'full_solution': glyphs(solution) if len(glyphs(solution)) >= 6 else '',
+                'solution_pieces': forbidden_strings([], [solution]),
+            })
     if not blocks:
         return {'status': 'completed', 'delivery': 'blocked', 'shortfalls': shortfalls,
                 'next_action': '没有通过验证的变式可交付；' + '；'.join(shortfalls)}
@@ -549,51 +552,69 @@ def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
     student_doc = base / f'{ledger["run_id"]}.student.json'
     if student_doc.exists():
         raise FileExistsError(f'{student_doc} 已存在；每个 run 只交付一次')
-    write_new(student_doc, {'blocks': blocks, 'output_mode': 'student'})
-    from questions import forbidden_strings, glyphs
-    # Each candidate's own answers were already checked against its own text in verify().
-    # Across the package, a piece that is given data in another variant (e.g. one variant's
-    # answer "BC=16" is another's condition) is not a leak; every other piece must stay out.
-    given = glyphs(student_text(blocks))
-    forbidden = [value for value in forbidden_strings([], forbidden) if glyphs(value) not in given]
-    output_dir.mkdir(parents=True, exist_ok=True)
-    result = {'status': 'completed', 'files': {}, 'questions': current['questions'], 'delivered': delivered}
-    delivery = 'final'
-    from export_page import export_result
+    # Never exempt a candidate's own answer or full solution against its own stem.
+    # Only a piece that is given data in ANOTHER variant (j != i) is exempt from answer leak checks.
+    all_given = glyphs(student_text(blocks))
+    forbidden_set = set()
+    for idx, rec in enumerate(candidate_records):
+        other_given = '\n'.join(r['text'] for j, r in enumerate(candidate_records) if j != idx)
+        for piece in rec['answer_pieces']:
+            if glyphs(piece) not in other_given:
+                forbidden_set.add(piece)
+        if rec['full_solution'] and rec['full_solution'] not in other_given:
+            forbidden_set.add(rec['full_solution_raw'])
+        for piece in rec['solution_pieces']:
+            if glyphs(piece) not in all_given:
+                forbidden_set.add(piece)
+    forbidden = sorted(forbidden_set)
     chat_dir = internal / 'chat-export'
-    page = export_result(student_doc, chat_dir, output_mode='student')
-    chat = output_dir / 'student-chat.md'
-    shutil.copyfile(page['markdown'], chat)
-    result['files']['chat'] = str(chat)
-    if page['delivery'] != 'final':
-        delivery = 'draft'
-    text = glyphs(chat.read_text(encoding='utf-8').replace('\\', ''))
-    leaked = [value for value in forbidden if glyphs(value) in text]
-    if leaked:
-        chat.unlink()
-        raise ValueError('学生聊天文本含内部答案，已撤回：' + '；'.join(v[:20] for v in leaked[:5]))
-    (internal / 'forbidden.json').write_text(json.dumps(forbidden, ensure_ascii=False, indent=2), encoding='utf-8')
-    if (chat_dir / 'figures').is_dir():
-        shutil.copytree(chat_dir / 'figures', output_dir / 'figures')
-    if fmt in {'docx', 'both'}:
-        from export_docx import export_docx
-        from docx_audit import consistency
-        word = output_dir / 'student.docx'
-        report = internal / 'student.word.review.json'
-        export_docx(student_doc, word, word_confirmed=True, report_path=report, output_mode='student',
-                    forbidden=forbidden)
-        check = consistency(word, read_json(student_doc), source=student_doc)
-        if not check['ok']:
-            word.unlink()
-            raise ValueError('Word 与聊天内容不一致：' + '；'.join(check['problems']))
-        if read_json(report)['delivery'] != 'final':
+    report = internal / 'student.word.review.json'
+    created_output_dir = not output_dir.exists()
+    write_new(student_doc, {'blocks': blocks, 'output_mode': 'student'})
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        result = {'status': 'completed', 'files': {}, 'questions': current['questions'], 'delivered': delivered}
+        delivery = 'final'
+        from export_page import export_result
+        page = export_result(student_doc, chat_dir, output_mode='student')
+        if page['delivery'] != 'final':
             delivery = 'draft'
-        result['files']['docx'] = str(word)
-    if fmt == 'docx':
-        chat.unlink()
-        result['files'].pop('chat')
-        shutil.rmtree(output_dir / 'figures', ignore_errors=True)
-    (internal / 'answer-key.md').write_text('\n'.join(key_lines) + '\n', encoding='utf-8')
+        text = glyphs(Path(page['markdown']).read_text(encoding='utf-8').replace('\\', ''))
+        leaked = [value for value in forbidden if glyphs(value) in text]
+        if leaked:
+            raise ValueError('学生聊天文本含内部答案，已撤回：' + '；'.join(v[:20] for v in leaked[:5]))
+        (internal / 'forbidden.json').write_text(json.dumps(forbidden, ensure_ascii=False, indent=2), encoding='utf-8')
+        if fmt in {'chat', 'both'}:
+            chat = output_dir / 'student-chat.md'
+            shutil.copyfile(page['markdown'], chat)
+            result['files']['chat'] = str(chat)
+            if (chat_dir / 'figures').is_dir():
+                shutil.copytree(chat_dir / 'figures', output_dir / 'figures')
+        if fmt in {'docx', 'both'}:
+            from export_docx import export_docx
+            from docx_audit import consistency
+            word = output_dir / 'student.docx'
+            export_docx(student_doc, word, word_confirmed=True, report_path=report, output_mode='student',
+                        forbidden=forbidden)
+            check = consistency(word, read_json(student_doc), source=student_doc)
+            if not check['ok']:
+                raise ValueError('Word 与聊天内容不一致：' + '；'.join(check['problems']))
+            if read_json(report)['delivery'] != 'final':
+                delivery = 'draft'
+            result['files']['docx'] = str(word)
+        (internal / 'answer-key.md').write_text('\n'.join(key_lines) + '\n', encoding='utf-8')
+    except Exception:
+        student_doc.unlink(missing_ok=True)
+        shutil.rmtree(chat_dir, ignore_errors=True)
+        for artifact in (report, internal / 'forbidden.json', internal / 'answer-key.md'):
+            artifact.unlink(missing_ok=True)
+        if created_output_dir:
+            shutil.rmtree(output_dir, ignore_errors=True)
+        else:
+            for name in ('student-chat.md', 'student.docx'):
+                (output_dir / name).unlink(missing_ok=True)
+            shutil.rmtree(output_dir / 'figures', ignore_errors=True)
+        raise
     if delivery == 'final' and shortfalls:
         delivery = 'partial'
     if delivery == 'draft':

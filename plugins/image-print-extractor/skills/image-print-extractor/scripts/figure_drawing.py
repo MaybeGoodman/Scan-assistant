@@ -1,10 +1,12 @@
 """Render host-understood diagrams as white/black SVG and PNG; never infer a scene."""
 from copy import deepcopy
-import hashlib
+import functools
 import math
 from pathlib import Path
+import re
 import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw, ImageFont
+from _common import sha256
 
 SVG = 'http://www.w3.org/2000/svg'
 ET.register_namespace('', SVG)
@@ -34,11 +36,16 @@ SVG_FONT_FAMILY = 'STIX Two Text,Times New Roman,Latin Modern Roman,Liberation S
 # Multi-letter tokens that are set upright even though they are all letters (units, function names).
 UPRIGHT_WORDS = {'cm', 'mm', 'km', 'kg', 'mL', 'ml', 'min', 'Pa', 'kPa', 'Hz', 'kW', 'kN', 'sin', 'cos', 'tan',
                  'lg', 'ln', 'log', 'max', 'const'}
+ELEMENTS = {
+    'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
+    'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
+    'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe',
+    'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu',
+    'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn',
+    'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr',
+    'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
+}
 SUB_SCALE, SUB_SHIFT, SUP_SHIFT = .7, .25, -.4
-
-
-def sha256(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def number(value):
@@ -82,19 +89,44 @@ def auto_style(text):
     return 'upright'
 
 
+def _element_tokens(word):
+    """Return IUPAC element tokens if word consists solely of element symbols, else None."""
+    if not word or word in UPRIGHT_WORDS or not ('A' <= word[0] <= 'Z'):
+        return None
+    tokens = re.findall(r'[A-Z][a-z]?', word)
+    if ''.join(tokens) != word or any(tok not in ELEMENTS for tok in tokens):
+        return None
+    return tokens
+
+
 def looks_chemical(runs):
-    """Element symbols stay upright. Recognised: a capital followed by a lowercase letter (Na, Cl),
-    two or more capitals right before a subscript (CO₂), or letters after a sub/superscript (H₂O).
-    Single-letter formulas such as O₂ are not recognised and need style: "upright"."""
+    """Element symbols stay upright. Recognised: two-letter IUPAC element symbols (Na, Cl, Fe),
+    multi-element groups before a numeric subscript (CO₂, SO₄), or an element followed by a numeric
+    subscript and another element (H₂O, H₂SO₄, Ca(OH)₂). Math/physics labels like v₀t, R₁+R₂, x²+y,
+    F₁=F₂, AB₁ stay italic. Single-letter formulas such as O₂ still need style: "upright"."""
     for index, run in enumerate(runs):
         text, script = run['text'], run.get('script', 'normal')
-        if any('A' <= a <= 'Z' and 'a' <= b <= 'z' for a, b in zip(text, text[1:])):
-            return True
-        following = runs[index + 1].get('script', 'normal') if index + 1 < len(runs) else 'normal'
-        if script == 'normal' and following == 'sub' and sum('A' <= c <= 'Z' for c in text) >= 2:
-            return True
-        if script != 'normal' and index + 1 < len(runs) and any(c.isalpha() for c in runs[index + 1]['text']):
-            return True
+        if script == 'normal':
+            for word in re.findall(r'[A-Za-z]+', text):
+                tokens = _element_tokens(word)
+                if tokens and any(len(tok) == 2 for tok in tokens):
+                    return True
+            following = runs[index + 1] if index + 1 < len(runs) else None
+            if (following and following.get('script', 'normal') == 'sub'
+                    and following['text'].strip().isdigit()):
+                cleaned = re.sub(r'^[\s\d()\[\]·]+|[\s()\[\]·]+$', '', text)
+                tokens = _element_tokens(cleaned)
+                if tokens and len(tokens) >= 2:
+                    return True
+        elif script == 'sub' and text.strip().isdigit() and 0 < index < len(runs) - 1:
+            prev, nxt = runs[index - 1], runs[index + 1]
+            if prev.get('script', 'normal') == 'normal' and nxt.get('script', 'normal') == 'normal':
+                prev_tail = re.sub(r'[\s)\]]+$', '', prev['text'])
+                nxt_head = re.sub(r'^[\s(\[·]+', '', nxt['text'])
+                prev_match = re.search(r'[A-Za-z]+$', prev_tail)
+                nxt_match = re.match(r'[A-Za-z]+', nxt_head)
+                if prev_match and nxt_match and _element_tokens(prev_match[0]) and _element_tokens(nxt_match[0]):
+                    return True
     return False
 
 
@@ -195,11 +227,12 @@ def validate_scene(scene, understanding=None):
             label_runs(element)
             if not 8 <= number(element.get('size', 18)) <= 72 or element.get('anchor','start') not in {'start','middle','end'}:
                 raise ValueError('Invalid label size or anchor')
-        pts = samples(element)
+        base_pts = samples(element)
+        pts = list(base_pts)
         if arrow in {'start','both'}:
-            pts += arrow_triangle(samples(element), stroke, True)
+            pts += arrow_triangle(base_pts, stroke, True)
         if arrow in {'end','both'}:
-            pts += arrow_triangle(samples(element), stroke)
+            pts += arrow_triangle(base_pts, stroke)
         margin = 0 if kind == 'label' else stroke/2
         if any(not (margin <= x <= w-margin and margin <= y <= h-margin) for x,y in pts):
             box = [round(min(x for x, _ in pts) - margin, 1), round(min(y for _, y in pts) - margin, 1),
@@ -248,15 +281,19 @@ def validate_structure(scene, expected):
                 or label_runs(matches[0]) != label_runs(label)):
             raise ValueError(f'Label content, script or target differs from source：标注 {label["id"]}')
     connections = expected.get('connections', [])
-    actual_connections = [e['connection'] for e in scene['elements'] if 'connection' in e]
-    if sorted(map(str,connections)) != sorted(map(str,actual_connections)):
-        expected_set, actual_set = list(map(str, connections)), list(map(str, actual_connections))
-        missing = [c for c in expected_set if expected_set.count(c) > actual_set.count(c)]
-        extra = [c for c in actual_set if actual_set.count(c) > expected_set.count(c)]
-        raise ValueError(f'Connection topology differs from source：缺少 {sorted(set(missing))}，多出 {sorted(set(extra))}')
     for connection in connections:
         if not isinstance(connection, list) or len(connection) != 2 or not set(connection) <= ids:
             raise ValueError('Unknown connection endpoint')
+    actual_connections = [e['connection'] for e in scene['elements'] if 'connection' in e]
+    expected_pairs = sorted((str(c[0]), str(c[1])) for c in connections)
+    actual_pairs = sorted(
+        (str(c[0]), str(c[1])) if isinstance(c, list) and len(c) == 2 else (str(c),)
+        for c in actual_connections
+    )
+    if expected_pairs != actual_pairs:
+        missing = [list(c) for c in expected_pairs if expected_pairs.count(c) > actual_pairs.count(c)]
+        extra = [list(c) for c in actual_pairs if actual_pairs.count(c) > expected_pairs.count(c)]
+        raise ValueError(f'Connection topology differs from source：缺少 {missing}，多出 {extra}')
     arrows = expected.get('arrows', [])
     wanted = {a['element_id'] for a in arrows}
     have = {e['id'] for e in scene['elements'] if e.get('arrow','none') != 'none' and not e.get('symbol')}
@@ -299,19 +336,30 @@ def validate_structure(scene, expected):
             raise ValueError('Curve trend differs from source')
 
 
+@functools.lru_cache(maxsize=128)
+def _truetype(path_str, size):
+    font = ImageFont.truetype(path_str, size)
+    return font, bytes(font.getmask('\U0010ffff'))
+
+
 def _load(candidates, size, text):
     for candidate in candidates:
         if not candidate:
             continue
         try:
-            font = ImageFont.truetype(str(candidate), size)
-            missing = bytes(font.getmask('\U0010ffff'))
+            font, missing = _truetype(str(candidate), size)
             if any(not char.isspace() and bytes(font.getmask(char)) == missing for char in text):
                 continue
             return font
         except OSError:
             continue
     return None
+
+
+def _is_cjk(char):
+    return ('\u2e80' <= char <= '\u9fff'
+            or '\uf900' <= char <= '\ufaff'
+            or '\uff00' <= char <= '\uffef')
 
 
 def pick_font(size, text, font_path=None, style='upright'):
@@ -323,8 +371,7 @@ def pick_font(size, text, font_path=None, style='upright'):
         if font is None:
             raise ValueError('No font supports the labels; provide --font (CJK labels need a CJK font)')
         return font, False
-    cjk = any('⺀' <= char <= '￿' for char in text)
-    if cjk:
+    if any(_is_cjk(char) for char in text):
         font = _load(CJK_FONTS, size, text)
         if font is None:
             raise ValueError('No font supports the labels; provide --font (CJK labels need a CJK font)')

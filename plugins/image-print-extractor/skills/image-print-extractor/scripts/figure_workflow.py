@@ -10,23 +10,15 @@ import json
 from pathlib import Path
 import re
 import sys
+from _common import local_path, read_json, sha256, write_new as write_json
+from confirmation import reply_mode
 from export_page import image_source
-from figure_drawing import CHECKS, check_black_white, number, render, sha256
+from figure_drawing import CHECKS, check_black_white, number, render
 
 PROMPT = '是否需要识别并重新绘制其中的图片？是 / 否'
 CORE_TYPES = {'geometry','coordinates','function','motion','force','circuit','optics',
               'apparatus','structure','flowchart','wave','trajectory','biology','illustration'}
 TYPES = CORE_TYPES | {'photo','table','formula','watermark','qr','logo','advertisement','decoration','unknown'}
-# Requirement examples plus common short variants. Matching stays exact after
-# normalization; unrecognized or conflicting replies remain ambiguous.
-YES = {'是','可以','需要','继续','要','重绘','帮我画出来','图片也处理','图也生成',
-       '好','行','对','嗯','没问题','可','画','重画','都要','需要重绘','要重绘','yes','y','ok','okay'}
-NO = {'否','不需要','不用','跳过','只要文字','不要图片','图片忽略',
-      '不','不要','不行','不是','不画','不重绘','不用画','不用重绘','不需要重绘','算了','没必要','no','n'}
-PRESERVE = {'不用重绘，原图保留','不重绘，保留原图','保留原图','原图保留','用原图','保留原图即可'}
-LEADING = '嗯哦噢喔那额呃'
-TRAILING = '的了吧啊呀哦呢嘛啦'
-SEPARATORS = re.compile(r'[，,、；;。！!？?\s.~～…]+')
 MAX_ATTEMPTS = 2
 FALLBACKS = ('placeholder','original')
 LABEL_FORBIDDEN = re.compile(r'[\[\]\n\r]')
@@ -133,34 +125,6 @@ def preservable(figure):
     return figure['figure_type'] not in {'table','formula'}
 
 
-def _reply_word(part):
-    """Map one normalized reply fragment to a mode, or None when unknown."""
-    for candidate in (part, part.lower()):
-        if candidate in YES: return 'redraw'
-        if candidate in NO: return 'ignore'
-        if candidate in PRESERVE: return 'preserve'
-    trimmed = part.lstrip(LEADING).rstrip(TRAILING) or part
-    trimmed = trimmed.rstrip(TRAILING) or trimmed
-    if trimmed != part:
-        return _reply_word(trimmed)
-    return None
-
-
-def reply_mode(response):
-    if response is None: return None
-    response = response.strip()
-    whole = SEPARATORS.sub('，',response).strip('，')
-    if whole in PRESERVE: return 'preserve'
-    fragments = [p for p in SEPARATORS.split(response) if p]
-    modes = {_reply_word(p) for p in fragments}
-    # Filler-only fragments such as "嗯" or "好的" may accompany a clear answer.
-    fillers = {_reply_word(p) for p in fragments if p.lstrip(LEADING).rstrip(TRAILING) in {'','好','嗯','行','对'}}
-    decisive = modes - ({'redraw'} if fillers=={'redraw'} and len(modes)>1 else set())
-    if not fragments or None in decisive or len(decisive)!=1:
-        raise ValueError('Ambiguous redraw reply; clarify the active image question')
-    return decisive.pop()
-
-
 def plan(document, *, mode=None, response=None):
     candidates = figures(document)
     if mode not in {None,'ignore','preserve','redraw'}:
@@ -176,16 +140,6 @@ def plan(document, *, mode=None, response=None):
     return {'task_id':document['figure_task']['task_id'],'status':'ready' if valid or choice=='preserve' else 'no_figures',
             'image_mode':choice or 'ignore','prompt':None,'figure_ids':valid,
             'uncertain_figures':[f['figure_id'] for f in candidates if f['relation']=='unknown' or f['figure_type']=='unknown']}
-
-
-def local_path(base, relative):
-    path = Path(relative)
-    if path.is_absolute() or '..' in path.parts:
-        raise ValueError('Figure files must be relative and inside the input directory')
-    path = (Path(base)/path).resolve()
-    if not path.is_relative_to(Path(base).resolve()):
-        raise ValueError('Figure path escapes the input directory')
-    return path
 
 
 def generate(document, base, output_dir, *, mode=None, response=None, previous=None, font_path=None,
@@ -242,7 +196,7 @@ def generate(document, base, output_dir, *, mode=None, response=None, previous=N
                 record.update(state='preserved',output_path=figure['source_path'])
                 continue
             if record.get('state') in {'validated','failed'}: continue
-            if record['attempts'] and record['attempts'][-1].get('validation_status')!='major_issue':
+            if record['attempts'] and record['attempts'][-1].get('validation_status') not in {'major_issue','render_error'}:
                 raise ValueError('Review the current candidate before trying again')
             if len(record['attempts'])>=MAX_ATTEMPTS:
                 raise ValueError('Figure retry limit reached')
@@ -257,7 +211,18 @@ def generate(document, base, output_dir, *, mode=None, response=None, previous=N
             png = output_dir/f'figure-{fid}-a{attempt}.png'
             svg = output_dir/f'figure-{fid}-a{attempt}.svg'
             if 'scene' in drawing:
-                hashes = render(drawing['scene'],svg,png,understanding=figure['understanding'],font_path=font_path)
+                try:
+                    hashes = render(drawing['scene'],svg,png,understanding=figure['understanding'],font_path=font_path)
+                    check_black_white(png)
+                except (ValueError,KeyError,TypeError) as exc:
+                    png.unlink(missing_ok=True)
+                    svg.unlink(missing_ok=True)
+                    if attempt < MAX_ATTEMPTS:
+                        record['attempts'].append({'attempt':attempt,'source_sha256':source_hash,
+                            'drawing_method':'structured','validation_status':'render_error','error':str(exc)})
+                        record.update(state='needs_retry',generated=False,failed=False,reason=str(exc))
+                        continue
+                    raise
                 svg_relative = svg.relative_to(base).as_posix()
                 method = 'structured'
             else:
@@ -269,11 +234,12 @@ def generate(document, base, output_dir, *, mode=None, response=None, previous=N
                 with png.open('xb') as stream: stream.write(generated.read_bytes())
                 hashes = {'png_sha256':sha256(png)}
                 svg_relative,method = None,'generative'
-            check_black_white(png)
+                check_black_white(png)
             entry = {'attempt':attempt,'png_path':png.relative_to(base).as_posix(),'svg_path':svg_relative,
                      'source_sha256':source_hash,'drawing_method':method,**hashes,'validation_status':'pending'}
             record['attempts'].append(entry)
             record.update(state='awaiting_validation',generated=True,failed=False)
+            record.pop('reason',None)
         except (ValueError,KeyError,TypeError,OSError) as exc:
             record.update(state='failed',failed=True,reason=str(exc))
     return ledger
@@ -340,6 +306,9 @@ def complete(ledger, reviews, base):
     for record in ledger['records']:
         if record['state'] not in {'awaiting_validation','needs_retry','validated'}: continue
         entry = record['attempts'][-1]
+        if record['state']=='needs_retry' and entry.get('validation_status')=='render_error':
+            retries.append(record['figure_id'])
+            continue
         review = review_map.get((record['figure_id'],entry['attempt']))
         if review is None and record['state']=='validated': review=entry['review']
         if review is None:
@@ -424,12 +393,6 @@ def complete(ledger, reviews, base):
         result['figure_processing']['fallback_errors']=fallback_errors
     return result,ledger
 
-
-def write_json(path,value):
-    path=Path(path)
-    path.parent.mkdir(parents=True,exist_ok=True)
-    with path.open('x',encoding='utf-8') as stream:
-        json.dump(value,stream,ensure_ascii=False,indent=2)
 
 
 def main():

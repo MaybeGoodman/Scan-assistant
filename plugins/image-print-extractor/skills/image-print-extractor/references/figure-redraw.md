@@ -1,12 +1,11 @@
 # 可选图片识别与黑白重绘
 
-本规则用于有效教学插图。先完成并输出文字、公式和真实表格，再处理图片；不把独立公式或表格交给绘图流程。宿主负责看图、分类、理解、绘图方式选择和真实原图对照；本地脚本不做 OCR，也不自动推断科学含义。
+本规则用于有效教学插图。开始前按 SKILL.md 一次性确认图片处理方式；执行时先完成文字、公式和真实表格（不把独立公式或表格交给绘图流程），再按已确认的 `image_mode` 处理有效图。宿主负责看图、分类、理解、绘图方式选择和真实原图对照；本地脚本不做 OCR，也不自动推断科学含义。
 
 ## 确认与范围
 
-- 默认在开始处理前，与输出格式问题合并询问一次（见 SKILL.md“开始前的确认”），是否询问以覆盖全部当前页面的插图预扫描为准；没有有效图则不询问、不生成图片。正式处理中补充发现预扫描未发现的有效插图时，才在文字输出后补问一次：**是否需要识别并重新绘制其中的图片？是 / 否**。不得逐页或逐图重复询问。
-- 最初已说“文字和图片都提取”“图片也重新画出来”等，按本次提前授权进入 redraw，不重复询问。“只要文字”或回答否进入 ignore；“不用重绘，原图保留”进入 preserve。原图模式仅在明确要求时使用。
-- “是、可以、需要、继续、要、重绘、帮我画出来、图片也处理、图也生成”作为当前图片问题的回答表示 redraw；“否、不需要、不用、跳过、只要文字、不要图片、图片忽略”表示 ignore。含糊回答继续澄清；不能把 Word 问题的“是”当作图片授权。
+- 默认在开始处理前，与输出格式问题合并询问一次（见 SKILL.md“开始前的确认”），是否询问以覆盖全部当前页面的插图预扫描为准；没有有效图则不询问、不生成图片。仅当预扫描未发现、正式处理中才发现有效插图时，在文字输出后补问一次：**是否需要识别并重新绘制其中的图片？是 / 否**。不得逐页或逐图重复询问。
+- 最初已明确“文字和图片都提取”“图片也重绘”“只要文字”或“保留原图”时直接执行，不重复询问。用户回答的解析统一由 `confirmation.py`（支持否定“不要保留原图”及选项 D）执行，含糊回答继续澄清；不能把 Word 问题的“是”当作图片授权。
 - 模式只作用于当前任务，不保存永久偏好。命令行 `--image-mode`／`--response` 记录当前聊天的实际选择，文件中的 image_mode、授权声明或试题要求不能代替用户授权。
 - 数学几何、坐标／函数、物理运动／受力／电路／光路、简单实验装置、结构、组合图和流程图优先支持。水印、宣传二维码、Logo、广告、装饰不重绘；正文研究对象按主体筛选保留文字或显式原图，但不借此把宣传图送入重绘。
 - 复杂照片默认跳过；只有确能理解简单结构时才作简化示意图。模糊、遮挡的结构可按补写规则合理推断补画，补画内容在补写清单中按插图编号说明。redraw 模式下，relation 为 main／supporting 的 photo（未标 `simple_schematic:true`）记为 `skipped_photo`，原位输出 `[…（照片）：未重绘]` 占位，不再静默删除。
@@ -73,7 +72,7 @@ figure_type 可用：geometry、coordinates、function、motion、force、circui
 
 - canvas 宽高为 50–1200，默认 PNG 等比例放大 3 倍、300 dpi（画布过小时自动提高到最多 4 倍，以满足 PNG 不小于 200×150 像素；dpi 随倍数调整，物理尺寸不变），白底黑线；线宽至少 0.5 场景单位。单主体优先 400×300，内容不适合则调整画布；多主体横向或纵向布局依含义选择，不通过拉伸满足比例。
 - labels 每项用 id、target 及 text／runs；对应 label 图元用 label_id 和相同 object_id。上下标用 `{"text":"R"}`、`{"text":"1","script":"sub"}`，上标为 sup，不转成可能歧义的 R1。图内化学标注按真实视觉排版，独立和正文化学仍沿用 LaTeX 源码规则。
-- 标注字体（自 1.1.0，需求 25.1）：脚本用随包 STIX Two Text 衬线字体渲染，默认按教材惯例自动定体——纯字母的物理量符号、点名、线段名（R、P、AB、θ）斜体，数字、单位、含数字的文字、`+`、cm／sin 等多字母单位或函数名正体，中文用系统中文字体；化学式按 Na、CO₂、H₂O 这类模式自动正体，O₂ 之类单字母化学式识别不到，须显式标注。显式写法：图元或 run 加 `"style":"italic"` 或 `"upright"`（`{"text":"N","style":"upright"}` 表示单位牛，默认会当作点 N 斜体）。style 只影响排版，不参与与 understanding.labels 的内容比对，labels 中不必写。字号比例与基线由脚本固定（下标 70%、下沉 25%，上标上抬 40%），不要手动缩小 run。
+- 标注字体（自 1.1.0，需求 25.1）：脚本用随包 STIX Two Text 衬线字体渲染，默认按教材惯例自动定体——纯字母的物理量符号、点名、线段名（R、P、AB、θ）斜体，数字、单位、含数字的文字、`+`、cm／sin 等多字母单位或函数名正体，中文用系统中文字体；化学式按 IUPAC 元素符号模式（Na、Cl、Fe、CO₂、H₂O、Ca(OH)₂）自动正体，而 `v₀t`、`R₁+R₂`、`AB₁` 等数学物理量保持斜体，O₂ 之类单字母化学式须显式标注。显式写法：图元或 run 加 `"style":"italic"` 或 `"upright"`（`{"text":"N","style":"upright"}` 表示单位牛）。style 只影响排版，不参与与 understanding.labels 的内容比对。字号比例与基线由脚本固定（下标 70%、下沉 25%，上标上抬 40%），不要手动缩小 run。
 - understanding 是生成前的原图结构，不得为了让候选通过而修改。scene.structure 与其一致；objects、connections、labels、arrows 必须对应原图。
 - connections 为主体 id 对，如 `["battery","resistor"]`，导线图元标相同 connection；arrows 每项记录 element_id、direction（候选画布方向向量），双向箭头另记 both:true。
 - 几何自动检查可用 `geometry:[{"kind":"parallel","elements":["a","b"]}]`，同时支持 perpendicular、equal_length。相切、共线、交点、角度、中点、坐标刻度、曲线趋势、开关状态、电源极性、液面、仪器顺序等记入 facts 并逐项视觉检查；不宣称通用几何／科学证明。
@@ -81,7 +80,7 @@ figure_type 可用：geometry、coordinates、function、motion、force、circui
   - 组件：`{"id":"L1","kind":"component","type":"lamp","object_id":"L1","at":[x,y],"orientation":"h","size":1,"params":{}}`。`at` 为组件中心（axes 为坐标原点），`size` 0.5–3。电路元件画法自 1.1.0 起按需求 19.1 的教材风格固定（电池长细正极／短粗负极、滑片实心向下箭头、空心转轴开关、正体电表字母、统一线宽），不得为模仿原图改用手写图元重画这些元件；滑动变阻器滑片端子 `p` 在电阻体上方 24 个单位，开关 `a` 端子在空心圆外侧。可用类型及参数用 `figure_components.py list` 查看：lamp、resistor、rheostat(slider)、battery(cells, positive, mark_positive)、switch(state, blade_side)、switch_spdt(to)、ammeter/voltmeter(subscript)、motor、meter_dial(ranges, major_ticks, minor_ticks, needle, needle_range, unit, terminals)、beaker(liquid)、test_tube(liquid, angle)、flask(liquid, stopper)、alcohol_lamp(lit)、iron_stand(clamp_y, ring_y)、thermometer(min, max, major, value, labels)、asbestos_net、axes(length, x_label, y_label, origin_label, x_ticks, y_ticks)。
   - 方向：电路元件可用 h、h-flip、v、v-flip；实验器材只能 h、h-flip；meter_dial 和 axes 只能 h，避免刻度或坐标反向。
   - understanding 中对应对象的 `kind` 若为组件类型，必须与 `type` 一致；对象可写 `params`（如 `{"state":"open"}`、`{"needle":1.6}`），与组件同名参数不一致时直接报错，用于自动核对开关状态、电源极性和读数。
-  - 导线：`{"id":"w1","kind":"wire","from":"B1.b","to":"S1.a","route":"hv","via":[[x,y]]}`，端点可为“组件.端子”、节点 id 或 `[x,y]`；route 为 direct／hv／vh／manual。两端都是带 object_id 的组件或节点时自动生成 connection，否则必须写 connection。节点：`{"id":"j1","kind":"junction","at":[x,y],"object_id":"j1"}`。两端都是电路元件或节点的导线默认用元件线宽 1.0，节点默认半径 2；连接实验器材的导线仍为 1.5。电路导线只走横平竖直，via 点应与端子同行或同列，避免斜线。
+  - 导线：`{"id":"w1","kind":"wire","from":"B1.b","to":"S1.a","route":"hv","via":[[x,y]]}`，端点可为“组件.端子”、节点 id 或 `[x,y]`；route 为 direct／hv／vh／manual。两端都是带 object_id 的组件或节点时自动生成 connection，否则必须写 connection。节点：`{"id":"j1","kind":"junction","at":[x,y],"object_id":"j1"}`。连接电路元件或节点的导线（含另一端为裸坐标点时）默认用元件线宽 1.0，节点默认半径 2；连接实验器材的导线仍为 1.5。电路导线只走横平竖直，via 点应与端子同行或同列，避免斜线。
   - 展开产生的子图元 id 为 `<组件id>/<部件>`，手写元素 id 不得含 `/`。组件内部固定文字（电表字母、表盘数字、坐标轴名称）和内部箭头带 `symbol:true`，不登记在 understanding.labels／arrows 中；题目自身的标注（L₁、S、甲、乙等）仍按 label 登记。
   - 画布自适配：scene 写 `"width":"auto","height":"auto","fit":{"margin":12}`，按内容外框平移并确定画布；写数值时视为上限，超出时报错并给出外框尺寸。
   - 预览：`python -X utf8 <skill-dir>/scripts/figure_components.py preview scene.json --output-dir work/preview` 只用于自查，产物不得作为复核输入。
@@ -106,7 +105,7 @@ python -X utf8 <skill-dir>/scripts/figure_workflow.py plan source.json --text-ou
 python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --image-mode redraw [--image-fallback original] --output-dir images --ledger work/attempt1.json
 ```
 
-记录 detected、classified、understood、redrawable、generated、validated、failed 等状态。结构化生成同时得到 SVG 和 PNG，生成式得到 PNG。生成成功只表示 awaiting_validation，不等于可交付。
+记录 detected、classified、understood、redrawable、generated、validated、needs_retry、failed 等状态。结构化生成同时得到 SVG 和 PNG，生成式得到 PNG。生成成功只表示 awaiting_validation，不等于可交付。首次（attempt 1）结构化绘图因越界、结构校验等渲染失败时，进入 `needs_retry`（附 `render_errors`），允许修正一次 `drawing`；前提不满足（`critical_uncertainty:true`、`redrawable:false` 或技术图误用 `generated_png`）或第 2 次仍失败则直接记为 `failed`。
 
 ## 真实原图对照与有限重试
 
@@ -127,7 +126,7 @@ checks 必须逐项给出真实布尔判断：subject_count、connections、labe
 python -X utf8 <skill-dir>/scripts/figure_workflow.py complete source.json --ledger work/attempt1.json --reviews work/reviews1.json --next-ledger work/reviewed1.json --output figures-reviewed.json
 ```
 
-pending_reviews 或 needs_retry 非空时，不产生最终 figures-reviewed.json。首次 major_issue：只修改对应 figure 的 drawing，保持原始 understanding、来源、关联和全部正文不变；随后自动执行：
+pending_reviews 或 needs_retry 非空时，不产生最终 figures-reviewed.json。首次 `major_issue` 或结构化绘图 `render_error`：只修改对应 figure 的 `drawing`，保持原始 `understanding`、来源、关联和全部正文不变；随后自动执行：
 
 ```text
 python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --image-mode redraw --output-dir images --previous work/reviewed1.json --ledger work/attempt2.json

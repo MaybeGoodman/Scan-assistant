@@ -289,23 +289,53 @@ UNITS = {
 }
 
 
+def _num_const(node):
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+        return node.value
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        inner = _num_const(node.operand)
+        if inner is not None:
+            return inner if isinstance(node.op, ast.UAdd) else -inner
+    return None
+
+
 def dimension(unit):
-    """Parse products, quotients and integer powers such as 'kg*m/s^2' or 'm/s²'."""
-    unit = unit.replace('²', '^2').replace('³', '^3').replace('·', '*').replace(' ', '')
-    if not unit:
+    """Parse products, quotients, parentheses and integer powers such as 'J/(kg*K)', '(m/s)^2', or 'm/s²'."""
+    raw = (unit.replace('²', '**2').replace('³', '**3')
+           .replace('·', '*').replace('^', '**')
+           .replace('℃', '__degC__').replace('\u2126', 'Ω').strip())
+    if not raw:
         raise CheckError('单位不能为空')
-    total, sign = [0] * 7, 1
-    for token in re.findall(r'[*/]|[^*/]+', unit):
-        if token in '*/':
-            sign = 1 if token == '*' else -1
-            continue
-        name, _, power = token.partition('^')
-        power = int(power or 1)
-        if name not in UNITS:
-            raise CheckError(f'未知单位 {name}')
-        for index, value in enumerate(UNITS[name]):
-            total[index] += sign * power * value
-    return tuple(total)
+    try:
+        tree = ast.parse(raw, mode='eval')
+    except SyntaxError as exc:
+        raise CheckError(f'无法解析单位 {unit}') from exc
+
+    def walk(node):
+        if isinstance(node, ast.Expression):
+            return walk(node.body)
+        if isinstance(node, ast.Name):
+            name = '℃' if node.id == '__degC__' else node.id
+            if name not in UNITS:
+                raise CheckError(f'未知单位 {name}')
+            return UNITS[name]
+        if isinstance(node, ast.Constant) and node.value == 1 and not isinstance(node.value, bool):
+            return (0,) * 7
+        if isinstance(node, ast.BinOp):
+            left = walk(node.left)
+            if isinstance(node.op, ast.Pow):
+                exp = _num_const(node.right)
+                if not isinstance(exp, int):
+                    raise CheckError(f'单位幂次必须是整数：{unit}')
+                return tuple(v * exp for v in left)
+            right = walk(node.right)
+            if isinstance(node.op, ast.Mult):
+                return tuple(a + b for a, b in zip(left, right))
+            if isinstance(node.op, ast.Div):
+                return tuple(a - b for a, b in zip(left, right))
+        raise CheckError(f'无法解析单位 {unit}')
+
+    return walk(tree)
 
 
 def check_units(check, _):
@@ -327,9 +357,10 @@ def check_units(check, _):
         if isinstance(node, ast.BinOp):
             left = walk(node.left)
             if isinstance(node.op, ast.Pow):
-                if not isinstance(node.right, ast.Constant):
+                exp = _num_const(node.right)
+                if exp is None:
                     raise CheckError('幂次必须是数字')
-                return tuple(v * node.right.value for v in left)
+                return tuple(v * exp for v in left)
             right = walk(node.right)
             if isinstance(node.op, (ast.Add, ast.Sub)):
                 if left != right:
@@ -355,48 +386,78 @@ def _formula_counts(formula):
     for part in formula.split('.'):
         match = re.match(r'^(\d*)(.*)$', part)
         factor, body = int(match[1] or 1), match[2]
-        stack = [{}]
+        stack = [(None, {})]
         i = 0
         while i < len(body):
             char = body[i]
             if char in '([':
-                stack.append({})
+                stack.append((char, {}))
                 i += 1
             elif char in ')]':
+                expected_open = '(' if char == ')' else '['
+                if len(stack) <= 1 or stack[-1][0] != expected_open:
+                    raise CheckError(f'括号不配对：{formula}')
                 j = i + 1
                 while j < len(body) and body[j].isdigit():
                     j += 1
                 times = int(body[i + 1:j] or 1)
-                group = stack.pop()
+                _, group = stack.pop()
                 for key, value in group.items():
-                    stack[-1][key] = stack[-1].get(key, 0) + value * times
+                    stack[-1][1][key] = stack[-1][1].get(key, 0) + value * times
                 i = j
             else:
                 match = ELEMENT.match(body, i)
                 if not match:
                     raise CheckError(f'无法解析化学式 {formula}')
-                stack[-1][match[1]] = stack[-1].get(match[1], 0) + int(match[2] or 1)
+                stack[-1][1][match[1]] = stack[-1][1].get(match[1], 0) + int(match[2] or 1)
                 i = match.end()
         if len(stack) != 1:
             raise CheckError(f'括号不配对：{formula}')
-        for key, value in stack[0].items():
+        for key, value in stack[0][1].items():
             total[key] = total.get(key, 0) + value * factor
     return total
 
 
 def species(text):
-    """'2Fe^3+' -> (2, {'Fe': 1}, 3); 'e-' -> electron; strips (s)/(aq)/↑/↓."""
+    """'2Fe^3+' or '2Fe^{3+}' -> (2, {'Fe': 1}, 3); 'e-' -> electron; strips (s)/(aq)/↑/↓."""
     text = re.sub(r'\((s|l|g|aq)\)|[↑↓]', '', text.strip())
     match = re.match(r'^(\d+)?\s*(.+)$', text)
+    if not match:
+        raise CheckError(f'无法解析化学式 {text}')
     coefficient, body = int(match[1] or 1), match[2]
     charge = 0
-    charged = re.match(r'^(.*?)\^?(\d*)([+-])$', body) if ('^' in body or body in {'e-', 'e'}) else None
-    if body in {'e-', 'e^-', 'e'}:
+    if body in {'e-', 'e^-', 'e^{-}', 'e'}:
         return coefficient, {}, -1
+    charged = re.match(r'^(.*?)\^\{?(\d*)([+-])\}?$', body) if '^' in body else None
     if charged:
         body, magnitude, sign = charged[1], int(charged[2] or 1), charged[3]
         charge = magnitude if sign == '+' else -magnitude
     return coefficient, _formula_counts(body), charge
+
+
+def _split_terms(side):
+    """Split one side of a chemical equation on '+' without breaking ion charges like Fe^3+ or Fe^{3+}."""
+    terms, current, depth = [], '', 0
+    for ch in side:
+        if ch == '{':
+            depth += 1
+            current += ch
+        elif ch == '}':
+            depth = max(0, depth - 1)
+            current += ch
+        elif ch == '+' and depth == 0 and not re.search(r'\^\d*$', current):
+            term = current.strip()
+            if not term:
+                raise CheckError('方程式项不能为空')
+            terms.append(term)
+            current = ''
+        else:
+            current += ch
+    term = current.strip()
+    if not term:
+        raise CheckError('方程式项不能为空')
+    terms.append(term)
+    return terms
 
 
 def check_balance(check, _):
@@ -407,7 +468,7 @@ def check_balance(check, _):
     totals = []
     for side in sides:
         atoms, charge = {}, 0
-        for term in re.split(r'\s+\+\s+', side.strip()):
+        for term in _split_terms(side.strip()):
             coefficient, counts, sign = species(term)
             for key, value in counts.items():
                 atoms[key] = atoms.get(key, 0) + coefficient * value

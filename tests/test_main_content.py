@@ -82,10 +82,12 @@ class MainContentTests(unittest.TestCase):
         result, _ = select_document({'blocks':blocks},preserve=['WATERMARK','HEADER_FOOTER'])
         self.assertEqual([b['text'] for b in result['blocks']],['水印','页眉'])
 
-    def test_body_keeps_answers_notes_and_conditions(self):
+    def test_main_keeps_answers_notes_and_conditions_and_rejects_removed_body_scope(self):
         blocks=[annotated(t,'SUPPORTING_CONTENT','supporting') for t in ['答案：B','注：忽略空气阻力','取 g=10']]
-        result,_=select_document({'blocks':blocks},scope='body')
+        result,_=select_document({'blocks':blocks},scope='main')
         self.assertEqual([b['text'] for b in result['blocks']],['答案：B','注：忽略空气阻力','取 g=10'])
+        with self.assertRaises(ValueError):
+            select_document({'blocks':blocks},scope='body')
 
     def test_mixed_runs_preserve_formula_and_original_blank(self):
         paragraph={'type':'text','runs':[annotated('条件：'),annotated('推广','ADVERTISEMENT','unrelated'),

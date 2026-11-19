@@ -72,12 +72,17 @@ class Parser:
         self.i += 1
         return token
 
+    def skip_ws(self):
+        while self.peek() is not None and self.peek()[0] == 'char' and self.peek()[1] in ' \t\r\n':
+            self.i += 1
+
     def expect(self, char):
         if self.take() != ('char', char):
             raise ChemistryRenderError(f'Expected {char!r} in chemistry expression')
 
     def group(self):
         """Parse a mandatory {...} argument or a single token."""
+        self.skip_ws()
         token = self.peek()
         if token == ('char', '{'):
             self.take()
@@ -90,6 +95,7 @@ class Parser:
         return produced if isinstance(produced, list) else [produced]
 
     def optional(self):
+        self.skip_ws()
         if self.peek() != ('char', '['):
             return []
         self.take()
@@ -98,6 +104,7 @@ class Parser:
         return nodes
 
     def raw_text(self):
+        self.skip_ws()
         self.expect('{')
         depth, text = 1, ''
         while True:
@@ -131,7 +138,10 @@ class Parser:
             base, sub, sup = base[1], base[2], base[3]
         else:
             base = [base]
-        while self.peek() in {('char', '^'), ('char', '_')}:
+        while True:
+            self.skip_ws()
+            if self.peek() not in {('char', '^'), ('char', '_')}:
+                break
             mark = self.take()[1]
             argument = self.group()
             if mark == '_':
@@ -150,12 +160,17 @@ class Parser:
             if value == '{':
                 nodes = self.sequence('}')
                 self.expect('}')
-                if not nodes and self.peek() in {('char', '^'), ('char', '_')}:
-                    _, _, sub, sup = self.scripts(('t', ''))
-                    base = self.atom()
-                    if base is None:
-                        raise ChemistryRenderError('Prescript without a following symbol')
-                    return ('pre', sub or [], sup or [], base if isinstance(base, list) else [base])
+                if not nodes:
+                    saved = self.i
+                    self.skip_ws()
+                    if self.peek() in {('char', '^'), ('char', '_')}:
+                        _, _, sub, sup = self.scripts(('t', ''))
+                        self.skip_ws()
+                        base = self.atom()
+                        if base is None:
+                            raise ChemistryRenderError('Prescript without a following symbol')
+                        return ('pre', sub or [], sup or [], base if isinstance(base, list) else [base])
+                    self.i = saved
                 return nodes
             if value in ' \t\r\n':
                 return None  # Spaces are not significant in LaTeX math mode.
@@ -183,6 +198,7 @@ class Parser:
         if value == 'frac':
             return ('frac', self.group(), self.group())
         if value in {'left', 'right'}:
+            self.skip_ws()
             kind, delimiter = self.take()
             if delimiter == '.':
                 return None
@@ -248,7 +264,7 @@ def rich_segments(nodes):
     return segments
 
 
-def omml_children(nodes):
+def omml_children(nodes, *, in_script=False):
     result, buffer = [], ''
 
     def flush():
@@ -260,15 +276,15 @@ def omml_children(nodes):
     for item in nodes:
         kind = item[0]
         if kind == 't':
-            buffer += item[1]
+            buffer += (' ' + item[1] + ' ') if (not in_script and item[1] in SPACED) else item[1]
             continue
         flush()
         if kind == 'text':
             result.append(math_run(item[1], 'p', True))  # Chinese or prose conditions
         elif kind == 'script':
-            base = node('e', *omml_children(item[1]))
-            sub = node('sub', *omml_children(item[2])) if item[2] is not None else None
-            sup = node('sup', *omml_children(item[3])) if item[3] is not None else None
+            base = node('e', *omml_children(item[1], in_script=in_script))
+            sub = node('sub', *omml_children(item[2], in_script=True)) if item[2] is not None else None
+            sup = node('sup', *omml_children(item[3], in_script=True)) if item[3] is not None else None
             if sub is not None and sup is not None:
                 result.append(node('sSubSup', base, sub, sup))
             elif sub is not None:
@@ -276,22 +292,25 @@ def omml_children(nodes):
             else:
                 result.append(node('sSup', base, sup))
         elif kind == 'pre':
-            result.append(node('sPre', node('sub', *omml_children(item[1])),
-                               node('sup', *omml_children(item[2])), node('e', *omml_children(item[3]))))
+            result.append(node('sPre', node('sub', *omml_children(item[1], in_script=True)),
+                               node('sup', *omml_children(item[2], in_script=True)),
+                               node('e', *omml_children(item[3], in_script=in_script))))
         elif kind in {'over', 'under'}:
             tag = 'limUpp' if kind == 'over' else 'limLow'
-            result.append(node(tag, node('e', *omml_children(item[1])), node('lim', *omml_children(item[2]))))
+            result.append(node(tag, node('e', *omml_children(item[1], in_script=in_script)),
+                               node('lim', *omml_children(item[2], in_script=True))))
         elif kind == 'arrow':
             _, glyph, above, below = item
             core = math_run(LONG.get(glyph, glyph) if (above or below) else glyph, 'p', True)
             if above:
-                core = node('limUpp', node('e', core), node('lim', *omml_children(above)))
+                core = node('limUpp', node('e', core), node('lim', *omml_children(above, in_script=True)))
             if below:
-                core = node('limLow', node('e', core), node('lim', *omml_children(below)))
+                core = node('limLow', node('e', core), node('lim', *omml_children(below, in_script=True)))
             result.append(core)
         elif kind == 'frac':
             result.append(node('f', node('fPr', node('type', val='bar')),
-                               node('num', *omml_children(item[1])), node('den', *omml_children(item[2]))))
+                               node('num', *omml_children(item[1], in_script=in_script)),
+                               node('den', *omml_children(item[2], in_script=in_script))))
         else:
             raise ChemistryRenderError('Unknown chemistry node: ' + kind)
     flush()

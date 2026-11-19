@@ -163,7 +163,7 @@ class ComponentTests(unittest.TestCase):
             validate_scene(old, old['structure'])
         value, source = circuit()
         value['elements'][8]['to'] = 'L2.a'
-        with self.assertRaisesRegex(ValueError, r"缺少 \[\"\['B', 'S'\]\"\].*多出 \[\"\['B', 'L2'\]\"\]"):
+        with self.assertRaisesRegex(ValueError, r"缺少 \[\['B', 'S'\]\].*多出 \[\['B', 'L2'\]\]"):
             self.draw(value, 'conn')
 
     def test_dial_needle_points_at_value(self):
