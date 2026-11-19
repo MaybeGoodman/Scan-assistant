@@ -12,20 +12,17 @@ import argparse
 import json
 import re
 import sys
+import tempfile
 from pathlib import Path
 from zipfile import ZipFile
 from lxml import etree
+from _common import ANSWER_LABEL
 
 W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 M = 'http://schemas.openxmlformats.org/officeDocument/2006/math'
 WP = 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing'
 NS = {'w': W, 'm': M, 'wp': WP}
 PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
-ANSWER_LABEL = re.compile(r'^\s*[【\[（(]?\s*(答案|解析|解答|详解|参考答案|故选)\s*[】\]）)]?\s*[:：]')
-
-
-def _norm(text):
-    return re.sub(r'\s+', '', text or '')
 
 
 def paragraphs(xml):
@@ -90,27 +87,6 @@ def audit(path, forbidden=(), *, student=True):
                 problems.append(f'疑似答案标签：{text[:24]}')
     return {'ok': not problems, 'problems': problems, 'body': body,
             'pictures': len(document.xpath('//wp:docPr', namespaces=NS))}
-
-
-def expected_text_runs(document):
-    """Plain text runs from the reviewed JSON, in order, for the consistency check."""
-    values = []
-
-    def visit(item):
-        if item.get('type') == 'text' and isinstance(item.get('text'), str) and 'runs' not in item:
-            if _norm(item['text']):
-                values.append(_norm(item['text']))
-        for child in item.get('runs', []) or []:
-            visit(child)
-        for child in item.get('cells', []) or []:
-            if isinstance(child.get('text'), str) and _norm(child['text']):
-                values.append(_norm(child['text']))
-            for run in child.get('runs', []) or []:
-                visit(run)
-
-    for block in document.get('blocks', []):
-        visit(block)
-    return values
 
 
 IMAGE_TOKEN = '⟦图⟧'
@@ -207,34 +183,25 @@ def consistency(path, document, *, source=None, chemistry_format='native'):
     charge, reaction condition or picture is reported (F05). ``source`` is the JSON file's
     path, needed to resolve image paths; without it pictures are compared by count only.
     """
-    import hashlib
-    import shutil
-    import tempfile
     from export_docx import export_docx
 
-    result = audit(path, student=False)
     problems = []
     images = sum(1 for b in document.get('blocks', []) if b.get('type') == 'image')
     mode = 'student' if document.get('output_mode') == 'student' else 'original'
     with tempfile.TemporaryDirectory() as temp:
         temp = Path(temp)
-        if source is not None:
-            base = Path(source).resolve().parent
-            expected_json = base / f'.consistency-{hashlib.sha256(str(temp).encode()).hexdigest()[:12]}.json'
-        else:
+        expected_json = temp / 'expected.json'
+        asset_base = Path(source).resolve().parent if source is not None else None
+        payload = document
+        if source is None:
             # Without image files the pictures become markers that match the picture token.
-            expected_json = temp / 'expected.json'
-            document = json.loads(json.dumps(document))
-            document['blocks'] = [{'type': 'text', 'text': IMAGE_TOKEN} if b.get('type') == 'image' else b
-                                  for b in document.get('blocks', [])]
-        try:
-            expected_json.write_text(json.dumps(document, ensure_ascii=False), encoding='utf-8')
-            export_docx(expected_json, temp / 'expected.docx', word_confirmed=True, report_path=temp / 'r.json',
-                        output_mode=mode, chemistry_format=chemistry_format)
-            want, want_pictures = body_signature(temp / 'expected.docx')
-        finally:
-            if source is not None:
-                expected_json.unlink(missing_ok=True)
+            payload = json.loads(json.dumps(document))
+            payload['blocks'] = [{'type': 'text', 'text': IMAGE_TOKEN} if b.get('type') == 'image' else b
+                                 for b in payload.get('blocks', [])]
+        expected_json.write_text(json.dumps(payload, ensure_ascii=False), encoding='utf-8')
+        export_docx(expected_json, temp / 'expected.docx', word_confirmed=True, report_path=temp / 'r.json',
+                    output_mode=mode, chemistry_format=chemistry_format, asset_base=asset_base)
+        want, want_pictures = body_signature(temp / 'expected.docx')
     got, got_pictures = body_signature(path)
     for index in range(max(len(want), len(got))):
         a = want[index] if index < len(want) else None
@@ -244,8 +211,8 @@ def consistency(path, document, *, source=None, chemistry_format='native'):
                             f'Word 为 {"".join(b or [])[:60]}')
             if len(problems) >= 10:
                 break
-    if images != result['pictures']:
-        problems.append(f'图片数量不一致：JSON {images}，Word {result["pictures"]}')
+    if images != len(got_pictures):
+        problems.append(f'图片数量不一致：JSON {images}，Word {len(got_pictures)}')
     elif source is not None and want_pictures != got_pictures:
         problems.append('Word 中的图片与已验证的图件不一致')
     return {'ok': not problems, 'problems': problems}

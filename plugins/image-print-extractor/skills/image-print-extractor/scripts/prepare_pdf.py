@@ -1,20 +1,12 @@
 """Render PDF pages plus untrusted text-layer candidates; no OCR or filtering."""
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import pypdfium2 as pdfium
+from _common import sha256
 
 DEFAULT_DPI = 200
 MIN_DPI, MAX_DPI = 72, 400
-
-
-def sha256(path):
-    digest = hashlib.sha256()
-    with Path(path).open('rb') as stream:
-        for chunk in iter(lambda: stream.read(1 << 20), b''):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def parse_pages(spec, page_count):

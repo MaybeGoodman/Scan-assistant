@@ -21,36 +21,20 @@ import hashlib
 import json
 import re
 from copy import deepcopy
+from _common import ANSWER_LABEL, OUTPUT_MODES as MODES, iter_texts as _texts
 
 QUESTION_ROLES = frozenset({'stem', 'material', 'option', 'subquestion', 'answer_space', 'figure',
                             'instruction', 'source', 'title', 'other'})
 ANSWER_ROLES = frozenset({'answer', 'analysis', 'solution', 'filled_answer', 'answer_mark', 'scoring'})
 ROLES = QUESTION_ROLES | ANSWER_ROLES | {'uncertain'}
-MODES = ('original', 'student')
 REVIEW_STATUS = ('confirmed', 'needs_review', 'unresolved', 'failed')
 DELIVERY = ('draft', 'final', 'partial', 'blocked')
 MODULES = ('M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07', 'M08')
 RESOLUTIONS = ('confirmed', 'accepted')
-# Labels that usually introduce answer material. Used only to flag unannotated content
-# for review in student mode; nothing is ever deleted because of a keyword.
-ANSWER_LABEL = re.compile(r'^\s*[【\[（(]?\s*(答案|解析|解答|详解|点拨|评分|参考答案|故选|答)\s*[】\]）)]?\s*[:：]?')
 
 
 class QuestionError(ValueError):
     pass
-
-
-def _texts(item):
-    """Yield (path, string) for every transcribed string inside a block/run/cell."""
-    if 'text' in item and isinstance(item['text'], str):
-        yield 'text', item['text']
-    if 'latex' in item and isinstance(item['latex'], str):
-        yield 'latex', item['latex']
-    for key in ('runs', 'cells'):
-        for index, child in enumerate(item.get(key, []) or []):
-            if isinstance(child, dict):
-                for path, text in _texts(child):
-                    yield f'{key}[{index}].{path}', text
 
 
 def visible_text(item):
@@ -96,6 +80,8 @@ def validate_questions(document):
     def refs(owner, values, what='blocks'):
         if not isinstance(values, list) or any(not isinstance(v, str) for v in values):
             raise QuestionError(f'{owner} 的 {what} 必须是字符串列表')
+        if len(set(values)) != len(values):
+            raise QuestionError(f'{owner} 的 {what} 含重复块引用')
         positions = []
         for value in values:
             if value not in ids:
@@ -109,7 +95,7 @@ def validate_questions(document):
     materials = {}
     for material in document.get('materials', []) or []:
         mid = material.get('material_id')
-        if not isinstance(mid, str) or mid in materials:
+        if not isinstance(mid, str) or not mid or mid in materials:
             raise QuestionError('materials 的 material_id 缺失或重复')
         materials[mid] = refs(f'材料 {mid}', material.get('blocks', []))
     owners, seen = {}, set()
@@ -226,7 +212,6 @@ def project(document, mode='original'):
             sub['blocks'] = [b for b in sub.get('blocks', []) if b not in removed_ids]
     for material in result.get('materials', []) or []:
         material['blocks'] = [b for b in material.get('blocks', []) if b not in removed_ids]
-    result.pop('review_resolutions', None)
     result['output_mode'] = 'student'
     return result, removed
 
@@ -285,13 +270,12 @@ def review_items(document, *, mode='original', extra=()):
 
     for index, block in enumerate(document.get('blocks', [])):
         location = f'blocks[{index}]'
+        is_inference_note = visible_text(block).lstrip().startswith('补写说明')
         stack = [(block, location)]
         while stack:
             item, where = stack.pop()
             for path, text in _texts({k: v for k, v in item.items() if k in {'text', 'latex'}}):
-                if text.lstrip().startswith('补写说明'):
-                    continue  # The inference list documents markers; the markers themselves are the items.
-                if '〔' in text:
+                if not is_inference_note and not text.lstrip().startswith('补写说明') and '〔' in text:
                     add('inference', where, '推断补写内容待复核', text)
                 if 'XXX' in text:
                     add('unreadable', where, '无法可靠辨认的局部（XXX）', text)

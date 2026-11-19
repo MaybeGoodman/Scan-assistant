@@ -4,39 +4,15 @@ This only organizes host-reviewed JSON; it performs no OCR, classification or te
 """
 import argparse
 from copy import deepcopy
-import hashlib
 import json
 import os
 from pathlib import Path
 import re
 import sys
+from _common import read_json, replace_atomic, sha256, write_new
 
 MAX_BATCH_SIZE = 20
 TASK_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}')
-
-
-def sha256(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
-def read_json(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
-
-
-def write_new(path, value):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open('x', encoding='utf-8') as stream:
-        json.dump(value, stream, ensure_ascii=False, indent=2)
-
-
-def replace_atomic(path, value):
-    """The progress ledger is state, so it alone is updated in place via a fresh temporary file."""
-    path = Path(path)
-    temporary = path.with_name(path.name + '.tmp')
-    with temporary.open('x', encoding='utf-8') as stream:
-        json.dump(value, stream, ensure_ascii=False, indent=2)
-    os.replace(temporary, path)
 
 
 def inside(base, path):

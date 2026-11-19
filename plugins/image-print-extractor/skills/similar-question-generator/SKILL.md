@@ -42,7 +42,7 @@ description: 以已确认的完整原题（含全部小问、共享材料和必�
    python -X utf8 <scripts>/variants.py submit --ledger <ledger> --candidate <文件>
    ```
 
-3. 看结果：`passed` 表示该位置完成；`failed` 时阅读 `failures`，只重写这一道，提交到同一 slot；`needs_review` 表示独立复核结论不确定，也要重写或复核。每个位置的尝试次数有上限（默认 3 次），用完即止，不能无限重试。
+3. 看结果：`passed` 表示该位置完成；`failed` 时阅读 `failures`，只重写这一道，提交到同一 slot；`needs_review` 表示独立复核结论不确定，也要重写或复核。每个位置的尝试次数有上限（默认 3 次），用完即止，不能无限重试。会话恢复或不确定进度时，可运行 `variants.py status --ledger <ledger>` 或 `pipeline.py resume <工作目录>` 查看台账状态。
 4. `status` 为 `ready_to_deliver` 后交付：
 
    ```text

@@ -193,6 +193,17 @@ def convert_element(element, inherited_variant=None):
     raise FormulaError('Unsupported mathematical structure: ' + tag)
 
 
+def _normalize_aligned(source):
+    """Replace \\begin{aligned}...\\end{aligned} with \\begin{array}{rl...} matching its actual column count."""
+    def convert_block(match):
+        body = match[1]
+        rows = re.split(r'(?<!\\)\\\\', body)
+        cols = max(2, *(len(re.findall(r'(?<!\\)&', row)) + 1 for row in rows))
+        spec = ('rl' * ((cols + 1) // 2))[:cols]
+        return r'\begin{array}{' + spec + '}' + body + r'\end{array}'
+    return re.sub(r'\\begin\{aligned\}(.*?)\\end\{aligned\}', convert_block, source, flags=re.S)
+
+
 def to_omml(source, *, display=False):
     validate_latex(source)
     try:
@@ -200,7 +211,7 @@ def to_omml(source, *, display=False):
     except ImportError as exc:
         raise RuntimeError('Install latex2mathml from the skill requirements before Word math export') from exc
     # These are layout normalizations, not algebra or source-content corrections.
-    normalized = source.replace(r'\begin{aligned}', r'\begin{array}{rl}').replace(r'\end{aligned}', r'\end{array}')
+    normalized = _normalize_aligned(source)
     normalized = normalized.replace(r'\begin{gathered}', r'\begin{array}{c}').replace(r'\end{gathered}', r'\end{array}')
     if display and r'\textstyle' not in source:
         normalized = re.sub(r'\\(lim|limsup|liminf|min|max|sup|inf)\s*_',
