@@ -186,7 +186,7 @@ class MainContentTests(unittest.TestCase):
                     {'row':0,'col':1,'text':'10','selection':{'category':'HANDWRITING','certainty':'high'}}]}]}
             source=root/'candidates.json';source.write_text(json.dumps(data),encoding='utf-8')
             reviewed=select_file(source,root/'reviewed.json',root/'selection.review.json')
-            export(reviewed,root/'html')
+            export(reviewed,root/'html',paste_target='markdown')
             export_docx(reviewed,root/'result.docx',word_confirmed=True,chemistry_format='source')
             html=(root/'html/result.html').read_text(encoding='utf-8')
             markdown=(root/'html/result.md').read_text(encoding='utf-8')

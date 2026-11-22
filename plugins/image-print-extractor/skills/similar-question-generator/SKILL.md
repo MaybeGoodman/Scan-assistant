@@ -46,7 +46,7 @@ description: 以已确认的完整原题（含全部小问、共享材料和必�
 4. `status` 为 `ready_to_deliver` 后交付：
 
    ```text
-   python -X utf8 <scripts>/variants.py deliver --ledger <ledger> --format chat|docx|both --output-dir <新目录> [--word-confirmed]
+   python -X utf8 <scripts>/variants.py deliver --ledger <ledger> --format chat|docx|both --output-dir <新目录> [--word-confirmed] [--paste-target axmath|markdown] [--blank-latex underline|escaped]
    ```
 
    只有用户确认要 Word 时才用 `docx` 或 `both`，并加 `--word-confirmed`。
@@ -72,7 +72,7 @@ description: 以已确认的完整原题（含全部小问、共享材料和必�
 
 ## 交付
 
-- 聊天：把 `student-chat.md` 的内容原样发给用户，不另加答案、解析或验证过程。
+- 聊天：`deliver` 默认 `--paste-target axmath`，整条方程式输出为可直接粘贴到 AxMath 的 `latex` 代码块（如需 1.1.0 拆分 Markdown 传 `--paste-target markdown`，备选空白传 `--blank-latex escaped`）。把 `student-chat.md` 的内容原样发给用户，不另加答案、解析或验证过程。
 - Word：交付 `student.docx` 链接。该文件已自动检查：没有答案泄漏、与聊天文本一致，并且只由验证通过的题组成。
 - 数量不足：用 `shortfalls` 中的原话逐题说明，例如“第18题目标 3 道，验证通过 2 道，缺 1 道”。部分交付和全部完成要分开说明。
 - 答案与解析：只在 `internal/answer-key.md`，属于教师和内部材料，不放进学生文件夹。用户明确要答案时，可以单独提供，并说明它与学生版是两份材料。

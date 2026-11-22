@@ -70,6 +70,7 @@
 | H⁺ + OH⁻ = H₂O | `\mathrm{H^+}+\mathrm{OH^-}=\mathrm{H_2O}` |
 | CaCO₃(s) / AgCl↓ / CO₂↑ | `\mathrm{CaCO_3(s)}` / `\mathrm{AgCl}\downarrow` / `\mathrm{CO_2}\uparrow` |
 | KClO₃ 分解，上方 MnO₂、下方加热 | `2\mathrm{KClO_3}\xrightarrow[\Delta]{\mathrm{MnO_2}}2\mathrm{KCl}+3\mathrm{O_2}` |
+| 带填空的配平题 | `\underline{\qquad}\,\mathrm{Cr_2O_7^{2-}}+\underline{\qquad}\,\mathrm{H^+}=\underline{\qquad}\,\mathrm{Cl_2}\uparrow` |
 
 只有原图确实印有对应系数、符号和条件时才使用示例中的完整表达式。N2、H2SO4、SO42-、N₂、SO₄²⁻ 均不能作为化学最终输出，即使包在 \mathrm{...} 内也不合格。数字根据原图语义定位，不对整页文字做正则替换。
 
@@ -96,7 +97,7 @@
 
 ## JSON 表达式接口
 
-正文和表格单元格可提供 `text` 或 `runs`，两者互斥。普通文字继续用 `text`。含表达式时用有序 `runs`，每项显式标记 `text`、`math` 或 `chemistry`；独立表达式使用顶层 `math`/`chemistry` 块。表达式的 `latex` 字段不包含 `$`、`$$`、`\(` 等外层分隔符。JSON 内反斜杠写为 `\\`。
+正文和表格单元格可提供 `text` 或 `runs`，两者互斥。普通文字继续用 `text`。含表达式时用有序 `runs`，每项显式标记 `text`、`math` 或 `chemistry`；独立表达式使用顶层 `math`/`chemistry` 块。表达式的 `latex` 字段不包含 `$`、`$$`、`\(` 等外层分隔符。JSON 内反斜杠写为 `\\`。方程式中的填空空白写在 `chemistry` 的 `latex` 内（形式为 `\underline{\qquad}\,`），使整条方程式保持为完整 LaTeX；中文句子里的普通填空仍用 `text` run 中的 `______`。
 
 ```json
 {"blocks":[
@@ -118,7 +119,7 @@
 
 可选表达式字段：`id` 标识、`source` 原图定位、`confidence` 识别置信度、`repairs` 补充记录列表。`source` 建议包含从 1 开始的页码及对应页面图像中的像素框 `[左,上,右,下]`。行内项未写 `source` 时继承所在段落/单元格/表格的定位；仍缺失时，报告至少保留 JSON 块和 run 索引。
 
-能保留局部结构时在 `latex` 内写 `\text{XXX}`；整式无法判定时使用 `"status":"unresolved"` 并在 `reason` 说明原因。真实空白用空 `text`，不伪装成空公式。
+能保留局部结构时在 `latex` 内写 `\text{XXX}`；整式无法判定时使用 `"status":"unresolved"` 并在 `reason` 说明原因。真实空白用空 `text`，不伪装成空公式；方程式内填空空白按上文写入 `chemistry` 的 `latex`。
 
 旧版 Word JSON 中的 `$...$` 字符串必须由识别阶段迁移为有类型的表达式，导出器不会猜测其是数学还是化学。发现遗留数学源码时导出报错，避免交付错误格式。原有纯文字、图形和表格结构仍兼容；HTML 导出也支持新结构，数学保留带分隔符的源码，化学保留原始源码。
 

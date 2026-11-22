@@ -137,7 +137,17 @@ def paragraph_tokens(paragraph):
             run = child.getparent()
             align = run.find('w:rPr/w:vertAlign', NS)
             mark = align.get('{%s}val' % W) if align is not None else ''
-            tokens.extend((mark, char) for char in (child.text or '') if not char.isspace())
+            u = run.find('w:rPr/w:u', NS)
+            underlined = u is not None and u.get('{%s}val' % W) not in {'none', 'false', '0'}
+            value = child.text or ''
+            if underlined:
+                mark = f'{mark}+underline' if mark else 'underline'
+                if value and not value.strip():
+                    tokens.append((mark, '_' * len(value)))
+                else:
+                    tokens.extend((mark, char) for char in value if not char.isspace())
+            else:
+                tokens.extend((mark, char) for char in value if not char.isspace())
         elif name == 'drawing':
             tokens.append(IMAGE_TOKEN)
     merged, text = [], []

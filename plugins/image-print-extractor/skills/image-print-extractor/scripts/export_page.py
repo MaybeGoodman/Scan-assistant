@@ -4,7 +4,7 @@ import html
 import shutil
 import struct
 from pathlib import Path
-from _common import local_path, read_json, sha256
+from _common import BLANK_LATEX, PASTE_TARGETS, local_path, read_json, sha256
 from content_blocks import plain_source, reviewed_blocks
 from latex_validation import validate_latex
 from questions import DRAFT_NOTICE, MODES, delivery_status, project, review_items
@@ -79,32 +79,40 @@ def figure_assets(base, block):
     return image, svg
 
 
-def export(source, output, *, output_mode='original', extra_review=()):
+def export(source, output, *, output_mode='original', extra_review=(),
+           paste_target='axmath', blank_latex='underline'):
     """Write result.html / result.md; returns the HTML path. Delivery info: export_result()."""
-    return export_result(source, output, output_mode=output_mode, extra_review=extra_review)['output']
+    return export_result(source, output, output_mode=output_mode, extra_review=extra_review,
+                         paste_target=paste_target, blank_latex=blank_latex)['output']
 
 
-def export_result(source, output, *, output_mode='original', extra_review=()):
+def export_result(source, output, *, output_mode='original', extra_review=(),
+                  paste_target='axmath', blank_latex='underline'):
     if output_mode not in MODES:
         raise ValueError('output_mode must be original or student')
+    if paste_target not in PASTE_TARGETS:
+        raise ValueError('paste_target must be axmath or markdown')
+    if blank_latex not in BLANK_LATEX:
+        raise ValueError('blank_latex must be underline or escaped')
     source, output = Path(source).resolve(), Path(output).resolve()
     loaded = read_json(source)
     reviewed_blocks(loaded)
     projected, removed = project(loaded, output_mode)
     blocks = projected['blocks'] if output_mode == 'original' else reviewed_blocks(projected)
-    items = review_items(projected, mode=output_mode, extra=extra_review)
-    delivery, open_items = delivery_status(items)
-    fragments, markdown, copies = [], [], []
-    if delivery == 'draft':
-        notice = DRAFT_NOTICE.format(count=len(open_items))
-        fragments.append('<p class="draft-notice"><strong>' + escape(notice) + '</strong></p>')
-        markdown.append(notice)
+    fragments, markdown, copies, merge_extra = [], [], [], []
     for index, block in enumerate(blocks, 1):
         kind = block['type']
         if kind == 'text':
             text = plain_source(block, validate_chemistry=True)
             fragments.append('<p>' + escape(text) + '</p>')
-            markdown.append(plain_source(block, validate_chemistry=True, markdown=True))
+            failures = []
+            markdown.append(plain_source(block, validate_chemistry=True, markdown=True,
+                                         paste_target=paste_target, blank_latex=blank_latex,
+                                         merge_failures=failures))
+            for failure in failures:
+                merge_extra.append({'kind': 'paste_merge_failed', 'location': f'blocks[{index - 1}]',
+                                    'detail': '整式合并校验失败，已退回拆分输出：' + failure['detail'],
+                                    'content': failure['content']})
         elif kind in {'math', 'chemistry'}:
             latex = block.get('latex')
             if not isinstance(latex, str):
@@ -130,6 +138,12 @@ def export_result(source, output, *, output_mode='original', extra_review=()):
                 markdown[-1]=f'![]({vector_target})'
         else:
             raise ValueError(f'Unknown block type: {kind}')
+    items = review_items(projected, mode=output_mode, extra=[*extra_review, *merge_extra])
+    delivery, open_items = delivery_status(items)
+    if delivery == 'draft':
+        notice = DRAFT_NOTICE.format(count=len(open_items))
+        fragments.insert(0, '<p class="draft-notice"><strong>' + escape(notice) + '</strong></p>')
+        markdown.insert(0, notice)
     # Validate everything before creating files; never overwrite an existing export.
     if output.exists() and any(output.iterdir()):
         raise FileExistsError('Output directory must be new or empty')
@@ -158,5 +172,8 @@ if __name__ == '__main__':
     parser.add_argument('source')
     parser.add_argument('--output-dir', required=True)
     parser.add_argument('--output-mode', choices=MODES, default='original')
+    parser.add_argument('--paste-target', choices=PASTE_TARGETS, default='axmath')
+    parser.add_argument('--blank-latex', choices=BLANK_LATEX, default='underline')
     args = parser.parse_args()
-    print(export(args.source, args.output_dir, output_mode=args.output_mode))
+    print(export(args.source, args.output_dir, output_mode=args.output_mode,
+                 paste_target=args.paste_target, blank_latex=args.blank_latex))
