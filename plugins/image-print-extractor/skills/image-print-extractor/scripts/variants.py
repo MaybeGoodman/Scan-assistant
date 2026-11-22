@@ -30,7 +30,7 @@ import sys
 from copy import deepcopy
 from pathlib import Path
 
-from _common import RUN_ID, read_json, replace_atomic, sha256, write_new
+from _common import BLANK_LATEX, PASTE_TARGETS, RUN_ID, read_json, replace_atomic, sha256, write_new
 from content_blocks import reviewed_blocks
 from questions import ANSWER_ROLES, forbidden_strings, glyphs, question_blocks, review_items, delivery_status, validate_questions
 from subjects import DIFFICULTIES, DIFFICULTY_LABELS, describe, module
@@ -44,6 +44,24 @@ MODULE_KINDS = {'M01': {'arith', 'substitute', 'roots'}, 'M05': {'arith', 'subst
                 'M04': {'choice', 'evidence'}, 'M08': {'choice', 'evidence'}}
 DESIGN_KEYS = ('knowledge_points', 'method', 'question_type', 'difficulty', 'difficulty_evidence',
                'difference_from_source', 'difference_from_siblings')
+BLANK_UNDERSCORE = re.compile(r'[_＿]{3,}')
+
+
+def _has_adjacent_blank_run(item):
+    """Detect 3+ consecutive underscores in a text run adjacent to a chemistry/math run."""
+    runs = item.get('runs')
+    if isinstance(runs, list):
+        for index, run in enumerate(runs):
+            if run.get('type') != 'text' or not BLANK_UNDERSCORE.search(run.get('text', '')):
+                continue
+            prev_type = runs[index - 1].get('type') if index > 0 else None
+            next_type = runs[index + 1].get('type') if index + 1 < len(runs) else None
+            if prev_type in {'chemistry', 'math'} or next_type in {'chemistry', 'math'}:
+                return True
+    for cell in item.get('cells', []) or []:
+        if isinstance(cell, dict) and _has_adjacent_blank_run(cell):
+            return True
+    return False
 
 
 def norm(text):
@@ -239,6 +257,9 @@ def verify(candidate, target, ledger, siblings):
             open_items = [{'location': 'variant', 'detail': str(exc)}]
         for item in open_items:
             failures.append(f'题面含待复核内容，不能计为验证通过：{item["location"]} {item["detail"]}')
+
+    if any(_has_adjacent_blank_run(block) for block in blocks):
+        failures.append(r'方程式中的填空横线请写进表达式：\underline{\qquad}')
 
     def roles(item):
         yield item.get('role')
@@ -479,10 +500,13 @@ def frozen_figure(base, entry, asset):
     return {'path': asset['frozen'], **({'svg_path': asset['svg_frozen']} if 'svg_frozen' in asset else {})}
 
 
-def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
+def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False,
+            paste_target='axmath', blank_latex='underline'):
     path, ledger = load(ledger_file)
     if fmt not in {'chat', 'docx', 'both'}:
         raise ValueError('format 只能为 chat、docx 或 both')
+    if paste_target not in PASTE_TARGETS or blank_latex not in BLANK_LATEX:
+        raise ValueError('paste-target 只能为 axmath/markdown，blank-latex 只能为 underline/escaped')
     if fmt != 'chat' and word_confirmed is not True:
         raise ValueError('生成 Word 前必须已得到用户确认，并传入 --word-confirmed')
     current = status(path)
@@ -576,7 +600,8 @@ def deliver(ledger_file, fmt, output_dir, *, word_confirmed=False):
         result = {'status': 'completed', 'files': {}, 'questions': current['questions'], 'delivered': delivered}
         delivery = 'final'
         from export_page import export_result
-        page = export_result(student_doc, chat_dir, output_mode='student')
+        page = export_result(student_doc, chat_dir, output_mode='student',
+                             paste_target=paste_target, blank_latex=blank_latex)
         if page['delivery'] != 'final':
             delivery = 'draft'
         text = glyphs(Path(page['markdown']).read_text(encoding='utf-8').replace('\\', ''))
@@ -651,6 +676,8 @@ def main():
     p.add_argument('--format', choices=['chat', 'docx', 'both'], required=True)
     p.add_argument('--output-dir', required=True)
     p.add_argument('--word-confirmed', action='store_true')
+    p.add_argument('--paste-target', choices=PASTE_TARGETS, default='axmath')
+    p.add_argument('--blank-latex', choices=BLANK_LATEX, default='underline')
     args = parser.parse_args()
     try:
         if args.command == 'init':
@@ -662,7 +689,8 @@ def main():
         elif args.command == 'status':
             result = status(args.ledger)
         else:
-            result = deliver(args.ledger, args.format, args.output_dir, word_confirmed=args.word_confirmed)
+            result = deliver(args.ledger, args.format, args.output_dir, word_confirmed=args.word_confirmed,
+                             paste_target=args.paste_target, blank_latex=args.blank_latex)
     except Exception as exc:
         print(json.dumps({'status': 'error', 'error': str(exc)}, ensure_ascii=False))
         sys.exit(1)

@@ -1,6 +1,7 @@
 """Shared typed paragraph content for DOCX and offline HTML exports."""
 import re
-from latex_validation import validate_latex
+from _common import BLANK_LATEX, PASTE_TARGETS
+from latex_validation import FormulaError, validate_latex
 
 
 def reviewed_blocks(document):
@@ -58,6 +59,10 @@ def parts(item):
 # HTML, links or math delimiters. Backslash escapes keep the visible text unchanged.
 MARKDOWN_INLINE = re.compile(r'([\\`*_\[\]<>|~$])')
 MARKDOWN_LINE_START = re.compile(r'^(\s{0,3})(#|[-+=]|\d{1,9}(?=[.)]))')
+EQUATION_TEXT = re.compile(r'^[\s_＿+＋=＝→↑↓()（）]*$')
+EQUATION_TOKENS = re.compile(r'[_＿]{2,}|[_＿]|[\s]+|.')
+EQUATION_OPS = {'+': '+', '＋': '+', '=': '=', '＝': '=', '→': r'\rightarrow',
+                '↑': r'\uparrow', '↓': r'\downarrow', '(': '(', '（': '(', ')': ')', '）': ')'}
 
 
 def markdown_text(text, at_line_start):
@@ -75,7 +80,53 @@ def markdown_text(text, at_line_start):
     return result
 
 
-def plain_source(item, *, validate_chemistry=False, markdown=False):
+def merge_equation(item, *, blank='underline', failures=None):
+    """Merge an equation paragraph/cell into one fenced LaTeX block for AxMath pasting."""
+    if blank not in BLANK_LATEX:
+        raise ValueError('blank must be underline or escaped')
+    values = parts(item)
+    if not any(part['type'] in {'chemistry', 'math'} for part in values):
+        return None
+    if any(part['type'] == 'text' and not EQUATION_TEXT.fullmatch(part['text']) for part in values):
+        return None
+    blank_token = r'\underline{\qquad}\,' if blank == 'underline' else r'\_\_\_\_\_\_'
+    pieces = []
+
+    def append(chunk):
+        if not chunk:
+            return
+        if pieces and re.search(r'\\[A-Za-z]+$', pieces[-1]) and chunk[0].isalpha():
+            pieces.append(' ')
+        pieces.append(chunk)
+
+    for part in values:
+        if part['type'] in {'chemistry', 'math'}:
+            append(part['latex'])
+            continue
+        for token in EQUATION_TOKENS.findall(part['text']):
+            if token[0].isspace():
+                continue
+            if token[0] in '_＿':
+                append(blank_token if len(token) >= 2 else r'\_')
+            else:
+                append(EQUATION_OPS[token])
+    merged = ''.join(pieces)
+    has_chemistry = any(part['type'] == 'chemistry' for part in values)
+    try:
+        validate_latex(merged, chemistry=has_chemistry)
+    except FormulaError as exc:
+        if failures is not None:
+            failures.append({'detail': str(exc), 'content': merged})
+        return None
+    return '```latex\n' + merged + '\n```'
+
+
+def plain_source(item, *, validate_chemistry=False, markdown=False,
+                 paste_target='axmath', blank_latex='underline', merge_failures=None):
+    if paste_target not in PASTE_TARGETS:
+        raise ValueError('paste_target must be axmath or markdown')
+    if blank_latex not in BLANK_LATEX:
+        raise ValueError('blank_latex must be underline or escaped')
     if validate_chemistry:
         for part in parts(item):
             if part['type'] == 'chemistry':
@@ -84,6 +135,10 @@ def plain_source(item, *, validate_chemistry=False, markdown=False):
         return ''.join(part['text'] if part['type'] == 'text' else
                        ('$' + part['latex'] + '$' if part['type'] == 'math' else part['latex'])
                        for part in parts(item))
+    if paste_target == 'axmath':
+        merged = merge_equation(item, blank=blank_latex, failures=merge_failures)
+        if merged is not None:
+            return merged
     output = ''
     for part in parts(item):
         if part['type'] == 'text':

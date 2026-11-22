@@ -36,6 +36,7 @@ ESCAPED = {',': ' ', ';': ' ', ':': ' ', '!': '', ' ': ' ', '{': '{', '}':
 X_ARROWS = {'xrightarrow': '→', 'xleftarrow': '←'}
 SPACED = set('+=→⟶←⟵↔⇌⇋')
 LONG = {'→': '⟶', '←': '⟵'}
+BLANK_TEXT = '\u3000' * 4
 
 
 def tokenize(source):
@@ -187,6 +188,8 @@ class Parser:
             return self.group()
         if value == 'text':
             return ('text', self.raw_text())
+        if value == 'underline':
+            return ('ul', self.group())
         if value in X_ARROWS:
             below = self.optional()
             above = self.group()
@@ -223,9 +226,15 @@ def flat(nodes):
     return nodes is not None and all(n[0] in {'t', 'text'} for n in nodes)
 
 
+def _is_blank(nodes):
+    return all(n[0] in {'t', 'text'} and not n[1].strip() for n in nodes)
+
+
 def is_simple(nodes):
     for item in nodes:
         if item[0] in {'t', 'text'}:
+            continue
+        if item[0] == 'ul' and flat(item[1]):
             continue
         if item[0] == 'script' and flat(item[1]) and (item[2] is None or flat(item[2])) and (
                 item[3] is None or flat(item[3])):
@@ -235,7 +244,7 @@ def is_simple(nodes):
 
 
 def rich_segments(nodes):
-    """Return [(text, None|'subscript'|'superscript')] with adjacent runs merged."""
+    """Return [(text, None|'subscript'|'superscript'|'underline')] with adjacent runs merged."""
     segments = []
 
     def add(text, align=None):
@@ -255,6 +264,15 @@ def rich_segments(nodes):
             add(' ' + item[1] + ' ')
         elif item[0] in {'t', 'text'}:
             add(item[1])
+        elif item[0] == 'ul':
+            if _is_blank(item[1]):
+                add(BLANK_TEXT, 'underline')
+            else:
+                for sub in item[1]:
+                    if sub[0] == 't' and sub[1] in SPACED:
+                        add(' ' + sub[1] + ' ', 'underline')
+                    else:
+                        add(sub[1], 'underline')
         else:
             add(text_of(item[1]))
             if item[2]:
@@ -281,6 +299,9 @@ def omml_children(nodes, *, in_script=False):
         flush()
         if kind == 'text':
             result.append(math_run(item[1], 'p', True))  # Chinese or prose conditions
+        elif kind == 'ul':
+            inner = [math_run(BLANK_TEXT, 'p', True)] if _is_blank(item[1]) else omml_children(item[1], in_script=in_script)
+            result.append(node('bar', node('barPr', node('pos', val='bot')), node('e', *inner)))
         elif kind == 'script':
             base = node('e', *omml_children(item[1], in_script=in_script))
             sub = node('sub', *omml_children(item[2], in_script=True)) if item[2] is not None else None
@@ -331,6 +352,8 @@ def add_chemistry(paragraph, latex, *, display=False):
                 piece.font.subscript = True
             elif align == 'superscript':
                 piece.font.superscript = True
+            elif align == 'underline':
+                piece.font.underline = True
         return 'rich_text'
     formula = to_omml(nodes)
     if display:
@@ -348,6 +371,8 @@ def plain_text(latex):
             kind = item[0]
             if kind in {'t', 'text'}:
                 text += item[1]
+            elif kind == 'ul':
+                text += '____' if _is_blank(item[1]) else walk(item[1])
             elif kind == 'script':
                 text += walk(item[1]) + walk(item[2] or []) + walk(item[3] or [])
             elif kind == 'pre':

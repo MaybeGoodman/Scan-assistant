@@ -1,5 +1,15 @@
 # 更新记录
 
+## 1.2.0（候选）
+
+聊天／Markdown 输出的方程式默认可直接整段粘贴到 Word 并由 AxMath 转为公式，不改变 JSON 结构、HTML 输出与 Word 排版。
+
+- **化学 LaTeX 校验与 Word 原生下划线**：`latex_validation.py` 的 `CHEM_COMMANDS` 加入 `underline`；`chemistry_word.py` 支持 `\underline{...}`（纯空白统一渲染为 4 个全角空格加下划线，非空白保留原内容加下划线，OMML 路径输出 `m:bar` 且 `m:pos="bot"`，`plain_text()` 纯空白输出 `____`）；`docx_audit.py` 的 `paragraph_tokens()` 记录下划线与下划线空白，确保“有空白”与“无空白”段落签名不同。
+- **整式合并与兼容开关（行为变更）**：`content_blocks.py` 新增 `merge_equation(item, *, blank='underline')`，`plain_source(..., markdown=True)` 默认 `paste_target='axmath'`，将仅由公式与空白／运算符组成的段落合并为单个 ```` ```latex ```` 代码块；合并后经 `validate_latex()` 校验，失败时退回拆分输出并记录 `paste_merge_failed` 复核项（交付状态为 `draft`）。含中文的混排段落保持不变。
+- **新增参数**：`export_page.py`、`pipeline.py run`（写入状态文件供 `resume`/`finalize` 沿用）与 `variants.py deliver` 均新增 `--paste-target {axmath,markdown}`（默认 `axmath`，传 `markdown` 保持 1.1.0 逐字节一致的输出）和 `--blank-latex {underline,escaped}`（默认 `underline` 输出 `\underline{\qquad}\,`，传 `escaped` 输出 `\_\_\_\_\_\_`）。`variants.py deliver` 的答案泄漏检查照常在合并后的 `student-chat.md` 上执行。
+- **生成侧约束**：`variants.py submit` 拦截同一块中含 3 个及以上连续 `_`／`＿` 且与 `chemistry`／`math` run 相邻的 `text` run，提示将填空横线写进表达式 `\underline{\qquad}`；纯中文句子里的 `______` 不受影响。
+- 新增 `tests/test_axmath_paste.py`（覆盖 T1–T9 及边界场景）；三份插件清单升至 1.2.0；技能说明与参考文档同步。
+
 ## 1.1.0（候选）
 
 实现需求第 19.1、25.1 节（样式基准 `docs/style-reference/`），开发记录见 `docs/circuit-style-development.md`。

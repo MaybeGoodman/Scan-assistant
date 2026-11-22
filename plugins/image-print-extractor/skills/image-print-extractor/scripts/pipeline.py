@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 import re
 import sys
-from _common import CHEMISTRY_FORMATS, OUTPUT_MODES, RUN_ID, local_path, read_json, replace_atomic, sha256, write_new
+from _common import BLANK_LATEX, CHEMISTRY_FORMATS, OUTPUT_MODES, PASTE_TARGETS, RUN_ID, local_path, read_json, replace_atomic, sha256, write_new
 from select_content import CATEGORIES, SCOPES, select_file
 from figure_drawing import CHECKS
 from figure_workflow import FALLBACKS, complete, fallback_choice, generate, plan, review_template, text_document
@@ -161,7 +161,9 @@ def export_result(run, state, source, output=None, report_name='word.review.json
     extra = selection_review(run, state)
     if options['format'] == 'html':
         from export_page import export_result as export_html
-        result = export_html(source, output, output_mode=mode, extra_review=extra)
+        result = export_html(source, output, output_mode=mode, extra_review=extra,
+                             paste_target=options.get('paste_target', 'axmath'),
+                             blank_latex=options.get('blank_latex', 'underline'))
         report = run.inwork(report_name.replace('word', 'html'))
         write_new(report, {key: value if not isinstance(value, Path) else str(value) for key, value in result.items()})
     else:
@@ -229,7 +231,8 @@ def finish_figures(run, state, result, ledger, attempt):
 
 def run_command(candidates, run_id, *, source, scope='main', preserve=(), include_handwriting=False,
                 image_mode=None, image_fallback=None, fmt='html', word_confirmed=False, font=None, output,
-                output_mode='original', chemistry_format='native'):
+                output_mode='original', chemistry_format='native',
+                paste_target='axmath', blank_latex='underline'):
     candidates = Path(candidates).resolve()
     if not isinstance(run_id, str) or not RUN_ID.fullmatch(run_id):
         raise ValueError('run-id 只能包含字母、数字、下划线和连字符，长度 1–32')
@@ -243,6 +246,8 @@ def run_command(candidates, run_id, *, source, scope='main', preserve=(), includ
         raise ValueError('未知的 image-mode')
     if output_mode not in OUTPUT_MODES or chemistry_format not in CHEMISTRY_FORMATS:
         raise ValueError('output-mode 只能为 original/student，chemistry-format 只能为 native/source')
+    if paste_target not in PASTE_TARGETS or blank_latex not in BLANK_LATEX:
+        raise ValueError('paste-target 只能为 axmath/markdown，blank-latex 只能为 underline/escaped')
     if image_fallback is not None:
         fallback_choice(image_mode, image_fallback)
     if scope not in SCOPES or not set(preserve) <= CATEGORIES:
@@ -261,7 +266,8 @@ def run_command(candidates, run_id, *, source, scope='main', preserve=(), includ
                          'image_fallback': image_fallback,
                          'format': fmt, 'word_confirmed': word_confirmed is True, 'font': font,
                          'output': str(Path(output).resolve()), 'output_mode': output_mode,
-                         'chemistry_format': chemistry_format},
+                         'chemistry_format': chemistry_format,
+                         'paste_target': paste_target, 'blank_latex': blank_latex},
              'inputs': {'candidates': rel(run.base, candidates), 'candidates_sha256': sha256(candidates), **origin},
              'status': 'running', 'step': 'select', 'attempt': 0, 'files': {}}
     run.work.mkdir(parents=True)
@@ -578,6 +584,10 @@ def main():
                    help='original keeps printed answers (default); student removes answer-role content')
     p.add_argument('--chemistry-format', choices=CHEMISTRY_FORMATS, default='native',
                    help='Word chemistry: native display (V1.0 default) or 0.8.1 literal LaTeX source')
+    p.add_argument('--paste-target', choices=PASTE_TARGETS, default='axmath',
+                   help='Markdown/chat output target: axmath (default) or legacy markdown')
+    p.add_argument('--blank-latex', choices=BLANK_LATEX, default='underline',
+                   help='Blank placeholder in merged LaTeX: underline (default) or escaped')
     p = sub.add_parser('finalize')
     p.add_argument('--state', required=True)
     p.add_argument('--resolutions', required=True, help='JSON {"resolutions": [{key, resolution, by, note}]}')
@@ -602,7 +612,8 @@ def main():
                                 image_fallback=args.image_fallback,
                                 fmt=args.format, word_confirmed=args.word_confirmed, font=args.font,
                                 output=args.output, output_mode=args.output_mode,
-                                chemistry_format=args.chemistry_format)
+                                chemistry_format=args.chemistry_format,
+                                paste_target=args.paste_target, blank_latex=args.blank_latex)
         elif args.command == 'finalize':
             state = finalize_command(args.state, args.resolutions, args.output)
         elif args.command == 'review':

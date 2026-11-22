@@ -23,7 +23,7 @@ cdots ldots vdots ddots angle triangle perp parallel mid colon'''.split())
 CHEM_COMMANDS = set('''mathrm text frac sqrt left right cdot times
 rightarrow longrightarrow leftarrow longleftarrow leftrightarrow rightleftharpoons
 leftrightharpoons updownarrow uparrow downarrow triangle Delta delta
-xrightarrow xleftarrow overset underset mathop limits quad qquad
+xrightarrow xleftarrow overset underset mathop limits quad qquad underline
 circ degree pm mp'''.split())
 ENVIRONMENTS = {'matrix', 'pmatrix', 'bmatrix', 'Bmatrix', 'vmatrix', 'Vmatrix',
                 'array', 'cases', 'aligned', 'gathered'}

@@ -53,6 +53,7 @@ description: 提取图片或 PDF 的主体印刷内容，过滤无关广告、�
 
 - 禁止用 Unicode 上下标或普通数字模拟结构（如 N₂、N2、SO₄²⁻、SO42-）；应写 `\mathrm{N_2}`、`\mathrm{SO_4^{2-}}`。不使用 `mhchem`／`\ce{}`；保持原图大小写、计量数、等号/箭头、上下条件与物态，不自动配平或纠错，模糊局部用 `\text{XXX}`。
 - 与中文混排时仅将化学部分写作行内代码（独立反应式可用 `latex` 代码块），不把整段中文套入公式或代码块；JSON 使用 `chemistry` 类型，不得作为普通 `text` 漏出。
+- 聊天输出默认面向 AxMath 粘贴（`--paste-target axmath`），每段代码（行内代码或代码块）都是能单独粘贴的完整合法 LaTeX；带填空的方程式写成一条完整表达式，空白写 `\underline{\qquad}\,`，放在一个 `latex` 代码块中（备选 `--blank-latex escaped` 使用 `\_\_\_\_\_\_`；如需 1.1.0 拆分 Markdown 传 `--paste-target markdown`）；直接在聊天中回复（不经脚本）时也遵守以上规则。
 
 ## 处理与输出
 
@@ -64,7 +65,7 @@ PDF 需处理的页超过 5 页，或用户只要求部分页时，先按 [PDF �
 4. 遇到表格或图形，按 [富内容输出](references/rich-output.md) 生成真实表格并记录图形区域和正文关联（图题、图注保留在原位置）。文件导出（HTML／Word）优先使用流水线一次完成筛选、图片处理与导出：
 
    ```text
-   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --source <原始附件> --run-id r1 --scope <main|all-printed|all-text> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> [--image-fallback original] --format <html|docx> [--word-confirmed] [--output-mode <original|student>] [--chemistry-format <native|source>] --output <输出目录或 .docx>
+   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --source <原始附件> --run-id r1 --scope <main|all-printed|all-text> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> [--image-fallback original] --format <html|docx> [--word-confirmed] [--output-mode <original|student>] [--chemistry-format <native|source>] [--paste-target <axmath|markdown>] [--blank-latex <underline|escaped>] --output <输出目录或 .docx>
    ```
 
    每次命令结束只看输出 JSON 的 `status`、`delivery` 和 `next_action`：

@@ -9,6 +9,8 @@ import tempfile
 RUN_ID = re.compile(r'[A-Za-z0-9_-]{1,32}')
 OUTPUT_MODES = ('original', 'student')
 CHEMISTRY_FORMATS = ('native', 'source')
+PASTE_TARGETS = ('axmath', 'markdown')
+BLANK_LATEX = ('underline', 'escaped')
 # Labels that usually introduce answer/analysis material. Requires either brackets around the
 # keyword, a colon after the keyword, or "故选" followed by an option/colon, so ordinary stems
 # like "答题时..." or "解答下列各题" do not false-positive while "【答案】B" is caught everywhere.
