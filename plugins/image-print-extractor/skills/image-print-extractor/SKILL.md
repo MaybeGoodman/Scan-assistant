@@ -62,16 +62,17 @@ PDF 需处理的页超过 5 页，或用户只要求部分页时，先按 [PDF �
 1. 查看原图，先按 [主体内容筛选](references/main-content.md) 分析结构、类别及关联，再按阅读顺序转录：单栏从上到下，双栏先左后右，跨栏标题先读；复杂版面保持局部连续。
 2. 按上述约束转录，保留段落、换行、题号、选项和列表关系。中文自然语言用全角标点；数学、坐标、英文、代码和技术符号不做全角替换。逗号按语义双向规范化（中文句中分隔两个独立完整表达式用中文“，”并拆成两个表达式，同一表达式内部用英文逗号，不加 `〔〕`、不进补写说明），详见 [表达式规则](references/formulas.md)。
 3. 遇到数学或化学表达式，按 [表达式规则](references/formulas.md) 恢复二维结构、区分行内与独立表达式：数学在非 Word 用 `$...$`／`$$...$$`，Word 转原生 OMML；化学按上节规范化。两类均不用图片代替，不求解、化简、配平或纠错，也不为题号、年份强加数学格式。
-4. 遇到表格或图形，按 [富内容输出](references/rich-output.md) 生成真实表格并记录图形区域和正文关联（图题、图注保留在原位置）。文件导出（HTML／Word）优先使用流水线一次完成筛选、图片处理与导出：
+4. 遇到表格或图形，按 [富内容输出](references/rich-output.md) 生成真实表格并记录图形区域和正文关联（图题、图注保留在原位置）。用户明确要求“仅重绘插图”时，只确认仍有实质歧义的范围，按 [图片重绘](references/figure-redraw.md) 直接交付高清白底 PNG（及结构化 SVG，流水线传 `--format images`），不强制生成 Word 或重复询问是否重绘。文件导出（HTML／Word／纯图）优先使用流水线一次完成筛选、图片处理与导出：
 
    ```text
-   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --source <原始附件> --run-id r1 --scope <main|all-printed|all-text> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> [--image-fallback original] --format <html|docx> [--word-confirmed] [--output-mode <original|student>] [--chemistry-format <native|source>] [--paste-target <axmath|markdown>] [--blank-latex <underline|escaped>] --output <输出目录或 .docx>
+   python -X utf8 <skill-dir>/scripts/pipeline.py run candidates.json --source <原始附件> --run-id r1 --scope <main|all-printed|all-text> [--preserve <类别>] [--include-handwriting] --image-mode <ignore|preserve|redraw> [--image-fallback original] [--disallow-handwriting-fallback] --format <html|docx|images> [--word-confirmed] [--output-mode <original|student>] [--chemistry-format <native|source>] [--paste-target <axmath|markdown>] [--blank-latex <underline|escaped>] --output <输出目录或 .docx>
    ```
 
    每次命令结束只看输出 JSON 的 `status`、`delivery` 和 `next_action`：
    - `completed`：交付 `output`；`delivery=draft` 时说明是待复核草稿，复核后用 `pipeline.py finalize` 生成正式成品。
-   - `awaiting_review`：逐图查看 `view_files` 中的原图、PNG 和 SVG，在模板副本中如实填写 `status` 和全部 `checks`（不得照抄示例或一律填 `true`），另存后运行 `pipeline.py review --state <state> --reviews <文件>`。
-   - `needs_retry`（首次 `major_issue` 或结构化绘图 `render_errors`）：只为列出的插图各写一个只含 `{"drawing": ...}` 的新文件，运行 `pipeline.py retry --state <state> --drawing <figure_id>=<文件>`（旧用法 `--source <整份源文件>` 仍可用）。
+   - `awaiting_review`：逐图（或逐子图及合成图组）查看 `view_files` 中的原图、PNG 和 SVG，在模板副本中如实填写 `status` 和全部 `checks`（不得照抄示例或一律填 `true`），另存后运行 `pipeline.py review --state <state> --reviews <文件>`。
+   - `needs_retry`（首次 `major_issue` 或结构化绘图 `render_errors`）：只为列出的插图或子图各写一个只含 `{"drawing": ...}` 的新文件，运行 `pipeline.py retry --state <state> --drawing <figure_id[:subfigure_id]>=<文件>`（旧用法 `--source <整份源文件>` 仍可用）。
+   - 交付后局部返修或事实纠正：运行 `pipeline.py repair --state <已完成state> --run-id <新run-id> --target <figure_id[:subfigure_id]> --drawing <target>=<文件> [--fact-correction <文件>] --output <新输出>`，未修改分区直接复用并做像素级不变校验。
    - `error`：按信息修复后重试。
 
    `--source` 为原始 PDF 或图片（超过 5 页须经 `pdf_batches.py` 分批合并）；`--scope`／`--preserve`／`--include-handwriting`、`--image-mode`、`--image-fallback`（仅选项 D 时传 `original`）和 `--word-confirmed` 必须如实来自当前聊天中的用户选择。无插图任务时可省略 `--image-mode`。

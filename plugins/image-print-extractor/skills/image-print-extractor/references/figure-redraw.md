@@ -139,3 +139,49 @@ python -X utf8 <skill-dir>/scripts/figure_workflow.py generate source.json --ima
 完成后的 figures-reviewed.json 可交给原 export_page.py／export_docx.py；未完成 figure_task 会被导出器拒绝。文件模式 HTML 内嵌 PNG，Markdown 原位引用 SVG（无 SVG 时 PNG），figures/ 同时携带兼容位图和矢量；聊天展示用宿主真实附件或绝对路径。Word 嵌入等比例 PNG，重绘图居中且不超过正文区域，保持原有题干／选项分页关联。
 
 Word 是否需要输出继续按 pdf-word.md 的独立选择执行。已明确要 Word 不再询问；图片选择“是”不授权 Word。SVG 仍为可编辑矢量文件，Word 嵌入 PNG 不宣称为 Word 原生绘图对象。内部 ledger、源码理解、哈希及失败报告不混入学生正文，只有实际无法重绘位置需简短说明。
+
+## V1.1 专项增量规则（图组分区、实物器材、专项校验与局部返修）
+
+### 原图保真与科学性优先级
+
+1. 清晰可辨且与作答有关的源图数据、关系、选项现象、故意错误接线或错误操作必须原样保留，不得以科学正确性为由替学生纠正。
+2. 利用题干和同组子图辅助理解模糊原图；当可辨印刷内容与题干存在影响作答的真实冲突时，记录证据与冲突，按关键不确定项进入复核或回退，不擅自选定一方。
+3. 器材外观、非关键透视、非考查性瞬时位置可在不改变原题含义的前提下按初中教材合理重建，不得新增解题线索（答案、读数提示、额外受力箭头、电荷或冲程名等）。
+4. 关键值、端子接线、状态或方向经放大与题干对照仍不可辨时，直接进入复核或回退，不得凭常识推断唯一答案。
+5. 独立重绘时题干仅作理解依据，不把题干或独立文字选项绘入图片；A–D 顺序、编号及与图一体的选项文字一同保留。默认排除手写叉号、勾画、改线弧线及扫描杂质；无法确认某段线是否印刷且影响作答时进入关键待复核。
+
+### 生成前事实记录扩展
+
+`understanding` 在原有 `objects`/`labels`/`arrows`/`connections`/`facts`/`geometry`/`curves` 基础上，可记录以下生成前事实字段（非绘图溯源字段无需在 `scene.structure` 中重复）：
+
+- `fact_version`（整数，默认 1）、`fact_changes`（事实纠正变更记录）、`stem_context`（题干语境）、`evidence`（原图可见特征／题干互证依据）、`design_allowances`（可清理／可简化／可重排项）、`uncertainties`（区分 `critical` 与 `appearance`）、`verification_targets`（易错核对清单）。
+- 禁止为迁就候选结果而篡改原图事实；原事实确有识别错误时，须通过新版本事实纠正记录新依据后重新理解与复核。
+
+### 图组／子图两级处理、混合路由与跨宿主降级
+
+- **图组**（`figure`）仍是文档插入、排序与交付单位；**子图/分区**（`subfigures` 数组，每项含组内唯一 `subfigure_id`、`label`、`figure_type`、`source_bbox`、`understanding`、`drawing`）是事实理解、路由、复核、重试（每分区最多 2 次，已通过分区不重生成）与局部返修的最小单位。旧版单图输入（无 `subfigures`）保持完全兼容。
+- **分区路由**：技术类子图（电路、仪表、坐标、几何、装置、结构、运动/受力等）必须走结构化 `scene`；仅 `illustration` 或标记 `allow_generative:true` 的教学现象照片可接入宿主图像生成能力（`generated_png`），不得为图省事把含技术子图的整个图组送入生成式模型。
+- **跨宿主降级**：不绑定特定 AI 平台或在线生图服务。宿主无图像生成工具时，可将可结构化表达的插画降为 `scene` 示意，或在 `drawing` 中显式写 `{"tool_unavailable":true}` 按策略降级为占位或授权原图，不阻断文字、表格、公式及其他插图。
+- **依赖与回退**：
+  - 独立子图失败只回退该分区（图组内生成清晰黑白占位或授权原图裁剪），保留已通过子图并合成完整图组。
+  - 共享 `dependency_group` 的子图任一失败时同组一起回退；标记 `strong_dependency:true` 或图组 `group_dependency:"strong"` 时任一失败则整组回退。
+  - 关键不确定（`critical_uncertainty:true`）或 `redrawable:false` 直接进入回退，不强制消耗生成次数。
+  - 传入 `--disallow-handwriting-fallback`（或图/子图标 `disallow_handwriting_fallback:true`）且原区域含手写（`has_handwriting:true`）时，除非明确标记 `allow_handwriting_original_exception:true`，失败回退改用占位而不嵌入带手写原图。
+- **合成与双层复核**：全部子图通过后按 `layout`（`horizontal`/`vertical`/`grid`、`cols`、`gap`、`padding`、`caption_position`）合成图组 PNG（全结构化无回退时同步合成合规 SVG；混合图组以完整 PNG 为正式产物并在台账保留 `subfigure_svgs`），再经图组级复核确认全局对应后交付。
+
+### 实物器材组件与三项专项校验
+
+`figure_components.py`（模板版本 `1.3.0`）新增初中物理高频实物器材与数据空间绘图能力：
+
+- **实物电学组件**：`phys_meter`（指针式 A/V 表，未给 `ranges` 时不编造量程数字）、`phys_knife_switch`（闸刀开关，底座轮廓不横跨端子）、`phys_rheostat`（滑动变阻器，含瓷筒绕线、滑杆、滑片 P、A/B/C/D 端子）、`phys_rotary_rheostat`（旋钮式变阻器，A/C 接电阻丝两端、B 接滑片轴心，暴露 `knob`/`wiper`/`wire` 引线锚点）、`phys_lamp_holder`（小灯座）、`phys_battery`（圆柱干电池/电池盒，串联极性可追踪）、`phys_resistor`（实验用电阻件）、`binding_post`（独立接线柱）。
+- **实验与量值组件**：`clinical_thermometer`（35–42 ℃ 体温计，0.1 ℃ 分度，数据空间精确液柱，不印答案）；`alcohol_lamp` 新增可选 `liquid`/`inner_flame`/`base`；`iron_stand` 新增可选 `clamp2_y`；`axes` 新增 `x_range`/`y_range`/`x_major`/`y_major`/`x_minor`/`y_minor`/`grid` 数据空间映射，配合 `kind:"data_curve"` 按数据坐标直接生成精确折线。
+- **三项机器专项校验**（在 `expand_scene` 展开并平移画布后针对真实图元几何执行）：
+  1. `understanding.terminal_connections`：逐端子校验每根导线的实际起止坐标是否到达目标锚点，拦截接错邻端、悬空虚接、额外跨接及误触无关端子；区分同端共接与跨线无连接。
+  2. `understanding.data_space`：校验 `key_points`（曲线经过精确数据点）、`coincident_segments`（如沸腾平台重合段）及 `readings`（体温计/温度计实际渲染液柱端点与电表实际指针角度）。
+  3. `understanding.state_checks`：校验 `relative_position`（如棒在气球左侧且保留最小间隙 `min_gap`）及 `monotonic_radius`（如沸腾气泡上升变大/变小）。
+
+### 交付后局部返修与打印可读性
+
+- **局部返修**：对已完成运行执行 `pipeline.py repair --state <state> --run-id <新run-id> --target <fid[:subid]> --drawing <target>=<文件> [--fact-correction <文件>] --output <新输出>`。未修改分区直接复用原渲染产物（不重生成），重新合成时自动执行 `verify_unchanged_regions` 验证未修改分区像素完全一致；被修改分区在新任务版本中重新获得最多 2 次生成预算。外观返修锁定原 `understanding`；事实纠正须提供 `reason`、`evidence` 与 `updates` 并递增 `fact_version`。
+- **打印可读性基准**：单图按约 80 mm、多子图按约 150 mm 等效打印宽度核验数字/文字/上下标、刻度、端子连线及白底黑线清晰度；可用 `figure_drawing.check_print_readability` 辅助检查标注字高与重叠，但不替代真实原图与 Word 嵌入视觉核验。
+

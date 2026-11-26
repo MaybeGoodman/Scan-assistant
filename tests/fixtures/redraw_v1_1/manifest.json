@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "spec_version": "V1.1",
+  "plugin_baseline": "1.2.0",
+  "note": "R01-R12 回归夹具台账。本次开发会话未附带真实扫描原图素材，以下真实扫描验收状态均如实标记为 pending_real_source_material（待补素材／待验收）；程序机制与合成夹具验证结果单独记录，不冒充真实原图视觉验收。",
+  "cases": [
+    {
+      "case_id": "R01",
+      "title": "冰雪消融、雾绕山峦、霜满枝头、滴水成冰",
+      "expected_route": "group(4 subfigures: A/B/C/D generative_or_schematic_fallback)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["A-D顺序与选项文字一一对应", "偏暗照片转可区分黑白线描或无工具降级", "不绘入题干"]
+    },
+    {
+      "case_id": "R02",
+      "title": "汽油机四冲程",
+      "expected_route": "group(4 subfigures: structured)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["保留原选项顺序与故意错误选项", "核对活塞位置/运动方向/气门开闭/点火/曲柄"]
+    },
+    {
+      "case_id": "R03",
+      "title": "铝箔气球甲乙丙",
+      "expected_route": "group(3 subfigures: jia/yi/bing structured)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["甲竖直", "棒a/b均在气球左侧且留隙", "乙远离a、丙偏向b", "保留原图标注"]
+    },
+    {
+      "case_id": "R04",
+      "title": "电表、灯泡及双开关实物图",
+      "expected_route": "single(structured physical apparatus)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["电池串联极性可追踪", "双开关可见断口", "A/V字母正确", "逐端子接线校验", "拦截跨接开关误线与端点虚接"]
+    },
+    {
+      "case_id": "R05",
+      "title": "35-42 ℃ 体温计",
+      "expected_route": "single(structured clinical_thermometer)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["35-42 ℃量程", "0.1 ℃分度", "数据空间液柱精确对齐", "图内不印答案"]
+    },
+    {
+      "case_id": "R06",
+      "title": "沸腾实验甲、气泡乙、曲线丙",
+      "expected_route": "group(3 subfigures: jia/yi/bing structured)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["酒精灯/铁架台实物细节", "气泡a上升变大、b上升变小", "曲线I(0,92)->(6,98)与II(0,90)->(8,98)后平台重合"]
+    },
+    {
+      "case_id": "R07",
+      "title": "并联符号图与带手写改线的实物图",
+      "expected_route": "group(2 subfigures: schematic + physical, handwriting policy)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["去除手写叉号与手绘弧线", "不替学生完成改线", "禁止带手写原图回退时改用占位"]
+    },
+    {
+      "case_id": "R08",
+      "title": "水与煤油水浴实验",
+      "expected_route": "group(2 subfigures: apparatus + data_plot structured)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["两试管并置同一水浴且均有温度计", "煤油(0,20)->(4,100)与水(0,20)->(4,60)", "缩小后坐标名不与刻度重叠"]
+    },
+    {
+      "case_id": "R09",
+      "title": "电阻实物图与伏安图",
+      "expected_route": "group(2 subfigures: physical_circuit + iu_plot structured)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["滑片P、A/V、极性与接线一致", "坐标轴I/A与U/V", "直线(0,0)->(2.5,0.5)"]
+    },
+    {
+      "case_id": "R10",
+      "title": "旋钮式变阻器",
+      "expected_route": "group(2 subfigures: fig1/fig2 structured)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["A/C接电阻丝两端", "B接滑片轴心", "引线指向旋钮/滑片/电阻丝", "图1图2对应"]
+    },
+    {
+      "case_id": "R11",
+      "title": "《天工开物》透火焙干",
+      "expected_route": "single(generative_or_schematic_fallback)",
+      "real_source_status": "pending_real_source_material",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["两道砖墙间生火、湿纸贴墙外、纸火分离", "保留透火焙干标注", "无生图工具时可降级"]
+    },
+    {
+      "case_id": "R12",
+      "title": "局部修图、工具不可用、批量 Word",
+      "expected_route": "workflow(repair + tool_unavailable + mixed_word_export)",
+      "real_source_status": "mechanism_complete_pending_real_scans",
+      "synthetic_mechanism_verified": true,
+      "key_checks": ["只改指定分区且未修改分区像素一致", "无生图工具优雅降级", "含成功与回退图的混合Word导出且未复核不交付正式版"]
+    }
+  ]
+}

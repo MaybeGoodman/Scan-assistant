@@ -8,19 +8,24 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shutil
 import sys
 from _common import BLANK_LATEX, CHEMISTRY_FORMATS, OUTPUT_MODES, PASTE_TARGETS, RUN_ID, local_path, read_json, replace_atomic, sha256, write_new
 from select_content import CATEGORIES, SCOPES, select_file
 from figure_drawing import CHECKS
-from figure_workflow import FALLBACKS, complete, fallback_choice, generate, plan, review_template, text_document
+from figure_workflow import FALLBACKS, complete, fallback_choice, generate, plan, prepare_repair, review_template, text_document
 from pdf_batches import load as load_progress, status as batch_status
 
-FORMATS = ('html', 'docx')
+FORMATS = ('html', 'docx', 'images')
 MODES = ('ignore', 'preserve', 'redraw')
 MAX_UNBATCHED_PAGES = 5
 IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.tif', '.tiff'}
-FIGURE_FILE_KEYS = {'understanding', 'redrawable', 'critical_uncertainty', 'simple_schematic',
-                    'placeholder_label', 'drawing'}
+FIGURE_FILE_KEYS = {
+    'understanding', 'redrawable', 'critical_uncertainty', 'simple_schematic',
+    'placeholder_label', 'drawing', 'subfigures', 'layout', 'group_dependency',
+    'has_handwriting', 'allow_generative', 'disallow_handwriting_fallback',
+    'allow_handwriting_original_exception',
+}
 
 
 def rel(base, path):
@@ -154,12 +159,54 @@ def selection_review(run, state):
              'content': r['selection']} for r in rows if r.get('needs_review')]
 
 
+def export_images_only(source, output, base):
+    """Standalone figure delivery (--format images): copy validated PNG/SVG artifacts directly (V1.1 1, 5.3)."""
+    from export_page import figure_assets
+    output = Path(output).resolve()
+    if output.exists() and any(output.iterdir()):
+        raise FileExistsError('Output directory must be new or empty')
+    loaded = read_json(source)
+    entries = []
+    copies = []
+    for block in loaded.get('blocks', []):
+        if block.get('type') == 'image':
+            image, svg = figure_assets(base, block)
+            fid = (block.get('figure') or {}).get('figure_id') or block.get('figure_id') or f'fig-{len(entries) + 1}'
+            png_name = f'{fid}.png'
+            copies.append((image, output / png_name))
+            row = {'figure_id': fid, 'png': png_name, 'svg': None,
+                   'mode': 'fallback_original' if 'fallback' in block else ('redraw' if 'redraw' in block else 'preserve')}
+            if svg is not None:
+                svg_name = f'{fid}.svg'
+                copies.append((svg, output / svg_name))
+                row['svg'] = svg_name
+            if 'redraw' in block and block['redraw'].get('partial_fallbacks'):
+                row['partial_fallbacks'] = block['redraw']['partial_fallbacks']
+            entries.append(row)
+        elif block.get('figure_placeholder'):
+            ph = block['figure_placeholder']
+            entries.append({'figure_id': ph['figure_id'], 'png': None, 'svg': None,
+                            'mode': 'placeholder', 'placeholder_text': block.get('text')})
+    output.mkdir(parents=True, exist_ok=True)
+    for src, dst in copies:
+        shutil.copyfile(src, dst)
+    manifest = {'schema_version': 1, 'delivery': 'final', 'open_review_items': 0,
+                'review_items': [], 'figures': entries,
+                'figure_processing': loaded.get('figure_processing', {})}
+    write_new(output / 'manifest.json', manifest)
+    return manifest
+
+
 def export_result(run, state, source, output=None, report_name='word.review.json'):
     options = state['options']
     output = Path(output or options['output']).resolve()
     mode = options.get('output_mode', 'original')
     extra = selection_review(run, state)
-    if options['format'] == 'html':
+    if options['format'] == 'images':
+        result = export_images_only(source, output, run.base)
+        report = run.inwork(report_name.replace('word', 'images'))
+        write_new(report, result)
+    elif options['format'] == 'html':
         from export_page import export_result as export_html
         result = export_html(source, output, output_mode=mode, extra_review=extra,
                              paste_target=options.get('paste_target', 'axmath'),
@@ -186,14 +233,15 @@ def export_result(run, state, source, output=None, report_name='word.review.json
     return state
 
 
-def awaiting(state, run, ledger, attempt):
-    template = run.inwork(f'reviews{attempt}.template.json')
+def awaiting(state, run, ledger, attempt, *, ledger_file=None, suffix=''):
+    template = run.inwork(f'reviews{attempt}{suffix}.template.json')
     write_new(template, review_template(ledger))
-    filled = run.inwork(f'reviews{attempt}.json')
+    filled = run.inwork(f'reviews{attempt}{suffix}.json')
     rows = read_json(template)['reviews']
     state.update(status='awaiting_review', attempt=attempt,
                  view_files=[row['view_files'] for row in rows])
-    state['files'].update(ledger=rel(run.base, run.inwork(f'attempt{attempt}.json')),
+    lf = ledger_file or run.inwork(f'attempt{attempt}.json')
+    state['files'].update(ledger=rel(run.base, lf),
                           review_template=rel(run.base, template), reviews=rel(run.base, filled))
     state['next_action'] = (f'逐图查看 view_files 中的原图、PNG 和 SVG，按实际比较结果填写模板中的 status 和全部 checks，'
                             f'另存为 {rel(run.base, filled)}，然后运行 pipeline.py review')
@@ -203,8 +251,14 @@ def awaiting(state, run, ledger, attempt):
 def retry_needed(state, run, ledger, attempt, reviewed_ledger):
     state['files']['reviewed_ledger'] = rel(run.base, reviewed_ledger)
     state.update(status='needs_retry', attempt=attempt, needs_retry=ledger['needs_retry'])
-    render_errors = {r['figure_id']: r['reason'] for r in ledger['records']
-                     if r.get('state') == 'needs_retry' and r.get('reason')}
+    render_errors = {}
+    for r in ledger['records']:
+        if r.get('is_group'):
+            for sr in r.get('subfigures', []):
+                if sr.get('state') == 'needs_retry' and sr.get('reason'):
+                    render_errors[f'{r["figure_id"]}:{sr["subfigure_id"]}'] = sr['reason']
+        elif r.get('state') == 'needs_retry' and r.get('reason'):
+            render_errors[r['figure_id']] = r['reason']
     if render_errors:
         state['render_errors'] = render_errors
     else:
@@ -230,14 +284,15 @@ def finish_figures(run, state, result, ledger, attempt):
 
 
 def run_command(candidates, run_id, *, source, scope='main', preserve=(), include_handwriting=False,
-                image_mode=None, image_fallback=None, fmt='html', word_confirmed=False, font=None, output,
+                image_mode=None, image_fallback=None, disallow_handwriting_fallback=False,
+                fmt='html', word_confirmed=False, font=None, output,
                 output_mode='original', chemistry_format='native',
                 paste_target='axmath', blank_latex='underline'):
     candidates = Path(candidates).resolve()
     if not isinstance(run_id, str) or not RUN_ID.fullmatch(run_id):
         raise ValueError('run-id 只能包含字母、数字、下划线和连字符，长度 1–32')
     if fmt not in FORMATS:
-        raise ValueError('format 只能为 html 或 docx')
+        raise ValueError('format 只能为 html、docx 或 images')
     if fmt == 'docx' and word_confirmed is not True:
         raise ValueError('生成 Word 前必须已得到用户确认，并传入 --word-confirmed')
     if fmt == 'docx' and Path(output).suffix.lower() != '.docx':
@@ -264,6 +319,7 @@ def run_command(candidates, run_id, *, source, scope='main', preserve=(), includ
              'options': {'scope': scope, 'preserve': sorted(set(preserve)),
                          'include_handwriting': include_handwriting, 'image_mode': image_mode,
                          'image_fallback': image_fallback,
+                         'disallow_handwriting_fallback': bool(disallow_handwriting_fallback),
                          'format': fmt, 'word_confirmed': word_confirmed is True, 'font': font,
                          'output': str(Path(output).resolve()), 'output_mode': output_mode,
                          'chemistry_format': chemistry_format,
@@ -302,11 +358,12 @@ def _run(run, state, candidates):
     state['files']['text_reviewed'] = rel(run.base, text_output)
     state['uncertain_figures'] = decision.get('uncertain_figures', [])
     ledger = generate(document, run.base, run.images(), mode=options['image_mode'], font_path=options['font'],
-                      image_fallback=options.get('image_fallback'))
+                      image_fallback=options.get('image_fallback'),
+                      disallow_handwriting_fallback=options.get('disallow_handwriting_fallback', False))
     write_new(run.inwork('attempt1.json'), ledger)
-    if any(r['state'] == 'awaiting_validation' for r in ledger['records']):
+    if any(r['state'] in {'awaiting_validation', 'awaiting_composite_validation'} for r in ledger['records']):
         return awaiting(state, run, ledger, 1)
-    result, ledger = complete(ledger, [], run.base)
+    result, ledger = complete(ledger, [], run.base, font_path=options['font'])
     reviewed_ledger = run.inwork('reviewed1.json')
     write_new(reviewed_ledger, ledger)
     if ledger['status'] == 'needs_retry':
@@ -347,8 +404,17 @@ def _review(run, state, reviews_path):
     reviews = read_json(reviews_path)
     check_filled(reviews)
     ledger = read_json(run.base / state['files']['ledger'])
-    result, ledger = complete(ledger, reviews, run.base)
+    result, ledger = complete(ledger, reviews, run.base, font_path=state['options'].get('font'))
     if ledger['status'] == 'awaiting_validation':
+        # If subfigure reviews passed and now a figure group is awaiting composite review, save & emit composite template
+        if any(r.get('state') == 'awaiting_composite_validation' for r in ledger['records']):
+            comp_ledger = run.inwork(f'composite{attempt}.json')
+            if comp_ledger.exists():
+                replace_atomic(comp_ledger, ledger)
+            else:
+                write_new(comp_ledger, ledger)
+            state.pop('missing_reviews', None)
+            return awaiting(state, run, ledger, attempt, ledger_file=comp_ledger, suffix='.group')
         state['missing_reviews'] = ledger['pending_reviews']
         state['next_action'] = f'复核缺少以下插图：{ledger["pending_reviews"]}；补齐后重新运行 pipeline.py review'
         return state
@@ -388,7 +454,7 @@ def parse_drawings(values):
     for value in values:
         fid, sep, path = value.partition('=')
         if not sep or not fid or not path:
-            raise ValueError(f'--drawing 格式应为 <figure_id>=<文件>：{value}')
+            raise ValueError(f'--drawing 格式应为 <figure_id[:subfigure_id]>=<文件>：{value}')
         if fid in drawings:
             raise ValueError(f'插图 {fid} 重复提供 --drawing')
         drawings[fid] = path
@@ -396,7 +462,7 @@ def parse_drawings(values):
 
 
 def patch_drawings(run, state, drawings):
-    """Replace only the drawing of figures that need a retry; generate() still rejects other changes."""
+    """Replace only the drawing of figures/subfigures that need a retry; generate() still rejects other changes."""
     wanted = set(state.get('needs_retry', []))
     extra, missing = sorted(set(drawings) - wanted), sorted(wanted - set(drawings))
     if extra:
@@ -404,15 +470,20 @@ def patch_drawings(run, state, drawings):
     if missing:
         raise ValueError(f'needs_retry 中的插图 {missing} 未提供 --drawing')
     document = read_json(run.base / state['files']['figure_source'])
-    figures = {f['figure_id']: f for f in document['figure_task']['figures']}
-    for fid, path in drawings.items():
+    figs = {f['figure_id']: f for f in document['figure_task']['figures']}
+    for target_key, path in drawings.items():
         resolved = Path(path).resolve()
         if not resolved.is_relative_to(run.base):
             raise ValueError(f'--drawing 文件必须位于 candidates.json 所在目录内：{path}')
         data = read_json(resolved)
         if not isinstance(data, dict) or set(data) != {'drawing'} or not isinstance(data['drawing'], dict):
             raise ValueError(f'{path} 只能包含 {{"drawing": {{...}}}}')
-        figures[fid]['drawing'] = data['drawing']
+        fid, sep, sid = target_key.partition(':')
+        if sep:
+            subs = {s['subfigure_id']: s for s in figs[fid].get('subfigures', [])}
+            subs[sid]['drawing'] = data['drawing']
+        else:
+            figs[fid]['drawing'] = data['drawing']
     target = run.at(f'figure-source.a{state["attempt"] + 1}.json')
     write_new(target, document)
     return target.resolve()
@@ -465,7 +536,8 @@ def _retry(run, state, source):
     # generate() enforces: same task, mode and text; unchanged understanding/association; retry limit.
     ledger = generate(document, run.base, run.images(), mode=state['options']['image_mode'],
                       previous=previous, font_path=state['options']['font'],
-                      image_fallback=state['options'].get('image_fallback'))
+                      image_fallback=state['options'].get('image_fallback'),
+                      disallow_handwriting_fallback=state['options'].get('disallow_handwriting_fallback', False))
     created = []
     try:
         attempt_file = run.inwork(f'attempt{attempt}.json')
@@ -474,9 +546,9 @@ def _retry(run, state, source):
         state['files']['figure_source'] = rel(run.base, source)
         state.pop('needs_retry', None)
         state.pop('render_errors', None)
-        if any(r['state'] == 'awaiting_validation' for r in ledger['records']):
+        if any(r['state'] in {'awaiting_validation', 'awaiting_composite_validation'} for r in ledger['records']):
             return awaiting(state, run, ledger, attempt)
-        result, ledger = complete(ledger, [], run.base)
+        result, ledger = complete(ledger, [], run.base, font_path=state['options'].get('font'))
         reviewed_file = run.inwork(f'reviewed{attempt}.json')
         write_new(reviewed_file, ledger)
         created.append(reviewed_file)
@@ -486,6 +558,69 @@ def _retry(run, state, source):
         for path in created:
             path.unlink(missing_ok=True)
         raise
+
+
+def repair_command(state_path, new_run_id, *, targets, drawings=None, fact_correction_path=None, output):
+    """Start a new task-version run repairing only specified figure/subfigure targets (V1.1 Section 5.2)."""
+    prev_run, prev_state = load_run(state_path)
+    if prev_state['status'] != 'completed':
+        raise ValueError('只有已完成的运行可以发起局部返修')
+    if not prev_state['files'].get('reviewed_ledger'):
+        raise ValueError('前次运行不含插图复核台账，无法发起局部返修')
+    if not isinstance(new_run_id, str) or not RUN_ID.fullmatch(new_run_id):
+        raise ValueError('run-id 只能包含字母、数字、下划线和连字符，长度 1–32')
+    new_run = Run(prev_run.base, new_run_id)
+    used = [p for p in (new_run.work, new_run.at('figure-source.json'), new_run.images()) if p.exists()]
+    if used:
+        raise FileExistsError(f'run-id {new_run_id} 已在该目录使用过：{used[0]}，请换一个 run-id')
+    prev_ledger = read_json(prev_run.base / prev_state['files']['reviewed_ledger'])
+    loaded_drawings = {}
+    for target_key, path in (drawings or {}).items():
+        resolved = Path(path).resolve()
+        if not resolved.is_relative_to(new_run.base):
+            raise ValueError(f'--drawing 文件必须位于工作目录内：{path}')
+        data = read_json(resolved)
+        if not isinstance(data, dict) or set(data) != {'drawing'} or not isinstance(data['drawing'], dict):
+            raise ValueError(f'{path} 只能包含 {{"drawing": {{...}}}}')
+        loaded_drawings[target_key] = data['drawing']
+    fact_correction = read_json(Path(fact_correction_path).resolve()) if fact_correction_path else None
+    new_options = {**prev_state['options'], 'output': str(Path(output).resolve())}
+    state = {
+        'schema_version': 1, 'run_id': new_run_id, 'base': str(new_run.base),
+        'parent_run_id': prev_state['run_id'],
+        'repaired_targets': list(targets),
+        'options': new_options,
+        'inputs': prev_state['inputs'],
+        'status': 'running', 'step': 'figures', 'attempt': 0, 'files': {},
+    }
+    if prev_state['files'].get('selection_report'):
+        state['files']['selection_report'] = prev_state['files']['selection_report']
+    new_run.work.mkdir(parents=True)
+    new_run.save(state)
+
+    def _do_repair():
+        ledger = prepare_repair(
+            prev_ledger, new_run.base, new_run.images(),
+            targets=targets, updated_drawings=loaded_drawings,
+            fact_correction=fact_correction, font_path=new_options.get('font'),
+        )
+        source = new_run.at('figure-source.json')
+        write_new(source, ledger['document'])
+        state['files']['figure_source'] = rel(new_run.base, source)
+        state['task_version'] = ledger['task_version']
+        write_new(new_run.inwork('attempt1.json'), ledger)
+        if any(r['state'] in {'awaiting_validation', 'awaiting_composite_validation'} for r in ledger['records']):
+            return awaiting(state, new_run, ledger, 1)
+        result, done_ledger = complete(ledger, [], new_run.base, font_path=new_options.get('font'))
+        reviewed_ledger = new_run.inwork('reviewed1.json')
+        write_new(reviewed_ledger, done_ledger)
+        if done_ledger['status'] == 'needs_retry':
+            return retry_needed(state, new_run, done_ledger, 1, reviewed_ledger)
+        state['attempt'] = 1
+        state['step'] = 'export'
+        return finish_figures(new_run, state, result, done_ledger, 1)
+
+    return guarded(new_run, state, _do_repair)
 
 
 def finalize_command(state_path, resolutions_path, output):
@@ -553,7 +688,8 @@ def guarded(run, state, action, *, resumable=False):
 
 
 def summary(state):
-    keys = ('status', 'delivery', 'open_review_items', 'output_mode', 'run_id', 'next_action', 'output', 'view_files', 'needs_retry', 'render_errors', 'missing_reviews',
+    keys = ('status', 'delivery', 'open_review_items', 'output_mode', 'run_id', 'parent_run_id', 'task_version',
+            'repaired_targets', 'next_action', 'output', 'view_files', 'needs_retry', 'render_errors', 'missing_reviews',
             'failed_figures', 'skipped_photos', 'fallback_figures', 'fallback_errors',
             'figures_removed_by_selection', 'uncertain_figures', 'selection_needs_review', 'error')
     result = {k: state[k] for k in keys if k in state}
@@ -576,10 +712,12 @@ def main():
     p.add_argument('--image-mode', choices=MODES)
     p.add_argument('--image-fallback', choices=FALLBACKS,
                    help='redraw only: keep the original crop for failed figures and photos (original)')
+    p.add_argument('--disallow-handwriting-fallback', action='store_true',
+                   help='Fallback to placeholder instead of original crop when source region contains handwriting')
     p.add_argument('--format', choices=FORMATS, required=True)
     p.add_argument('--word-confirmed', action='store_true', help='Use only after the user explicitly chose Word')
     p.add_argument('--font', help='Font supporting figure labels')
-    p.add_argument('--output', required=True, help='HTML output directory or .docx file')
+    p.add_argument('--output', required=True, help='HTML/images output directory or .docx file')
     p.add_argument('--output-mode', choices=OUTPUT_MODES, default='original',
                    help='original keeps printed answers (default); student removes answer-role content')
     p.add_argument('--chemistry-format', choices=CHEMISTRY_FORMATS, default='native',
@@ -599,7 +737,14 @@ def main():
     p.add_argument('--state', required=True)
     group = p.add_mutually_exclusive_group(required=True)
     group.add_argument('--source', help='Corrected copy of the whole figure source (0.6.0 style)')
-    group.add_argument('--drawing', action='append', help='<figure_id>=<file with {"drawing": ...}>; repeatable')
+    group.add_argument('--drawing', action='append', help='<figure_id[:subfigure_id]>=<file with {"drawing": ...}>; repeatable')
+    p = sub.add_parser('repair')
+    p.add_argument('--state', required=True, help='Completed state.json from previous task version')
+    p.add_argument('--run-id', required=True, help='New run-id for this repair task version')
+    p.add_argument('--target', action='append', required=True, help='figure_id or figure_id:subfigure_id; repeatable')
+    p.add_argument('--drawing', action='append', default=[], help='<target>=<file with {"drawing": ...}>; repeatable')
+    p.add_argument('--fact-correction', help='Optional JSON {"reason", "evidence", "updates": {target: understanding}}')
+    p.add_argument('--output', required=True, help='New output directory or .docx for the repaired version')
     p = sub.add_parser('resume')
     p.add_argument('directory')
     p = sub.add_parser('status')
@@ -610,6 +755,7 @@ def main():
             state = run_command(args.candidates, args.run_id, source=args.source, scope=args.scope, preserve=args.preserve,
                                 include_handwriting=args.include_handwriting, image_mode=args.image_mode,
                                 image_fallback=args.image_fallback,
+                                disallow_handwriting_fallback=args.disallow_handwriting_fallback,
                                 fmt=args.format, word_confirmed=args.word_confirmed, font=args.font,
                                 output=args.output, output_mode=args.output_mode,
                                 chemistry_format=args.chemistry_format,
@@ -620,6 +766,10 @@ def main():
             state = review_command(args.state, args.reviews)
         elif args.command == 'retry':
             state = retry_command(args.state, args.source, parse_drawings(args.drawing) if args.drawing else None)
+        elif args.command == 'repair':
+            state = repair_command(args.state, args.run_id, targets=args.target,
+                                   drawings=parse_drawings(args.drawing) if args.drawing else None,
+                                   fact_correction_path=args.fact_correction, output=args.output)
         elif args.command == 'resume':
             print(json.dumps(resume(args.directory), ensure_ascii=False, indent=2))
             return
