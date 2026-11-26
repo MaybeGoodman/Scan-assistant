@@ -626,7 +626,13 @@ def render_placeholder_tile(label_text, output_png, *, width_px=600, height_px=4
     draw.rectangle((pad, pad, width_px - pad, height_px - pad), outline='black', width=3)
     text = f'[{label_text}]' if not (label_text.startswith('[') and label_text.endswith(']')) else label_text
     font_size = max(18, min(32, width_px // max(12, len(text) + 2)))
-    font, _ = pick_font(font_size, text, font_path=font_path, style='upright')
+    try:
+        font, _ = pick_font(font_size, text, font_path=font_path, style='upright')
+    except ValueError:
+        ascii_only = ''.join(ch for ch in label_text if 32 <= ord(ch) < 127).strip(' :[]') or 'figure'
+        text = f'[{ascii_only}: fallback]'
+        font_size = max(18, min(32, width_px // max(12, len(text) + 2)))
+        font, _ = pick_font(font_size, text, font_path=font_path, style='upright')
     bbox = draw.textbbox((0, 0), text, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     tx = max(pad + 8, (width_px - tw) // 2)

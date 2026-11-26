@@ -53,7 +53,7 @@ def _fill_reviews(tpl, status='pass', overrides=None):
     return out
 
 
-def _simple_scene(rect_x=80, label_text='甲'):
+def _simple_scene(rect_x=80, label_text='A'):
     struct = {
         'objects': [{'id': 'box', 'kind': 'body'}],
         'labels': [{'id': 'lbl', 'target': 'box', 'text': label_text}],
@@ -331,7 +331,7 @@ class RedrawV11Tests(unittest.TestCase):
         safe_svg(self.root / 'r10.svg')
 
     def test_hybrid_figure_group_routing_composition_and_tech_guard(self):
-        sc_a, u_a = _simple_scene(rect_x=60, label_text='甲')
+        sc_a, u_a = _simple_scene(rect_x=60, label_text='A')
         doc = {
             'blocks': [
                 {'type': 'text', 'id': 'q1', 'text': '1．混合图组测试。'},
@@ -345,10 +345,10 @@ class RedrawV11Tests(unittest.TestCase):
                     'figure_type': 'apparatus', 'relation': 'main',
                     'layout': {'mode': 'horizontal', 'gap': 24, 'padding': 16, 'caption_position': 'bottom'},
                     'subfigures': [
-                        {'subfigure_id': 'tech', 'label': '图1', 'figure_type': 'coordinates',
+                        {'subfigure_id': 'tech', 'label': 'Fig1', 'figure_type': 'coordinates',
                          'redrawable': True, 'critical_uncertainty': False,
                          'understanding': u_a, 'drawing': {'scene': sc_a}},
-                        {'subfigure_id': 'scene_photo', 'label': '图2', 'figure_type': 'photo',
+                        {'subfigure_id': 'scene_photo', 'label': 'Fig2', 'figure_type': 'photo',
                          'allow_generative': True, 'redrawable': True, 'critical_uncertainty': False,
                          'understanding': {'objects': [{'id': 'scene', 'kind': 'illustration'}]},
                          'drawing': {'generated_png': 'gen.png'}},
@@ -384,9 +384,9 @@ class RedrawV11Tests(unittest.TestCase):
         self.assertEqual(final_doc['blocks'][1]['redraw']['drawing_method'], 'hybrid')
 
     def test_local_repair_preserves_untouched_subfigures_and_fact_versioning(self):
-        sc_a, u_a = _simple_scene(rect_x=50, label_text='甲')
-        sc_b, u_b = _simple_scene(rect_x=80, label_text='乙')
-        sc_b_new, _ = _simple_scene(rect_x=110, label_text='乙')
+        sc_a, u_a = _simple_scene(rect_x=50, label_text='A')
+        sc_b, u_b = _simple_scene(rect_x=80, label_text='B')
+        sc_b_new, _ = _simple_scene(rect_x=110, label_text='B')
         doc = {
             'blocks': [
                 {'type': 'text', 'id': 'q1', 'text': '1．三图组。'},
@@ -400,10 +400,10 @@ class RedrawV11Tests(unittest.TestCase):
                     'figure_type': 'structure', 'relation': 'main',
                     'layout': {'mode': 'horizontal', 'gap': 20, 'padding': 16},
                     'subfigures': [
-                        {'subfigure_id': 'jia', 'label': '甲', 'figure_type': 'structure',
+                        {'subfigure_id': 'jia', 'label': 'A', 'figure_type': 'structure',
                          'redrawable': True, 'critical_uncertainty': False,
                          'understanding': u_a, 'drawing': {'scene': sc_a}},
-                        {'subfigure_id': 'yi', 'label': '乙', 'figure_type': 'structure',
+                        {'subfigure_id': 'yi', 'label': 'B', 'figure_type': 'structure',
                          'redrawable': True, 'critical_uncertainty': False,
                          'understanding': u_b, 'drawing': {'scene': sc_b}},
                     ],
@@ -443,7 +443,7 @@ class RedrawV11Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'reason、evidence'):
             prepare_repair(l2_done, self.root, self.root / 'v3_bad', targets=['g1:yi'],
                            fact_correction={'reason': '', 'evidence': 'x', 'updates': {'g1:yi': u_b}})
-        sc_b_v3, u_b_v3 = _simple_scene(rect_x=90, label_text='丙')
+        sc_b_v3, u_b_v3 = _simple_scene(rect_x=90, label_text='C')
         l3 = prepare_repair(
             l2_done, self.root, self.root / 'v3_img',
             targets=['g1:yi'], updated_drawings={'g1:yi': {'scene': sc_b_v3}},
@@ -454,7 +454,7 @@ class RedrawV11Tests(unittest.TestCase):
         self.assertEqual(len(new_u['fact_changes']), 1)
 
     def test_strong_dependency_vs_independent_fallback_and_handwriting_policy(self):
-        sc_a, u_a = _simple_scene(label_text='甲')
+        sc_a, u_a = _simple_scene(label_text='A')
         # 1. Strong dependency: one subfigure has critical_uncertainty -> entire group fails without consuming attempts
         strong_doc = {
             'blocks': [{'type': 'text', 'id': 'q1', 'text': '1．强依赖'}, {'type': 'image', 'figure_id': 'g1', 'path': 'src.png'}],
@@ -465,9 +465,9 @@ class RedrawV11Tests(unittest.TestCase):
                     'source_path': 'src.png', 'parent_block_id': 'q1', 'figure_type': 'circuit', 'relation': 'main',
                     'group_dependency': 'strong',
                     'subfigures': [
-                        {'subfigure_id': 'a', 'label': '左', 'figure_type': 'circuit',
+                        {'subfigure_id': 'a', 'label': 'L', 'figure_type': 'circuit',
                          'redrawable': True, 'critical_uncertainty': False, 'understanding': u_a, 'drawing': {'scene': sc_a}},
-                        {'subfigure_id': 'b', 'label': '右', 'figure_type': 'circuit',
+                        {'subfigure_id': 'b', 'label': 'R', 'figure_type': 'circuit',
                          'redrawable': True, 'critical_uncertainty': True, 'understanding': u_a, 'drawing': {'scene': sc_a}},
                     ],
                 }],
@@ -497,7 +497,7 @@ class RedrawV11Tests(unittest.TestCase):
         self.assertEqual(res_i['blocks'][1]['type'], 'image')
 
     def test_tool_unavailable_degradation_and_standalone_images_and_mixed_word(self):
-        sc_a, u_a = _simple_scene(label_text='图1')
+        sc_a, u_a = _simple_scene(label_text='Fig1')
         candidates = {
             'blocks': [
                 {'type': 'text', 'id': 'q1', 'text': '1．第一题（结构化成功）',
@@ -561,9 +561,7 @@ class RedrawV11Tests(unittest.TestCase):
         self.assertEqual(len(manifest['figures']), 2)
 
         # 3. Pipeline repair subcommand on completed run
-        sc_a2, _ = _simple_scene(rect_x=110, label_text='甲')
-        # Keep understanding label consistent ('图1') for appearance-only repair
-        sc_a2, _ = _simple_scene(rect_x=110, label_text='图1')
+        sc_a2, _ = _simple_scene(rect_x=110, label_text='Fig1')
         patch_file = self.root / 'f1_new.json'
         patch_file.write_text(json.dumps({'drawing': {'scene': sc_a2}}, ensure_ascii=False), encoding='utf-8')
         st_rep = repair_command(Path(done2['base']) / 'img1-work' / 'img1.state.json', 'img2',
