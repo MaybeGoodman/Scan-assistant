@@ -244,12 +244,28 @@ def validate_scene(scene, understanding=None):
     return scene
 
 
+UNDERSTANDING_META_KEYS = frozenset({
+    'fact_version', 'fact_changes', 'stem_context', 'source_context',
+    'evidence', 'design_allowances', 'uncertainties', 'verification_targets',
+})
+
+
+def _structural_view(data):
+    return {k: v for k, v in data.items() if k not in UNDERSTANDING_META_KEYS} if isinstance(data, dict) else data
+
+
 def validate_structure(scene, expected):
     """Check declared source invariants plus actual labels/arrows/geometry; visual review is separate."""
     if not isinstance(expected, dict) or not expected.get('objects'):
         raise ValueError('A structured source understanding is required')
-    if scene.get('structure') != expected:
-        raise ValueError('Candidate structure differs from source understanding')
+    actual_struct = scene.get('structure')
+    if actual_struct != expected:
+        if not isinstance(actual_struct, dict) or _structural_view(actual_struct) != _structural_view(expected):
+            raise ValueError('Candidate structure differs from source understanding')
+        # Any metadata key that IS present in scene.structure must still match expected
+        for key in UNDERSTANDING_META_KEYS:
+            if key in actual_struct and actual_struct[key] != expected.get(key):
+                raise ValueError('Candidate structure differs from source understanding')
     objects = expected['objects']
     if not isinstance(objects, list) or any(not isinstance(o, dict) or not o.get('id') for o in objects):
         raise ValueError('Invalid source objects')
@@ -572,3 +588,258 @@ def safe_svg(path):
             if element.get(attribute,'none') not in {'black','white','none'}:
                 raise ValueError('SVG must use only black and white')
     return path
+
+
+def check_print_readability(scene, *, font_path=None, target_width_mm=80.0, min_label_mm=1.4):
+    """Deterministic print-readability check at equivalent print width (V1.1 Section 5.3)."""
+    from figure_components import check_label_overlaps, expand_scene
+    expanded = expand_scene(scene, font_path=font_path)
+    width = number(expanded['width'])
+    mm_per_unit = target_width_mm / width
+    labels = [e for e in expanded['elements'] if isinstance(e, dict) and e.get('kind') == 'label']
+    min_size = min((number(e.get('size', 18)) for e in labels), default=None)
+    min_mm = round(min_size * mm_per_unit, 2) if min_size is not None else None
+    overlaps = check_label_overlaps(expanded['elements'], font_path=font_path)
+    issues = []
+    if overlaps:
+        issues.append(f'存在重叠标注：{overlaps}')
+    if min_mm is not None and min_mm < min_label_mm:
+        issues.append(f'最小标注在 {target_width_mm:g} mm 宽度下仅 {min_mm:.2f} mm（低于 {min_label_mm:g} mm 阈值）')
+    return {
+        'ok': not issues,
+        'target_width_mm': target_width_mm,
+        'canvas_size': [expanded['width'], expanded['height']],
+        'min_label_mm': min_mm,
+        'label_overlaps': overlaps,
+        'issues': issues,
+    }
+
+
+def render_placeholder_tile(label_text, output_png, *, width_px=600, height_px=450, dpi=300, font_path=None):
+    """Render a crisp B/W framed placeholder tile for partial subfigure fallback inside a figure group."""
+    output_png = Path(output_png)
+    if output_png.exists():
+        raise FileExistsError(output_png)
+    image = Image.new('RGB', (width_px, height_px), 'white')
+    draw = ImageDraw.Draw(image)
+    pad = 12
+    draw.rectangle((pad, pad, width_px - pad, height_px - pad), outline='black', width=3)
+    text = f'[{label_text}]' if not (label_text.startswith('[') and label_text.endswith(']')) else label_text
+    font_size = max(18, min(32, width_px // max(12, len(text) + 2)))
+    try:
+        font, _ = pick_font(font_size, text, font_path=font_path, style='upright')
+    except ValueError:
+        ascii_only = ''.join(ch for ch in label_text if 32 <= ord(ch) < 127).strip(' :[]') or 'figure'
+        text = f'[{ascii_only}: fallback]'
+        font_size = max(18, min(32, width_px // max(12, len(text) + 2)))
+        font, _ = pick_font(font_size, text, font_path=font_path, style='upright')
+    bbox = draw.textbbox((0, 0), text, font=font)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    tx = max(pad + 8, (width_px - tw) // 2)
+    ty = max(pad + 8, (height_px - th) // 2)
+    draw.text((tx, ty), text, font=font, fill='black')
+    image = image.convert('L').point(lambda p: 255 if p >= 160 else 0).convert('RGB')
+    output_png.parent.mkdir(parents=True, exist_ok=True)
+    with output_png.open('xb') as stream:
+        image.save(stream, format='PNG', dpi=(dpi, dpi))
+    return {'png_sha256': sha256(output_png), 'size': [width_px, height_px]}
+
+
+def _shift_svg_element(el, dx, dy, prefix):
+    """Return a deep copy of an SVG primitive shifted by (dx, dy) in SVG user units."""
+    out = deepcopy(el)
+    if 'id' in out.attrib:
+        out.attrib['id'] = f'{prefix}__{out.attrib["id"]}'
+    tag = out.tag.split('}')[-1]
+    if tag in {'rect', 'text'}:
+        if 'x' in out.attrib:
+            out.attrib['x'] = f'{float(out.attrib["x"]) + dx:g}'
+        if 'y' in out.attrib:
+            out.attrib['y'] = f'{float(out.attrib["y"]) + dy:g}'
+    elif tag in {'circle', 'ellipse'}:
+        out.attrib['cx'] = f'{float(out.attrib["cx"]) + dx:g}'
+        out.attrib['cy'] = f'{float(out.attrib["cy"]) + dy:g}'
+    elif tag in {'polygon', 'polyline'}:
+        pairs = []
+        for token in out.attrib.get('points', '').split():
+            xs, ys = token.split(',')
+            pairs.append(f'{float(xs) + dx:g},{float(ys) + dy:g}')
+        out.attrib['points'] = ' '.join(pairs)
+    elif tag == 'path':
+        # Our renderer only emits 'M x y C x1 y1 x2 y2 x3 y3'
+        tokens = out.attrib.get('d', '').split()
+        shifted = []
+        i = 0
+        while i < len(tokens):
+            if tokens[i] in {'M', 'L', 'C'}:
+                cmd = tokens[i]
+                shifted.append(cmd)
+                i += 1
+                count = 3 if cmd == 'C' else 1
+                for _ in range(count):
+                    shifted.append(f'{float(tokens[i]) + dx:g}')
+                    shifted.append(f'{float(tokens[i + 1]) + dy:g}')
+                    i += 2
+            else:
+                shifted.append(tokens[i])
+                i += 1
+        out.attrib['d'] = ' '.join(shifted)
+    return out
+
+
+def compose_group_tiles(tiles, output_png, *, output_svg=None, layout=None, font_path=None):
+    """Compose subfigure tiles into one figure-group PNG (and combined safe SVG if all tiles are structured SVGs).
+
+    Returns {'png_sha256', 'size', 'subfigure_regions': {subid: [x, y, w, h]},
+             'svg_sha256' (optional), 'contains_original_fallback': bool}.
+    """
+    if not tiles:
+        raise ValueError('图组至少需要一个子图分区')
+    layout = layout or {}
+    mode = layout.get('mode', 'horizontal')
+    if mode not in {'horizontal', 'vertical', 'grid'}:
+        raise ValueError('图组 layout.mode 只能为 horizontal、vertical 或 grid')
+    gap = int(layout.get('gap', 36))
+    padding = int(layout.get('padding', 24))
+    caption_pos = layout.get('caption_position', 'none')
+    if caption_pos not in {'none', 'bottom', 'top'}:
+        raise ValueError('图组 layout.caption_position 只能为 none、bottom 或 top')
+
+    loaded = []
+    has_original_fallback = False
+    for tile in tiles:
+        p = Path(tile['png_path'])
+        with Image.open(p) as im:
+            im.load()
+            rgb = im.convert('RGB')
+            dpi = im.info.get('dpi', (300, 300))[0]
+        if tile.get('is_original_fallback'):
+            has_original_fallback = True
+        loaded.append({**tile, 'image': rgb, 'w': rgb.width, 'h': rgb.height,
+                       'dpi': float(dpi) if isinstance(dpi, (int, float)) and 72 <= dpi <= 1200 else 300.0})
+
+    caption_h = 44 if (caption_pos != 'none' and any(t.get('label') for t in loaded)) else 0
+    n = len(loaded)
+    if mode == 'horizontal':
+        cols = n
+    elif mode == 'vertical':
+        cols = 1
+    else:
+        cols = int(layout.get('cols', math.ceil(math.sqrt(n))))
+        if cols < 1:
+            raise ValueError('layout.cols 必须为正整数')
+    rows = math.ceil(n / cols)
+
+    col_w = [0] * cols
+    row_h = [0] * rows
+    for idx, t in enumerate(loaded):
+        r, c = divmod(idx, cols)
+        col_w[c] = max(col_w[c], t['w'])
+        row_h[r] = max(row_h[r], t['h'] + caption_h)
+
+    total_w = padding * 2 + sum(col_w) + gap * (cols - 1)
+    total_h = padding * 2 + sum(row_h) + gap * (rows - 1)
+    canvas = Image.new('RGB', (total_w, total_h), 'white')
+    draw = ImageDraw.Draw(canvas)
+    regions = {}
+
+    y_cursor = padding
+    for r in range(rows):
+        x_cursor = padding
+        for c in range(cols):
+            idx = r * cols + c
+            if idx >= n:
+                break
+            t = loaded[idx]
+            tile_x = x_cursor + (col_w[c] - t['w']) // 2
+            tile_y = y_cursor + (caption_h if caption_pos == 'top' else 0) + (row_h[r] - caption_h - t['h']) // 2
+            canvas.paste(t['image'], (tile_x, tile_y))
+            regions[t['subfigure_id']] = [tile_x, tile_y, t['w'], t['h']]
+            if caption_h and t.get('label'):
+                lbl = str(t['label'])
+                font, _ = pick_font(30, lbl, font_path=font_path, style='upright')
+                bbox = draw.textbbox((0, 0), lbl, font=font)
+                tw = bbox[2] - bbox[0]
+                cx = x_cursor + (col_w[c] - tw) // 2
+                cy = y_cursor + 4 if caption_pos == 'top' else (y_cursor + row_h[r] - caption_h + 6)
+                draw.text((cx, cy), lbl, font=font, fill='black')
+            x_cursor += col_w[c] + gap
+        y_cursor += row_h[r] + gap
+
+    if not has_original_fallback:
+        canvas = canvas.convert('L').point(lambda p: 255 if p >= 160 else 0).convert('RGB')
+
+    output_png = Path(output_png)
+    if output_png.exists():
+        raise FileExistsError(output_png)
+    output_png.parent.mkdir(parents=True, exist_ok=True)
+    created = []
+    result = {'size': [total_w, total_h], 'subfigure_regions': regions,
+              'contains_original_fallback': has_original_fallback}
+    try:
+        with output_png.open('xb') as stream:
+            created.append(output_png)
+            canvas.save(stream, format='PNG', dpi=(300, 300))
+        result['png_sha256'] = sha256(output_png)
+
+        # Compose combined SVG only when requested AND every tile has a valid structured SVG
+        if output_svg is not None and all(t.get('svg_path') for t in loaded) and not has_original_fallback:
+            output_svg = Path(output_svg)
+            if output_svg.exists():
+                raise FileExistsError(output_svg)
+            scale = 3.0  # Standard 3x PNG-to-SVG ratio (300 dpi = 100 scene units/inch)
+            svg_w, svg_h = round(total_w / scale, 2), round(total_h / scale, 2)
+            root = ET.Element('{' + SVG + '}svg', {'width': str(svg_w), 'height': str(svg_h),
+                                                    'viewBox': f'0 0 {svg_w} {svg_h}'})
+            ET.SubElement(root, '{' + SVG + '}rect', {'width': '100%', 'height': '100%', 'fill': 'white'})
+            for t in loaded:
+                tx, ty, tw, th = regions[t['subfigure_id']]
+                sub_root = ET.fromstring(Path(t['svg_path']).read_bytes())
+                sub_w = float(sub_root.attrib['width'])
+                sub_scale = tw / sub_w if sub_w > 0 else scale
+                dx, dy = tx / sub_scale, ty / sub_scale
+                for child in sub_root:
+                    # Skip background white full-canvas rect of child SVG
+                    if child.tag == '{' + SVG + '}rect' and child.attrib.get('width') == '100%' and child.attrib.get('height') == '100%':
+                        continue
+                    root.append(_shift_svg_element(child, dx, dy, t['subfigure_id']))
+                if caption_h and t.get('label'):
+                    lbl = str(t['label'])
+                    cx = round((tx + tw / 2) / scale, 2)
+                    cy = round(((ty - 10) if caption_pos == 'top' else (ty + th + 28)) / scale, 2)
+                    txt_el = ET.SubElement(root, '{' + SVG + '}text', {
+                        'x': str(cx), 'y': str(cy), 'fill': 'black', 'font-size': '12',
+                        'font-family': SVG_FONT_FAMILY, 'text-anchor': 'middle',
+                    })
+                    txt_el.text = lbl
+            output_svg.parent.mkdir(parents=True, exist_ok=True)
+            with output_svg.open('xb') as stream:
+                created.append(output_svg)
+                stream.write(ET.tostring(root, encoding='utf-8', xml_declaration=True))
+            safe_svg(output_svg)
+            result['svg_sha256'] = sha256(output_svg)
+    except Exception:
+        for path in created:
+            path.unlink(missing_ok=True)
+        raise
+    return result
+
+
+def verify_unchanged_regions(old_png, old_regions, new_png, new_regions, untouched_ids):
+    """Verify pixel-for-pixel identity of untouched subfigures after local repair & re-composition (V1.1 5.2)."""
+    with Image.open(old_png) as old_im, Image.open(new_png) as new_im:
+        old_rgb = old_im.convert('RGB')
+        new_rgb = new_im.convert('RGB')
+        for sid in untouched_ids:
+            if sid not in old_regions or sid not in new_regions:
+                raise ValueError(f'局部返修对比缺少未修改分区 {sid} 的区域信息')
+            ox, oy, ow, oh = old_regions[sid]
+            nx, ny, nw, nh = new_regions[sid]
+            if (ow, oh) != (nw, nh):
+                raise ValueError(f'未修改分区 {sid} 尺寸发生变化：{ow}×{oh} -> {nw}×{nh}')
+            crop_old = old_rgb.crop((ox, oy, ox + ow, oy + oh))
+            crop_new = new_rgb.crop((nx, ny, nx + nw, ny + nh))
+            if crop_old.tobytes() != crop_new.tobytes():
+                raise ValueError(f'未修改分区 {sid} 的像素内容在局部返修后发生变化')
+    return True
+

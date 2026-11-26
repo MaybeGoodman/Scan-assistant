@@ -27,13 +27,19 @@ from pathlib import Path
 import sys
 
 ORIENTATIONS = {'h': (0, False), 'h-flip': (0, True), 'v': (90, False), 'v-flip': (90, True)}
-EXTENDED = {'component', 'wire', 'junction'}
+EXTENDED = {'component', 'wire', 'junction', 'data_curve'}
 ROUTES = {'direct', 'hv', 'vh', 'manual'}
 WIRE_KEYS = {'id', 'kind', 'from', 'to', 'route', 'via', 'connection', 'stroke_width', 'dash', 'arrow'}
 COMPONENT_KEYS = {'id', 'kind', 'type', 'object_id', 'at', 'orientation', 'size', 'params'}
+DATA_CURVE_KEYS = {'id', 'kind', 'axes', 'object_id', 'points', 'stroke_width', 'dash', 'arrow', 'markers'}
 CIRCUIT_STROKE = 1.0       # wires and circuit symbols share one width; only the battery's short line is thicker
 CIRCUIT_TYPES = {'lamp', 'resistor', 'rheostat', 'battery', 'switch', 'switch_spdt', 'ammeter', 'voltmeter', 'motor'}
+PHYSICAL_ELECTRICAL_TYPES = {
+    'phys_meter', 'phys_knife_switch', 'phys_rheostat', 'phys_rotary_rheostat',
+    'phys_lamp_holder', 'phys_battery', 'phys_resistor', 'binding_post',
+}
 JUNCTION_KEYS = {'id', 'kind', 'at', 'object_id', 'radius'}
+COMPONENT_TEMPLATE_VERSION = '1.3.0'
 
 
 def num(value, what):
@@ -60,7 +66,7 @@ def runs_of(value, what):
 # ---------------------------------------------------------------- local drawing helpers
 class Parts:
     def __init__(self):
-        self.items, self.terminals = [], {}
+        self.items, self.terminals, self.meta = [], {}, {}
 
     def add(self, name, kind, **fields):
         self.items.append((name, dict(kind=kind, **fields)))
@@ -310,6 +316,13 @@ def c_flask(p, q):
 
 def c_alcohol_lamp(p, q):
     p.add('body', 'polygon', points=[[-26, 30], [26, 30], [22, 2], [-22, 2]], stroke_width=1.5)
+    if q.get('base'):
+        p.add('base', 'rect', at=[-30, 30], width=60, height=5, stroke_width=1.5)
+    level = liquid_level(q, 'alcohol_lamp.liquid')
+    if level is not None:
+        y = 30 - 28 * level
+        half = 26 - 4 * level
+        p.line('liquid', (-half, y), (half, y), width=1.1, dash=[4, 2])
     p.line('shoulder', (-22, 2), (-8, -6), (8, -6), (22, 2))
     p.add('neck', 'rect', at=[-5, -14], width=10, height=8, stroke_width=1.5)
     p.line('wick', (0, -14), (0, -20))
@@ -317,23 +330,28 @@ def c_alcohol_lamp(p, q):
     if q.get('lit'):
         p.add('flame_left', 'curve', points=[[0, -20], [-10, -26], [-6, -38], [0, -46]], stroke_width=1.5)
         p.add('flame_right', 'curve', points=[[0, -20], [10, -26], [6, -38], [0, -46]], stroke_width=1.5)
+        if q.get('inner_flame'):
+            p.add('inner_flame_left', 'curve', points=[[0, -21], [-5, -26], [-3, -33], [0, -37]], stroke_width=1.0)
+            p.add('inner_flame_right', 'curve', points=[[0, -21], [5, -26], [3, -33], [0, -37]], stroke_width=1.0)
         top = -46
-    p.terminals.update(top=(0, top), bottom=(0, 30))
+    bottom = 35 if q.get('base') else 30
+    p.terminals.update(top=(0, top), bottom=(0, bottom))
 
 
 def c_iron_stand(p, q):
     p.add('base', 'rect', at=[-45, 52], width=90, height=10, stroke_width=1.5)
     p.line('rod', (-25, 52), (-25, -70), width=2)
-    for key, name in (('clamp_y', 'clamp'), ('ring_y', 'ring')):
+    for key, name in (('clamp_y', 'clamp'), ('clamp2_y', 'clamp2'), ('ring_y', 'ring')):
         if key not in q:
             continue
         y = num(q[key], f'iron_stand.{key}')
         if not -68 <= y <= 48:
             raise ValueError(f'iron_stand.{key} 应在 -68–48 之间')
-        if name == 'clamp':
-            p.line('clamp_arm', (-25, y), (12, y))
-            p.add('clamp_jaw', 'rect', at=[12, y - 5], width=8, height=10, stroke_width=1.5)
-            p.terminals['clamp'] = (16, y)
+        if name in {'clamp', 'clamp2'}:
+            arm_x = 12 if name == 'clamp' else 32
+            p.line(f'{name}_arm', (-25, y), (arm_x, y))
+            p.add(f'{name}_jaw', 'rect', at=[arm_x, y - 5], width=8, height=10, stroke_width=1.5)
+            p.terminals[name] = (arm_x + 4, y)
         else:
             p.line('ring_arm', (-25, y), (0, y))
             p.add('ring', 'ellipse', center=[20, y], rx=20, ry=4, stroke_width=1.5)
@@ -371,13 +389,318 @@ def c_thermometer(p, q):
             raise ValueError('thermometer.value 超出量程')
         top = y_of(value)
         p.add('column', 'rect', at=[-2, top], width=4, height=46 - top, fill='black', stroke_width=.5)
+        p.meta['reading'] = {'kind': 'thermometer', 'min': low, 'max': high, 'value': value,
+                             'axis': 'y', 'p_low': [0, y_low], 'p_high': [0, y_high]}
     p.terminals.update(top=(0, -64), bulb=(0, 52))
+
+
+def c_clinical_thermometer(p, q):
+    """Horizontal clinical thermometer (default 35–42 ℃, 0.1 ℃ minor ticks); never prints the reading answer."""
+    low, high = num(q.get('min', 35), 'clinical_thermometer.min'), num(q.get('max', 42), 'clinical_thermometer.max')
+    if high <= low:
+        raise ValueError('clinical_thermometer.max 必须大于 min')
+    major = num(q.get('major', 1), 'clinical_thermometer.major')
+    minor = q.get('minor', 10)
+    if type(minor) is not int or not 1 <= minor <= 10:
+        raise ValueError('clinical_thermometer.minor 应为 1–10 的整数')
+    count = (high - low) / major
+    if major <= 0 or count > 20 or abs(count - round(count)) > 1e-9:
+        raise ValueError('clinical_thermometer.major 必须整除量程且主刻度不超过 20 格')
+    x_low, x_high = -120.0, 125.0
+
+    def x_of(val):
+        return x_low + (x_high - x_low) * (val - low) / (high - low)
+
+    # Metallic bulb on left + constriction neck + glass body + rounded right tip
+    p.add('bulb', 'polygon', points=[[-168, -5], [-146, -5], [-146, 5], [-168, 5]], fill='black', stroke_width=1.2)
+    p.circle('bulb_cap', (-168, 0), 5, fill='black', width=1.2)
+    p.line('top_wall', (-146, -13), (138, -13), width=1.4)
+    p.line('bottom_wall', (-146, 13), (138, 13), width=1.4)
+    p.line('left_wall', (-146, -13), (-146, 13), width=1.4)
+    p.add('right_cap', 'arc', center=[138, 0], rx=13, ry=13, start=-90, end=90, stroke_width=1.4)
+    # Capillary & constriction bend
+    p.line('constriction', (-146, 0), (-140, 0), (-137, -3), (-134, 0), (-120, 0), width=1.2)
+    p.line('capillary_top', (-120, -2), (134, -2), width=0.7)
+    p.line('capillary_bot', (-120, 2), (134, 2), width=0.7)
+
+    # Ticks: major (1.0), mid (0.5 if minor is even), minor (0.1)
+    total_minor = int(round(count)) * minor
+    for i in range(total_minor + 1):
+        val = low + (high - low) * i / total_minor
+        x = round(x_of(val), 4)
+        is_major = (i % minor == 0)
+        is_mid = (minor % 2 == 0 and i % (minor // 2) == 0 and not is_major)
+        length = 9 if is_major else (6.5 if is_mid else 4)
+        w = 1.2 if is_major else (0.9 if is_mid else 0.7)
+        p.line(f'tick{i}', (x, -2), (x, -2 - length), width=w)
+        if is_major and q.get('labels', True):
+            p.text(f'label{i}', (x, 8), f'{val:g}', 10, 'middle', style='upright')
+
+    unit = q.get('unit', '℃')
+    if unit:
+        p.text('unit', (-133, 8), unit, 9, 'middle', style='upright')
+
+    if 'value' in q:
+        val = num(q['value'], 'clinical_thermometer.value')
+        if not low <= val <= high:
+            raise ValueError('clinical_thermometer.value 超出量程')
+        x_end = round(x_of(val), 4)
+        p.add('column', 'rect', at=[-146, -2], width=round(x_end - (-146), 4), height=4, fill='black', stroke_width=0.5)
+        p.meta['reading'] = {'kind': 'clinical_thermometer', 'min': low, 'max': high, 'value': val,
+                             'axis': 'x', 'p_low': [x_low, 0.0], 'p_high': [x_high, 0.0]}
+    p.terminals.update(bulb=(-168, 0), tip=(151, 0))
 
 
 def c_asbestos_net(p, _):
     p.add('net', 'rect', at=[-35, -3], width=70, height=6, stroke_width=1.5)
     p.line('mesh', (-31, 0), (31, 0), width=.8, dash=[3, 2])
     p.terminals.update(top=(0, -3), bottom=(0, 3))
+
+
+def _post(p, name, at, label=None, label_dy=12):
+    """Reusable physical binding post (knurled double-circle) with exact center anchor."""
+    x, y = at
+    p.circle(f'{name}_outer', (x, y), 4.0, fill='white', width=1.2)
+    p.circle(f'{name}_inner', (x, y), 1.6, fill='black', width=0.8)
+    if label:
+        p.text(f'{name}_lbl', (x, y + label_dy), label, 10, 'middle', style='upright')
+
+
+def c_binding_post(p, q):
+    _post(p, 'post', (0, 0), q.get('label'))
+    p.terminals.update(p=(0, 0))
+
+
+def c_phys_meter(p, q):
+    """Physical pointer ammeter/voltmeter with sloped casing, dial arc, pointer and traceable posts.
+    Never invents range numbers unless `ranges` is explicitly supplied."""
+    kind = q.get('kind', 'A')
+    if kind not in {'A', 'V'}:
+        raise ValueError('phys_meter.kind 只能为 A 或 V')
+    # Sloped desk-meter casing
+    p.add('casing', 'polygon', points=[[-34, -36], [34, -36], [38, 12], [-38, 12]], stroke_width=1.5)
+    p.add('panel', 'polygon', points=[[-38, 12], [38, 12], [44, 34], [-44, 34]], stroke_width=1.5)
+    p.add('window', 'rect', at=[-28, -30], width=56, height=36, stroke_width=1.1)
+    # Dial arc & ticks
+    cx, cy, r = 0.0, 4.0, 24.0
+    a0, a1 = 215.0, 325.0
+    p.add('scale', 'arc', center=[cx, cy], rx=r, ry=r, start=a0, end=a1, stroke_width=1.1)
+    major = q.get('major_ticks', 3)
+    minor = q.get('minor_ticks', 5)
+    if type(major) is not int or type(minor) is not int or not 1 <= major <= 15 or not 1 <= minor <= 10:
+        raise ValueError('phys_meter.major_ticks 应为 1–15，minor_ticks 应为 1–10 的整数')
+    divs = major * minor
+    for i in range(divs + 1):
+        ang = a0 + (a1 - a0) * i / divs
+        tick_len = 5.0 if i % minor == 0 else 2.8
+        p0 = polar(r, ang)
+        p1 = polar(r + tick_len, ang)
+        p.line(f'tick{i}', (cx + p0[0], cy + p0[1]), (cx + p1[0], cy + p1[1]), width=1.0 if i % minor == 0 else 0.7)
+    ranges = q.get('ranges', [])
+    if ranges:
+        if (not isinstance(ranges, list) or not 1 <= len(ranges) <= 2
+                or any(not isinstance(rg, list) or len(rg) != 2 or num(rg[1], 'range') <= num(rg[0], 'range') for rg in ranges)):
+            raise ValueError('phys_meter.ranges 应为 1–2 组 [最小, 最大]')
+        for idx, (lo, hi) in enumerate(ranges):
+            rr = r + 9.5 if idx == 0 else r - 7.5
+            for k in range(major + 1):
+                ang = a0 + (a1 - a0) * k / major
+                pt_lbl = polar(rr, ang)
+                val = lo + (hi - lo) * k / major
+                txt = str(int(val)) if float(val).is_integer() else f'{val:g}'
+                p.text(f'val{idx}_{k}', (cx + pt_lbl[0], cy + pt_lbl[1]), txt, 8, 'middle', style='upright')
+    # Needle
+    if 'needle' in q:
+        which = q.get('needle_range', 0)
+        if ranges:
+            if type(which) is not int or not 0 <= which < len(ranges):
+                raise ValueError('phys_meter.needle_range 超出 ranges')
+            lo, hi = ranges[which]
+        else:
+            lo, hi = 0.0, 1.0
+        val = num(q['needle'], 'phys_meter.needle')
+        if not lo <= val <= hi:
+            raise ValueError('phys_meter.needle 超出所选量程')
+        ang = a0 + (a1 - a0) * (val - lo) / (hi - lo)
+        p.meta['reading'] = {'kind': 'phys_meter', 'min': lo, 'max': hi, 'value': val, 'a0': a0, 'a1': a1}
+    else:
+        ang = a0 + (a1 - a0) * 0.22
+    tip = polar(r - 1.5, ang)
+    p.line('needle', (cx, cy), (cx + tip[0], cy + tip[1]), width=1.2)
+    p.circle('pivot', (cx, cy), 2.0, fill='black', width=0.8)
+    # Meter letter
+    p.text('letter', (4, -6), kind, 13, 'middle', style='upright')
+    # Binding posts
+    names = q.get('terminals', ['-', 'pos1', 'pos2'])
+    if (not isinstance(names, list) or not 2 <= len(names) <= 4 or len(set(names)) != len(names)
+            or any(not isinstance(n, str) or not n for n in names)):
+        raise ValueError('phys_meter.terminals 应为 2–4 个互不相同的端子名称')
+    for k, name in enumerate(names):
+        x = -26.0 + 52.0 * k / (len(names) - 1)
+        # Only print explicit short labels like '-', '0.6', '3', '15', '+'; generic 'pos1'/'pos2' stay unmarked
+        lbl = None if name.startswith('pos') else name
+        _post(p, f'post{k}', (x, 22.0), lbl, label_dy=10)
+        p.terminals[name] = (x, 22.0)
+
+
+def c_phys_knife_switch(p, q):
+    """Physical single-pole knife switch: insulating plinth stays below terminals so it never looks like a short."""
+    state, side = q.get('state', 'open'), q.get('blade_side', 'up')
+    if state not in {'open', 'closed'} or side not in {'up', 'down'}:
+        raise ValueError('phys_knife_switch.state 只能为 open/closed，blade_side 只能为 up/down')
+    # Insulating base plinth below the contact line (open top visually separates the two posts)
+    p.line('base_outline', (-34, 6), (-34, 18), (34, 18), (34, 6), width=1.5)
+    p.line('base_foot', (-38, 18), (38, 18), width=1.5)
+    # Left pivot post (a) and right static contact clip (b)
+    _post(p, 'post_a', (-22, 0))
+    _post(p, 'post_b', (22, 0))
+    p.line('jaw_l', (19, -5), (19, 4), width=1.3)
+    p.line('jaw_r', (25, -5), (25, 4), width=1.3)
+    if state == 'closed':
+        p.line('blade', (-18, 0), (22, 0), width=2.2)
+        p.circle('handle', (28, 0), 3.2, fill='black', width=1.0)
+    else:
+        ang = math.radians(-38 if side == 'up' else 38)
+        bx, by = -18 + 38 * math.cos(ang), 38 * math.sin(ang)
+        hx, hy = -18 + 43 * math.cos(ang), 43 * math.sin(ang)
+        p.line('blade', (-18, 0), (round(bx, 4), round(by, 4)), width=2.2)
+        p.circle('handle', (round(hx, 4), round(hy, 4)), 3.2, fill='black', width=1.0)
+    p.terminals.update(a=(-22, 0), b=(22, 0))
+
+
+def c_phys_rheostat(p, q):
+    """Physical sliding rheostat with ceramic cylinder, coil windings, metal slide rod, slider P and posts A/B/C/D."""
+    slider = num(q.get('slider', 0.5), 'phys_rheostat.slider')
+    if not 0 <= slider <= 1:
+        raise ValueError('phys_rheostat.slider 应在 0–1 之间')
+    # Support legs
+    p.line('leg_l', (-48, 18), (-54, 28), (-42, 28), width=1.5)
+    p.line('leg_r', (48, 18), (54, 28), (42, 28), width=1.5)
+    # Ceramic cylinder & coil windings
+    p.add('coil_body', 'rect', at=[-44, -4], width=88, height=22, stroke_width=1.5)
+    for k in range(1, 15):
+        wx = -44 + k * (88 / 15)
+        p.line(f'wind{k}', (round(wx, 3), -4), (round(wx, 3), 18), width=0.7)
+    # Top slide rod & end supports
+    p.line('post_sup_l', (-48, -20), (-48, 18), width=1.5)
+    p.line('post_sup_r', (48, -20), (48, 18), width=1.5)
+    p.line('rod', (-48, -20), (48, -20), width=2.0)
+    # Slider block P
+    sx = round(-36 + 72 * slider, 4)
+    p.add('slider_knob', 'rect', at=[sx - 7, -30], width=14, height=10, fill='white', stroke_width=1.4)
+    p.line('slider_wiper', (sx, -20), (sx, -4), width=1.6)
+    p.add('slider_tip', 'polygon', points=[[sx, -4], [sx - 3, -9], [sx + 3, -9]], fill='black', stroke_width=0.6)
+    # 4 binding posts: A, B (bottom coil ends), C, D (top rod ends)
+    post_coords = {'A': (-52, 14), 'B': (52, 14), 'C': (-52, -20), 'D': (52, -20)}
+    active = q.get('terminals', ['A', 'B', 'C', 'D'])
+    if not isinstance(active, list) or not active or set(active) - set(post_coords):
+        raise ValueError('phys_rheostat.terminals 只能包含 A、B、C、D')
+    for name in active:
+        cx, cy = post_coords[name]
+        _post(p, f'post_{name}', (cx, cy))
+        p.terminals[name] = (cx, cy)
+    p.terminals['P'] = (sx, -30)
+
+
+def c_phys_rotary_rheostat(p, q):
+    """Physical rotary potentiometer/rheostat (R10): circular resistance wire, wiper, axle, knob, A/B/C posts."""
+    angle = num(q.get('angle', 270), 'phys_rotary_rheostat.angle')
+    if not 140 <= angle <= 400:
+        raise ValueError('phys_rotary_rheostat.angle 应在 140–400 度之间')
+    # Outer housing
+    p.circle('casing', (0, 0), 40, width=1.5)
+    # Resistive wire arc (140 deg to 400 deg)
+    p.add('res_wire', 'arc', center=[0, 0], rx=27, ry=27, start=140, end=400, stroke_width=3.2)
+    # Optional knob ring
+    if q.get('show_knob', True):
+        p.circle('knob', (0, 0), 13, width=1.1)
+    # Central axle & wiper arm
+    p.circle('axle', (0, 0), 4.5, fill='white', width=1.3)
+    p.circle('axle_dot', (0, 0), 1.6, fill='black', width=0.8)
+    w_tip = polar(27, angle)
+    p.line('wiper', (0, 0), (round(w_tip[0], 4), round(w_tip[1], 4)), width=1.8)
+    p.circle('wiper_contact', (round(w_tip[0], 4), round(w_tip[1], 4)), 2.5, fill='black', width=0.8)
+    # Internal leads from arc ends and axle to posts A, B, C
+    a_arc = polar(27, 140)
+    c_arc = polar(27, 400)
+    p.line('lead_A', (round(a_arc[0], 4), round(a_arc[1], 4)), (-28, 44), width=1.3)
+    p.line('lead_B', (0, 4.5), (0, 48), width=1.3)
+    p.line('lead_C', (round(c_arc[0], 4), round(c_arc[1], 4)), (28, 44), width=1.3)
+    _post(p, 'post_A', (-28, 44))
+    _post(p, 'post_B', (0, 48))
+    _post(p, 'post_C', (28, 44))
+    w_mid = polar(16, angle)
+    wire_ref = polar(27, 210 if angle > 240 else 330)
+    p.terminals.update(
+        A=(-28, 44), B=(0, 48), C=(28, 44),
+        knob=(13, 0), wiper=(round(w_mid[0], 4), round(w_mid[1], 4)),
+        wire=(round(wire_ref[0], 4), round(wire_ref[1], 4)),
+    )
+
+
+def c_phys_lamp_holder(p, q):
+    """Physical small lamp holder with base, screw socket, glass bulb, filament and binding posts a/b."""
+    p.add('base', 'ellipse', center=[0, 14], rx=26, ry=9, stroke_width=1.5)
+    p.add('socket', 'rect', at=[-9, -3], width=18, height=14, fill='white', stroke_width=1.4)
+    p.line('thread1', (-9, 2), (9, 2), width=0.8)
+    p.line('thread2', (-9, 6), (9, 6), width=0.8)
+    p.circle('bulb', (0, -17), 14, fill='white', width=1.4)
+    p.line('filament', (-4, -3), (-4, -15), (-2, -19), (0, -16), (2, -19), (4, -15), (4, -3), width=1.0)
+    _post(p, 'post_a', (-19, 14))
+    _post(p, 'post_b', (19, 14))
+    if q.get('label'):
+        p.text('lbl', (0, 29), q['label'], 11, 'middle')
+    p.terminals.update(a=(-19, 14), b=(19, 14))
+
+
+def c_phys_battery(p, q):
+    """Physical cylindrical dry cell(s) / battery box with traceable series polarity and pos/neg posts."""
+    cells = q.get('cells', 2)
+    if type(cells) is not int or not 1 <= cells <= 4:
+        raise ValueError('phys_battery.cells 应为 1–4 的整数')
+    positive = q.get('positive', 'a')
+    if positive not in {'a', 'b'}:
+        raise ValueError('phys_battery.positive 只能为 a 或 b')
+    cell_w, cell_h, gap = 36.0, 18.0, 6.0
+    total_w = cells * cell_w + (cells - 1) * gap
+    left = -total_w / 2
+    if q.get('style', 'box') == 'box':
+        p.add('box', 'rect', at=[round(left - 8, 4), -16], width=round(total_w + 16, 4), height=32, stroke_width=1.5)
+    for k in range(cells):
+        x0 = left + k * (cell_w + gap)
+        x1 = x0 + cell_w
+        p.add(f'cell{k}', 'rect', at=[round(x0, 4), -cell_h / 2], width=cell_w, height=cell_h, stroke_width=1.3)
+        # Positive cap on left if positive=='a', else on right
+        if positive == 'a':
+            p.add(f'cap{k}', 'rect', at=[round(x0 - 3, 4), -4], width=3, height=8, fill='black', stroke_width=0.8)
+            p.text(f'plus{k}', (round(x0 + 7, 4), 0), '+', 10, 'middle', style='upright')
+            p.text(f'minus{k}', (round(x1 - 7, 4), 0), '-', 10, 'middle', style='upright')
+        else:
+            p.add(f'cap{k}', 'rect', at=[round(x1, 4), -4], width=3, height=8, fill='black', stroke_width=0.8)
+            p.text(f'minus{k}', (round(x0 + 7, 4), 0), '-', 10, 'middle', style='upright')
+            p.text(f'plus{k}', (round(x1 - 7, 4), 0), '+', 10, 'middle', style='upright')
+        if k > 0:
+            p.line(f'link{k}', (round(x0 - gap, 4), 0), (round(x0, 4), 0), width=1.6)
+    pa = (round(left - 14, 4), 0.0)
+    pb = (round(left + total_w + 14, 4), 0.0)
+    p.line('lead_a', (round(left, 4), 0), pa, width=1.3)
+    p.line('lead_b', (round(left + total_w, 4), 0), pb, width=1.3)
+    _post(p, 'post_a', pa)
+    _post(p, 'post_b', pb)
+    p.terminals.update(a=pa, b=pb, pos=pa if positive == 'a' else pb, neg=pb if positive == 'a' else pa)
+
+
+def c_phys_resistor(p, q):
+    """Physical fixed resistor board with ceramic resistor body and binding posts a/b."""
+    p.add('board', 'rect', at=[-34, -13], width=68, height=26, stroke_width=1.4)
+    p.add('body', 'rect', at=[-15, -6], width=30, height=12, fill='white', stroke_width=1.4)
+    p.line('lead_a', (-25, 0), (-15, 0), width=1.3)
+    p.line('lead_b', (15, 0), (25, 0), width=1.3)
+    _post(p, 'post_a', (-25, 0))
+    _post(p, 'post_b', (25, 0))
+    if q.get('label'):
+        p.text('lbl', (0, 0), q['label'], 10, 'middle')
+    p.terminals.update(a=(-25, 0), b=(25, 0))
 
 
 def c_axes(p, q):
@@ -389,10 +712,76 @@ def c_axes(p, q):
     p.line('y_axis', (0, 0), (0, -height), arrow='end')
     p.text('origin', (-9, 11), q.get('origin_label', 'O'), 13)
     if 'x_label' in q:
-        p.text('x_label', (width + 6, 0), q['x_label'], 13, 'start')
+        x_lbl_pos = pt(q['x_label_pos'], 'axes.x_label_pos') if 'x_label_pos' in q else [width + 6, 0]
+        p.text('x_label', x_lbl_pos, q['x_label'], 12, 'start')
     if 'y_label' in q:
-        p.text('y_label', (6, -height - 6), q['y_label'], 13, 'start')
+        y_lbl_pos = pt(q['y_label_pos'], 'axes.y_label_pos') if 'y_label_pos' in q else [6, -height - 6]
+        p.text('y_label', y_lbl_pos, q['y_label'], 12, 'start')
     p.terminals.update(origin=(0, 0), x_end=(width, 0), y_end=(0, -height))
+
+    # Optional data-space mapping for exact data-coordinate plotting (V1.1 Section 4.3 #2)
+    x_range = q.get('x_range')
+    y_range = q.get('y_range')
+    if x_range is not None or y_range is not None:
+        if x_range is None or y_range is None:
+            raise ValueError('axes.x_range 与 axes.y_range 必须同时指定')
+        x0, x1 = pt(x_range, 'axes.x_range')
+        y0, y1 = pt(y_range, 'axes.y_range')
+        if x1 <= x0 or y1 <= y0:
+            raise ValueError('axes.x_range / y_range 必须为递增区间 [最小, 最大]')
+        # Reserve 10% headroom before arrow tip so max tick does not collide with arrowhead
+        plot_w = num(q.get('plot_width', width * 0.88), 'axes.plot_width')
+        plot_h = num(q.get('plot_height', height * 0.88), 'axes.plot_height')
+        if not 0 < plot_w <= width or not 0 < plot_h <= height:
+            raise ValueError('axes.plot_width / plot_height 超出坐标轴长度')
+        p.meta['data_space'] = {'x_range': [x0, x1], 'y_range': [y0, y1],
+                                'plot_width': plot_w, 'plot_height': plot_h}
+
+        def fmt_num(v):
+            return str(int(round(v))) if abs(v - round(v)) < 1e-9 else f'{v:g}'
+
+        grid = bool(q.get('grid', False))
+        for axis, lo, hi, span, major_key, minor_key in (
+            ('x', x0, x1, plot_w, 'x_major', 'x_minor'),
+            ('y', y0, y1, plot_h, 'y_major', 'y_minor'),
+        ):
+            if major_key in q:
+                step = num(q[major_key], f'axes.{major_key}')
+                count = (hi - lo) / step
+                if step <= 0 or count > 40 or abs(count - round(count)) > 1e-9:
+                    raise ValueError(f'axes.{major_key} 必须整除量程且不超过 40 格')
+                n_major = int(round(count))
+                for k in range(n_major + 1):
+                    val = lo + step * k
+                    pos = round(span * k / n_major, 4)
+                    if k == 0 and abs(val) < 1e-9:
+                        continue  # origin already labelled
+                    if axis == 'x':
+                        if pos > 0:
+                            p.line(f'dx_tick{k}', (pos, 0), (pos, -4), width=1)
+                            if grid:
+                                p.line(f'dx_grid{k}', (pos, 0), (pos, -plot_h), width=0.5, dash=[2, 2])
+                        p.text(f'dx_lbl{k}', (pos, 13), fmt_num(val), 10, 'middle', style='upright')
+                        p.terminals[f'x:{fmt_num(val)}'] = (pos, 0)
+                    else:
+                        if pos > 0:
+                            p.line(f'dy_tick{k}', (0, -pos), (4, -pos), width=1)
+                            if grid:
+                                p.line(f'dy_grid{k}', (0, -pos), (plot_w, -pos), width=0.5, dash=[2, 2])
+                        p.text(f'dy_lbl{k}', (-6, -pos), fmt_num(val), 10, 'end', style='upright')
+                        p.terminals[f'y:{fmt_num(val)}'] = (0, -pos)
+            if minor_key in q:
+                mstep = num(q[minor_key], f'axes.{minor_key}')
+                mcount = (hi - lo) / mstep
+                if mstep <= 0 or mcount > 100 or abs(mcount - round(mcount)) > 1e-9:
+                    raise ValueError(f'axes.{minor_key} 必须整除量程且不超过 100 格')
+                for k in range(1, int(round(mcount)) + 1):
+                    pos = round(span * k / round(mcount), 4)
+                    if axis == 'x':
+                        p.line(f'dx_mtick{k}', (pos, 0), (pos, -2.5), width=0.7)
+                    else:
+                        p.line(f'dy_mtick{k}', (0, -pos), (2.5, -pos), width=0.7)
+
     for axis in ('x', 'y'):
         ticks = q.get(f'{axis}_ticks', [])
         if not isinstance(ticks, list):
@@ -430,11 +819,24 @@ COMPONENTS = {
     'meter_dial': (c_meter_dial, {'ranges', 'major_ticks', 'minor_ticks', 'needle', 'needle_range', 'unit',
                                   'terminals'}, FIXED),
     'beaker': (c_beaker, {'liquid'}, UPRIGHT), 'test_tube': (c_test_tube, {'liquid', 'angle'}, UPRIGHT),
-    'flask': (c_flask, {'liquid', 'stopper'}, UPRIGHT), 'alcohol_lamp': (c_alcohol_lamp, {'lit'}, UPRIGHT),
-    'iron_stand': (c_iron_stand, {'clamp_y', 'ring_y'}, UPRIGHT),
+    'flask': (c_flask, {'liquid', 'stopper'}, UPRIGHT),
+    'alcohol_lamp': (c_alcohol_lamp, {'lit', 'liquid', 'inner_flame', 'base'}, UPRIGHT),
+    'iron_stand': (c_iron_stand, {'clamp_y', 'clamp2_y', 'ring_y'}, UPRIGHT),
     'thermometer': (c_thermometer, {'min', 'max', 'major', 'value', 'labels'}, UPRIGHT),
+    'clinical_thermometer': (c_clinical_thermometer, {'min', 'max', 'major', 'minor', 'value', 'labels', 'unit'}, FIXED),
     'asbestos_net': (c_asbestos_net, set(), UPRIGHT),
-    'axes': (c_axes, {'length', 'x_label', 'y_label', 'origin_label', 'x_ticks', 'y_ticks'}, FIXED),
+    'axes': (c_axes, {'length', 'x_label', 'y_label', 'x_label_pos', 'y_label_pos', 'origin_label',
+                      'x_ticks', 'y_ticks', 'x_range', 'y_range', 'x_major', 'y_major', 'x_minor', 'y_minor',
+                      'plot_width', 'plot_height', 'grid'}, FIXED),
+    # Physical electrical apparatus (V1.1 Section 4.2)
+    'phys_meter': (c_phys_meter, {'kind', 'ranges', 'major_ticks', 'minor_ticks', 'needle', 'needle_range', 'terminals'}, FIXED),
+    'phys_knife_switch': (c_phys_knife_switch, {'state', 'blade_side'}, UPRIGHT),
+    'phys_rheostat': (c_phys_rheostat, {'slider', 'terminals'}, UPRIGHT),
+    'phys_rotary_rheostat': (c_phys_rotary_rheostat, {'angle', 'show_knob'}, FIXED),
+    'phys_lamp_holder': (c_phys_lamp_holder, {'label'}, UPRIGHT),
+    'phys_battery': (c_phys_battery, {'cells', 'positive', 'style'}, UPRIGHT),
+    'phys_resistor': (c_phys_resistor, {'label'}, UPRIGHT),
+    'binding_post': (c_binding_post, {'label'}, ANY),
 }
 
 
@@ -494,7 +896,7 @@ class Placement:
         return out
 
 
-def expand_component(element, understanding_kinds, understanding_params):
+def _expand_component_with_meta(element, understanding_kinds, understanding_params):
     cid = element['id']
     unknown = set(element) - COMPONENT_KEYS
     if unknown:
@@ -541,6 +943,26 @@ def expand_component(element, understanding_kinds, understanding_params):
             out['symbol'] = True
         expanded.append(out)
     terminals = {name: place.point(at) for name, at in parts.terminals.items()}
+    meta = {'type': ctype, 'object_id': oid, 'version': COMPONENT_TEMPLATE_VERSION}
+    if 'data_space' in parts.meta:
+        ds = parts.meta['data_space']
+        meta['data_space'] = {
+            'origin': place.point([0.0, 0.0]),
+            'x_range': ds['x_range'], 'y_range': ds['y_range'],
+            'plot_width': round(ds['plot_width'] * size, 4),
+            'plot_height': round(ds['plot_height'] * size, 4),
+        }
+    if 'reading' in parts.meta:
+        rd = deepcopy(parts.meta['reading'])
+        if 'p_low' in rd and 'p_high' in rd:
+            rd['p_low'] = place.point(rd['p_low'])
+            rd['p_high'] = place.point(rd['p_high'])
+        meta['reading'] = rd
+    return expanded, terminals, meta
+
+
+def expand_component(element, understanding_kinds, understanding_params):
+    expanded, terminals, _ = _expand_component_with_meta(element, understanding_kinds, understanding_params)
     return expanded, terminals
 
 
@@ -561,11 +983,272 @@ def wire_points(start, end, route, via):
     return unique
 
 
+def map_data_point(ds, point_xy):
+    """Map [data_x, data_y] into canvas coordinates using the axes data-space transform."""
+    dx, dy = pt(point_xy, '数据点')
+    x0, x1 = ds['x_range']
+    y0, y1 = ds['y_range']
+    ox, oy = ds['origin']
+    cx = ox + (dx - x0) / (x1 - x0) * ds['plot_width']
+    cy = oy - (dy - y0) / (y1 - y0) * ds['plot_height']
+    return [round(cx, 4), round(cy, 4)]
+
+
+def _point_to_segment_dist(p, a, b):
+    """Euclidean distance from point p to line segment ab."""
+    vx, vy = b[0] - a[0], b[1] - a[1]
+    wx, wy = p[0] - a[0], p[1] - a[1]
+    seg_len2 = vx * vx + vy * vy
+    if seg_len2 < 1e-12:
+        return math.hypot(wx, wy)
+    t = max(0.0, min(1.0, (wx * vx + wy * vy) / seg_len2))
+    proj_x, proj_y = a[0] + t * vx, a[1] + t * vy
+    return math.hypot(p[0] - proj_x, p[1] - proj_y)
+
+
+def validate_terminal_connections(elements, anchors, understanding):
+    """Verify actual rendered wire geometry against declared terminal_connections (V1.1 Section 4.3 #1).
+
+    Checks:
+    - Each wire's actual start/end coordinates must land within TOL of a known terminal/junction anchor
+      (catches floating/virtual contact '虚接' and wrong terminal '误接邻端').
+    - Intermediate segments must not accidentally pass through an unrelated terminal anchor.
+    - Multiset of geometrically verified anchor pairs must match understanding['terminal_connections']
+      (catches missing wires, wrong terminals, and extra short-circuit bridges '额外跨接').
+    - Co-termination at the same terminal/junction is allowed; crossing wires without a junction stay separate.
+    """
+    expected_raw = understanding.get('terminal_connections')
+    if expected_raw is None:
+        return
+    if not isinstance(expected_raw, list):
+        raise ValueError('understanding.terminal_connections 必须是端子对列表')
+    tol = 1.5
+    pass_through_tol = 2.0
+    expected_pairs = []
+    for item in expected_raw:
+        if isinstance(item, dict):
+            a, b = item.get('from'), item.get('to')
+        elif isinstance(item, list) and len(item) == 2:
+            a, b = item[0], item[1]
+        else:
+            raise ValueError('terminal_connections 每项必须是 [端子A, 端子B] 或 {"from": ..., "to": ...}')
+        if not isinstance(a, str) or not isinstance(b, str) or not a or not b:
+            raise ValueError('terminal_connections 端子名必须是非空字符串')
+        if a not in anchors:
+            raise ValueError(f'terminal_connections 引用了不存在的端子或节点：{a}')
+        if b not in anchors:
+            raise ValueError(f'terminal_connections 引用了不存在的端子或节点：{b}')
+        expected_pairs.append(tuple(sorted((a, b))))
+
+    # Alias map: e.g. phys_battery exposes both 'pos'/'a' at identical coordinates; resolve to declared names
+    declared_names = {name for pair in expected_pairs for name in pair}
+
+    def match_anchor(coord, preferred=None):
+        if preferred and preferred in anchors and math.dist(coord, anchors[preferred]) <= tol:
+            return preferred
+        matches = [name for name, pos in anchors.items() if math.dist(coord, pos) <= tol]
+        if not matches:
+            return None
+        # Prefer names that appear in declared terminal_connections (handles aliases like pos/a)
+        preferred_matches = [m for m in matches if m in declared_names]
+        return preferred_matches[0] if preferred_matches else matches[0]
+
+    wire_elements = [e for e in elements if isinstance(e, dict) and 'connection' in e and e.get('kind') in {'line', 'polyline'}]
+    actual_pairs = []
+    for wire in wire_elements:
+        pts = wire.get('points', [])
+        if len(pts) < 2:
+            continue
+        start_pt, end_pt = pts[0], pts[-1]
+        a = match_anchor(start_pt)
+        b = match_anchor(end_pt)
+        if a is None:
+            raise ValueError(f'导线 {wire["id"]} 起点 {start_pt} 悬空/虚接，未到达任何已知端子锚点')
+        if b is None:
+            raise ValueError(f'导线 {wire["id"]} 终点 {end_pt} 悬空/虚接，未到达任何已知端子锚点')
+        if a == b:
+            raise ValueError(f'导线 {wire["id"]} 起止两端落在同一端子 {a}')
+        # Check intermediate segments do not accidentally pass over an unrelated terminal
+        endpoint_coords = (anchors[a], anchors[b])
+        for seg_a, seg_b in zip(pts, pts[1:]):
+            for name, pos in anchors.items():
+                if math.dist(pos, endpoint_coords[0]) <= tol or math.dist(pos, endpoint_coords[1]) <= tol:
+                    continue
+                if _point_to_segment_dist(pos, seg_a, seg_b) < pass_through_tol:
+                    raise ValueError(f'导线 {wire["id"]} 路径误触无关端子 {name}，请改道避开')
+        actual_pairs.append(tuple(sorted((a, b))))
+
+    expected_sorted = sorted(expected_pairs)
+    actual_sorted = sorted(actual_pairs)
+    if expected_sorted != actual_sorted:
+        missing = [list(c) for c in expected_sorted if expected_sorted.count(c) > actual_sorted.count(c)]
+        extra = [list(c) for c in actual_sorted if actual_sorted.count(c) > expected_sorted.count(c)]
+        raise ValueError(f'端子级接线与原图理解不一致：缺少 {missing}，多出/接错 {extra}')
+
+
+def validate_data_space(elements, data_spaces, readings, understanding):
+    """Verify rendered curves and instrument readings against data-space ground truth (V1.1 Section 4.3 #2)."""
+    ds_spec = understanding.get('data_space')
+    if not isinstance(ds_spec, dict):
+        return
+    from figure_drawing import samples
+    by_id = {e['id']: e for e in elements if isinstance(e, dict) and 'id' in e}
+
+    def point_on_element(el, target_xy, tol):
+        pts = samples(el)
+        if len(pts) == 1:
+            return math.dist(pts[0], target_xy) <= tol
+        return any(_point_to_segment_dist(target_xy, a, b) <= tol for a, b in zip(pts, pts[1:]))
+
+    # 1. Key points on curves
+    for kp in ds_spec.get('key_points', []):
+        axes_id = kp.get('axes') or (next(iter(data_spaces)) if len(data_spaces) == 1 else None)
+        if not axes_id or axes_id not in data_spaces:
+            raise ValueError(f'data_space.key_points 找不到坐标系 {axes_id}')
+        eid = kp.get('element_id')
+        if eid not in by_id:
+            raise ValueError(f'data_space.key_points 引用了不存在的元素：{eid}')
+        target = map_data_point(data_spaces[axes_id], kp['point'])
+        tol = num(kp.get('tolerance', 1.2), 'key_point.tolerance')
+        if not point_on_element(by_id[eid], target, tol):
+            raise ValueError(f'曲线 {eid} 未经过关键数据点 {kp["point"]}（画布期望 {target}）')
+
+    # 2. Coincident segments (e.g. R06 boiling plateau overlap)
+    for seg in ds_spec.get('coincident_segments', []):
+        axes_id = seg.get('axes') or (next(iter(data_spaces)) if len(data_spaces) == 1 else None)
+        if not axes_id or axes_id not in data_spaces:
+            raise ValueError(f'data_space.coincident_segments 找不到坐标系 {axes_id}')
+        tol = num(seg.get('tolerance', 1.2), 'coincident_segments.tolerance')
+        for eid in seg.get('elements', []):
+            if eid not in by_id:
+                raise ValueError(f'data_space.coincident_segments 引用了不存在的元素：{eid}')
+            for dp in seg.get('points', []):
+                target = map_data_point(data_spaces[axes_id], dp)
+                if not point_on_element(by_id[eid], target, tol):
+                    raise ValueError(f'曲线 {eid} 在重合段未经过数据点 {dp}')
+
+    # 3. Instrument readings (actual rendered column / needle geometry vs declared reading)
+    for rd_spec in ds_spec.get('readings', []):
+        cid = rd_spec.get('component_id')
+        expected_val = num(rd_spec.get('value'), 'reading.value')
+        tol_val = num(rd_spec.get('tolerance', 0.05), 'reading.tolerance')
+        if cid not in readings:
+            raise ValueError(f'data_space.readings 找不到仪表/温度计组件：{cid}')
+        rd = readings[cid]
+        if rd['kind'] in {'thermometer', 'clinical_thermometer'}:
+            col = by_id.get(f'{cid}/column')
+            if col is None:
+                raise ValueError(f'组件 {cid} 缺少液柱图元 {cid}/column')
+            lo, hi = rd['min'], rd['max']
+            if rd['axis'] == 'x':
+                x_low, x_high = rd['p_low'][0], rd['p_high'][0]
+                actual_end = col['at'][0] + col['width']
+                actual_val = lo + (actual_end - x_low) / (x_high - x_low) * (hi - lo)
+            else:
+                y_low, y_high = rd['p_low'][1], rd['p_high'][1]
+                actual_end = col['at'][1]
+                actual_val = lo + (actual_end - y_low) / (y_high - y_low) * (hi - lo)
+            if abs(actual_val - expected_val) > tol_val:
+                raise ValueError(f'组件 {cid} 实际渲染液柱读数 {actual_val:.3f} 与期望 {expected_val:g} 偏差超过 {tol_val:g}')
+        elif rd['kind'] == 'phys_meter':
+            needle = by_id.get(f'{cid}/needle')
+            if needle is None:
+                raise ValueError(f'组件 {cid} 缺少指针图元 {cid}/needle')
+            (x0, y0), (x1, y1) = needle['points'][0], needle['points'][-1]
+            ang = math.degrees(math.atan2(y1 - y0, x1 - x0)) % 360
+            a0, a1 = rd['a0'], rd['a1']
+            lo, hi = rd['min'], rd['max']
+            actual_val = lo + (ang - a0) / (a1 - a0) * (hi - lo)
+            if abs(actual_val - expected_val) > tol_val:
+                raise ValueError(f'仪表 {cid} 实际渲染指针读数 {actual_val:.3f} 与期望 {expected_val:g} 偏差超过 {tol_val:g}')
+
+
+def validate_state_checks(elements, understanding, font_path=None):
+    """Verify motion/state geometric invariants (relative position + gap, bubble size trend) (V1.1 Section 4.3 #3)."""
+    checks = understanding.get('state_checks')
+    if not isinstance(checks, list):
+        return
+    by_id = {e['id']: e for e in elements if isinstance(e, dict) and 'id' in e}
+
+    def obj_box(oid):
+        els = [e for e in elements if isinstance(e, dict) and e.get('object_id') == oid and e.get('kind') != 'label']
+        if not els and oid in by_id:
+            els = [by_id[oid]]
+        if not els:
+            raise ValueError(f'state_checks 找不到对象或元素：{oid}')
+        boxes = [element_box(e, font_path) for e in els]
+        return [min(b[0] for b in boxes), min(b[1] for b in boxes),
+                max(b[2] for b in boxes), max(b[3] for b in boxes)]
+
+    for chk in checks:
+        kind = chk.get('kind')
+        if kind == 'relative_position':
+            ba, bb = obj_box(chk['a']), obj_box(chk['b'])
+            rel = chk.get('relation')
+            min_gap = num(chk.get('min_gap', 0), 'state_check.min_gap')
+            if rel == 'left_of':
+                gap = bb[0] - ba[2]
+                if gap < min_gap:
+                    raise ValueError(f'相对位置校验失败：{chk["a"]} 应在 {chk["b"]} 左侧且间隙 ≥ {min_gap:g}（实际 {gap:.1f}）')
+            elif rel == 'right_of':
+                gap = ba[0] - bb[2]
+                if gap < min_gap:
+                    raise ValueError(f'相对位置校验失败：{chk["a"]} 应在 {chk["b"]} 右侧且间隙 ≥ {min_gap:g}（实际 {gap:.1f}）')
+            elif rel == 'above':
+                gap = bb[1] - ba[3]
+                if gap < min_gap:
+                    raise ValueError(f'相对位置校验失败：{chk["a"]} 应在 {chk["b"]} 上方且间隙 ≥ {min_gap:g}（实际 {gap:.1f}）')
+            elif rel == 'below':
+                gap = ba[1] - bb[3]
+                if gap < min_gap:
+                    raise ValueError(f'相对位置校验失败：{chk["a"]} 应在 {chk["b"]} 下方且间隙 ≥ {min_gap:g}（实际 {gap:.1f}）')
+            else:
+                raise ValueError(f'不支持的 relative_position 关系：{rel}')
+        elif kind == 'monotonic_radius':
+            eids = chk.get('elements', [])
+            if len(eids) < 2:
+                raise ValueError('monotonic_radius 至少需要 2 个圆形元素')
+            circles = []
+            for eid in eids:
+                el = by_id.get(eid)
+                if not el or el.get('kind') != 'circle':
+                    raise ValueError(f'monotonic_radius 元素 {eid} 必须是 circle')
+                circles.append((el['center'][1], el['radius'], eid))
+            # Sort from bottom (largest y) to top (smallest y) when direction=='up'
+            direction = chk.get('direction', 'up')
+            circles.sort(key=lambda c: -c[0] if direction == 'up' else c[0])
+            trend = chk.get('trend')
+            for (_, r0, id0), (_, r1, id1) in zip(circles, circles[1:]):
+                if trend == 'increasing' and r1 <= r0:
+                    raise ValueError(f'气泡大小趋势错误：上升方向 {id1}(r={r1}) 应大于 {id0}(r={r0})')
+                if trend == 'decreasing' and r1 >= r0:
+                    raise ValueError(f'气泡大小趋势错误：上升方向 {id1}(r={r1}) 应小于 {id0}(r={r0})')
+        else:
+            raise ValueError(f'不支持的 state_checks 类型：{kind}')
+
+
+def check_label_overlaps(elements, font_path=None, pad=0.0):
+    """Return list of (id_a, id_b) pairs whose label bounding boxes overlap."""
+    labels = [(e['id'], label_box(e, font_path)) for e in elements if isinstance(e, dict) and e.get('kind') == 'label']
+    overlaps = []
+    for i in range(len(labels)):
+        id_a, a = labels[i]
+        for j in range(i + 1, len(labels)):
+            id_b, b = labels[j]
+            if a[0] - pad < b[2] and a[2] + pad > b[0] and a[1] - pad < b[3] and a[3] + pad > b[1]:
+                overlaps.append((id_a, id_b))
+    return overlaps
+
+
 def expand_scene(scene, *, understanding=None, font_path=None):
     """Return a new scene containing only figure_drawing primitives; the input is not modified."""
     if not isinstance(scene, dict) or not isinstance(scene.get('elements'), list):
         return scene
-    if not any(isinstance(e, dict) and e.get('kind') in EXTENDED for e in scene['elements']) and 'fit' not in scene:
+    has_v11_checks = isinstance(understanding, dict) and bool(
+        set(understanding) & {'terminal_connections', 'data_space', 'state_checks'}
+    )
+    if (not any(isinstance(e, dict) and e.get('kind') in EXTENDED for e in scene['elements'])
+            and 'fit' not in scene and not has_v11_checks):
         return scene  # 0.6.0 scenes pass through untouched
     scene = deepcopy(scene)
     kinds = params = None
@@ -577,16 +1260,21 @@ def expand_scene(scene, *, understanding=None, font_path=None):
         if isinstance(eid, str) and '/' in eid:
             raise ValueError(f'元素 id 不能包含 "/"（保留给组件展开）：{eid}')
     terminals, owners, junctions, circuit_ids = {}, {}, {}, set()
+    data_spaces, readings = {}, {}
     elements = []
     for element in scene['elements']:
         if not isinstance(element, dict):
             elements.append(element)
             continue
         if element.get('kind') == 'component':
-            parts, points = expand_component(element, kinds, params)
+            parts, points, meta = _expand_component_with_meta(element, kinds, params)
             elements.extend(parts)
             terminals[element['id']] = points
             owners[element['id']] = element['object_id']
+            if 'data_space' in meta:
+                data_spaces[element['id']] = meta['data_space']
+            if 'reading' in meta:
+                readings[element['id']] = meta['reading']
             if element.get('type') in CIRCUIT_TYPES:
                 circuit_ids.add(element['id'])
         elif element.get('kind') == 'junction':
@@ -620,7 +1308,38 @@ def expand_scene(scene, *, understanding=None, font_path=None):
 
     result = []
     for element in elements:
-        if not isinstance(element, dict) or element.get('kind') != 'wire':
+        if not isinstance(element, dict):
+            result.append(element)
+            continue
+        if element.get('kind') == 'data_curve':
+            eid = element.get('id')
+            unknown = set(element) - DATA_CURVE_KEYS
+            if unknown:
+                raise ValueError(f'数据曲线 {eid} 含不支持的字段 {sorted(unknown)}')
+            axes_id = element.get('axes')
+            if axes_id not in data_spaces:
+                raise ValueError(f'数据曲线 {eid} 引用的坐标系 {axes_id!r} 未定义 x_range/y_range')
+            raw_pts = element.get('points')
+            if not isinstance(raw_pts, list) or len(raw_pts) < 2:
+                raise ValueError(f'数据曲线 {eid} 至少需要 2 个数据点')
+            mapped = [map_data_point(data_spaces[axes_id], p) for p in raw_pts]
+            out = {'id': eid, 'kind': 'line' if len(mapped) == 2 else 'polyline',
+                   'points': mapped, 'stroke_width': element.get('stroke_width', 1.6)}
+            if element.get('object_id'):
+                out['object_id'] = element['object_id']
+            for key in ('dash', 'arrow'):
+                if key in element:
+                    out[key] = element[key]
+            result.append(out)
+            if element.get('markers') == 'dot':
+                for idx, mp in enumerate(mapped):
+                    dot = {'id': f'{eid}/pt{idx}', 'kind': 'circle', 'center': mp, 'radius': 2.2,
+                           'fill': 'black', 'stroke_width': 0.8}
+                    if element.get('object_id'):
+                        dot['object_id'] = element['object_id']
+                    result.append(dot)
+            continue
+        if element.get('kind') != 'wire':
             result.append(element)
             continue
         wid = element.get('id')
@@ -653,8 +1372,34 @@ def expand_scene(scene, *, understanding=None, font_path=None):
                 out[key] = element[key]
         result.append(out)
     scene['elements'] = result
+    dx, dy = 0.0, 0.0
     if 'fit' in scene:
-        fit_canvas(scene, font_path)
+        _, dx, dy = _fit_canvas_with_shift(scene, font_path)
+    # Build shifted anchor/data-space/reading tables for geometric validation
+    if isinstance(understanding, dict):
+        if 'terminal_connections' in understanding:
+            anchors = {}
+            for cid, tmap in terminals.items():
+                for tname, pos in tmap.items():
+                    anchors[f'{cid}.{tname}'] = [round(pos[0] + dx, 4), round(pos[1] + dy, 4)]
+            for jid, (pos, _) in junctions.items():
+                anchors[jid] = [round(pos[0] + dx, 4), round(pos[1] + dy, 4)]
+            validate_terminal_connections(scene['elements'], anchors, understanding)
+        if 'data_space' in understanding:
+            shifted_ds = {
+                cid: {**ds, 'origin': [round(ds['origin'][0] + dx, 4), round(ds['origin'][1] + dy, 4)]}
+                for cid, ds in data_spaces.items()
+            }
+            shifted_rd = {}
+            for cid, rd in readings.items():
+                rd_copy = deepcopy(rd)
+                if 'p_low' in rd_copy and 'p_high' in rd_copy:
+                    rd_copy['p_low'] = [round(rd_copy['p_low'][0] + dx, 4), round(rd_copy['p_low'][1] + dy, 4)]
+                    rd_copy['p_high'] = [round(rd_copy['p_high'][0] + dx, 4), round(rd_copy['p_high'][1] + dy, 4)]
+                shifted_rd[cid] = rd_copy
+            validate_data_space(scene['elements'], shifted_ds, shifted_rd, understanding)
+        if 'state_checks' in understanding:
+            validate_state_checks(scene['elements'], understanding, font_path)
     return scene
 
 
@@ -692,7 +1437,7 @@ def shift(element, dx, dy):
             element[key] = [round(element[key][0] + dx, 4), round(element[key][1] + dy, 4)]
 
 
-def fit_canvas(scene, font_path=None):
+def _fit_canvas_with_shift(scene, font_path=None):
     fit = scene.pop('fit')
     if not isinstance(fit, dict) or set(fit) - {'margin'}:
         raise ValueError('fit 只支持 {"margin": 数值}')
@@ -716,6 +1461,11 @@ def fit_canvas(scene, font_path=None):
     for element in scene['elements']:
         shift(element, dx, dy)
     scene['width'], scene['height'] = final_w, final_h
+    return scene, dx, dy
+
+
+def fit_canvas(scene, font_path=None):
+    scene, _, _ = _fit_canvas_with_shift(scene, font_path)
     return scene
 
 

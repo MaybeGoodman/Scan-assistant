@@ -63,7 +63,8 @@ def figure_assets(base, block):
         validate_redraw_metadata(block)
         if sha256(image) != block['redraw']['png_sha256']:
             raise ValueError('Redrawn PNG changed after visual validation')
-        check_black_white(image)
+        if not block['redraw'].get('contains_original_fallback'):
+            check_black_white(image)
         if block.get('svg_path'):
             svg = local_path(base, block['svg_path'], error_message='Invalid or changed reviewed SVG')
             if svg.suffix.lower() != '.svg' or sha256(svg) != block['redraw']['svg_sha256']:

@@ -1,0 +1,83 @@
+{
+  "standalone_figures": {
+    "R04_physical_circuit": {
+      "png_sha256": "06dd9beffa7e1300b6d1c00b5d48d99b121e74cc0d73e71de2fabbe587ab1d9f",
+      "svg_sha256": "3d895d0808ff6322ed8d0061f4b96486fc2848b7c88608d494ed3ce9265a9c8d",
+      "size": [
+        1314,
+        1227
+      ],
+      "readability": {
+        "ok": true,
+        "target_width_mm": 80.0,
+        "canvas_size": [
+          438,
+          409
+        ],
+        "min_label_mm": 1.83,
+        "label_overlaps": [],
+        "issues": []
+      }
+    },
+    "R05_clinical_thermometer": {
+      "png_sha256": "ef6ff6ac3c3664c9218051eea08b99ab6e7203b99aa11e7bb7a3a79da22fbb92",
+      "svg_sha256": "53526e50f3b0f6cb726fbe443ba32084fe8b750ee2ef64f13908647b35307dcb",
+      "size": [
+        1074,
+        180
+      ],
+      "readability": {
+        "ok": true,
+        "target_width_mm": 80.0,
+        "canvas_size": [
+          358,
+          60
+        ],
+        "min_label_mm": 2.01,
+        "label_overlaps": [],
+        "issues": []
+      }
+    },
+    "R10_rotary_rheostat": {
+      "png_sha256": "399234bf9addb44e1855cf3fff68be6141dd2a66760f38b35af3a60892c341d3",
+      "svg_sha256": "bb6d2ed9c562dc5f4925207ca80023b6b5efe168acd24df754f748ba02491091",
+      "size": [
+        672,
+        429
+      ],
+      "readability": {
+        "ok": true,
+        "target_width_mm": 80.0,
+        "canvas_size": [
+          224,
+          143
+        ],
+        "min_label_mm": 3.93,
+        "label_overlaps": [],
+        "issues": []
+      }
+    }
+  },
+  "mixed_word_sample": {
+    "docx": "samples/v1_1_redraw/out/R12_mixed_exam_sample.docx",
+    "status": "completed",
+    "delivery": "draft",
+    "open_review_items": 1,
+    "failed_figures": [
+      "f_r11"
+    ]
+  },
+  "local_repair": {
+    "before_png": "samples/v1_1_redraw/out/R12_repair_before.png",
+    "after_png": "samples/v1_1_redraw/out/R12_repair_after.png",
+    "task_version": 2,
+    "repaired_targets": [
+      "f_r06:bing"
+    ],
+    "unchanged_regions_verified": [
+      "jia",
+      "yi"
+    ]
+  },
+  "real_scan_status": "本批样例使用合成占位原图验证程序机制与排版可读性；R01-R12 真实扫描原图素材尚未提供，待补齐素材后独立完成真实原图对照验收。"
+}
